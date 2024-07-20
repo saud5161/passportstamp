@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة البحث</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        input[disabled], select[disabled] {
+            background-color: #e9e9e9;
+            cursor: not-allowed;
+        }
+        .date-group {
+            display: flex;
+            justify-content: space-between;
+        }
+        .date-group input {
+            width: 30%;
+        }
+        .date-group select {
+            width: 32%;
+        }
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .country-option {
+            display: inline-block;
+            width: 130px; /* Adjusted width to make the highlight rectangular */
+            height: 100px; /* Kept height to make it rectangular */
+            margin: 2px 5px;
+            padding: 8px;
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            vertical-align: top;
+            box-sizing: border-box;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .country-option:hover {
+            background-color: #ddd;
+        }
+        .country-option img {
+            margin-bottom: 5px;
+            vertical-align: middle;
+            width: 20px;
+            height: 15px;
+        }
+        .country-option.selected {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .country-option span.en, .country-option span.dates {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .country-option span.dates {
+            color: red;
+        }
+        .error-message {
+            color: red;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .country-option {
+                width: 30%; /* Adjusted width for mobile to fit three items per row */
+                height: 80px;
+                padding: 5px;
+                margin: 5px 1%;
+            }
+            .country-option img {
+                width: 16px;
+                height: 12px;
+            }
+            .country-option span.en, .country-option span.dates {
+                font-size: 10px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>التحقق من تواريخ المنع</h1>
+        <div class="form-group">
+            <label for="date">أدخل البيانات بتاريخ الميلادي فقط :</label>
+            <div class="date-group">
+                <input type="number" id="day" placeholder="dd" onblur="formatInput(this)" onkeydown="focusNext(event, 'month')" disabled>
+                <select id="month" onkeydown="focusNext(event, 'year')" disabled>
+                    <option value="01">1 Jan January</option>
+                    <option value="02">2 Feb February</option>
+                    <option value="03">3 Mar March</option>
+                    <option value="04">4 Apr April</option>
+                    <option value="05">5 May May</option>
+                    <option value="06">6 Jun June</option>
+                    <option value="07">7 Jul July</option>
+                    <option value="08">8 Aug August</option>
+                    <option value="09">9 Sep September</option>
+                    <option value="10">10 Oct October</option>
+                    <option value="11">11 Nov November</option>
+                    <option value="12">12 Dec December</option>
+                </select>
+                <input type="number" id="year" placeholder="yyyy" onkeydown="focusNext(event, 'check')" disabled>
+            </div>
+            <div id="error-message" class="error-message">الرجاء اختيار الدولة</div>
+        </div>
+        <button class="submit-btn" id="check" onclick="checkDate()">تحقق من التاريخ</button>
+        <div id="message" class="message" style="display: none;"></div>
+        <div class="form-group">
+            <label for="country">اختر الدولة:</label>
+            <div id="country-options"></div>
+        </div>
+    </div>
+
+    <script>
+        const banData = JSON.parse(localStorage.getItem('ritData')) || {
+            "تركيا": {start: "2021-05-17", end: "2022-06-21", flag: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Flag_of_Turkey.svg", en: "Turkey"},
+            "إثيوبيا": {start: "2021-07-03", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/et-flag.gif", en: "Ethiopia"},
+            "باكستان": {start: "2023-04-04", end: null, flag: "https://www.worldometers.info/img/flags/pk-flag.gif", en: "Pakistan"},
+            "العراق": {start: "2013-04-01", end: null, flag: "https://www.worldometers.info/img/flags/iz-flag.gif", en: "Iraq"},
+            "سوريا": {start: "2015-04-07", end: null, flag: "https://www.worldometers.info/img/flags/sy-flag.gif", en: "Syria"},
+            "اليمن": {start: "2015-04-22", end: null, flag: "https://www.worldometers.info/img/flags/ym-flag.gif", en: "Yemen"},
+            "إيران": {start: "2016-01-04", end: null, flag: "https://www.worldometers.info/img/flags/ir-flag.gif", en: "Iran"},
+            "ليبيا": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/ly-flag.gif", en: "Libya"},
+            "أفغانستان": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/af-flag.gif", en: "Afghanistan"},
+            "الصومال": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/so-flag.gif", en: "Somalia"},
+            "لبنان": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/le-flag.gif", en: "Lebanon"},
+            "أوكرانيا": {start: "2022-11-17", end: null, flag: "https://www.worldometers.info/img/flags/up-flag.gif", en: "Ukraine"},
+            "إقليم بلوشستان": {start: "2018-07-29", end: null, flag: "https://www.worldometers.info/img/flags/pk-flag.gif", en: "Balochistan"},
+            "إسرائيل": {start: "1948-01-01", end: null, flag: "https://www.worldometers.info/img/flags/is-flag.gif", en: "Israel"},
+            "أرمينيا": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/am-flag.gif", en: "Armenia"},
+            "روسيا البيضاء": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/bo-flag.gif", en: "Belarus"},
+            "فنزويلا": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/ve-flag.gif", en: "Venezuela"},
+            "الكونغو": {start: "2021-05-17", end: "2022-07-22", flag: "https://www.worldometers.info/img/flags/cg-flag.gif", en: "Congo"},
+            "الهند": {start: "2021-05-17", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/in-flag.gif", en: "India"},
+            "تايلاند": {start: "1990-02-15", end: "2022-03-09", flag: "https://www.worldometers.info/img/flags/th-flag.gif", en: "Thailand"},
+            "قطر": {start: "2017-07-30", end: "2020-01-17", flag: "https://www.worldometers.info/img/flags/qa-flag.gif", en: "Qatar"},
+            "الإمارات العربية": {start: "2021-07-03", end: "2021-09-08", flag: "https://www.worldometers.info/img/flags/ae-flag.gif", en: "UAE"},
+            "فيتنام": {start: "2021-07-03", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/vm-flag.gif", en: "Vietnam"},
+            "إندونيسيا": {start: "2021-07-18", end: "2022-06-08", flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Indonesia"},
+            "السودان": {start: "2023-01-01", end: null, flag: "https://www.worldometers.info/img/flags/su-flag.gif", en: "Sudan"},
+            "جمهورية هايتي": {start: "2023-06-04", end: null, flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Haiti"}
+        };
+
+        let selectedCountry = "";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const countryOptions = document.getElementById('country-options');
+            const regions = {
+                "العربية": ["العراق", "سوريا", "اليمن", "ليبيا", "لبنان", "قطر", "الإمارات العربية", "السودان"],
+                "الأفريقية": ["إثيوبيا", "الصومال", "الكونغو"],
+                "الآسيوية": ["تركيا", "باكستان", "إيران", "أفغانستان", "إقليم بلوشستان", "الهند", "تايلاند", "فيتنام", "إندونيسيا"],
+                "الأوروبية": ["أرمينيا", "روسيا البيضاء", "أوكرانيا"],
+                "الأمريكية": ["فنزويلا", "جمهورية هايتي"],
+                "أخرى": ["إسرائيل"]
+            };
+
+            for (const region of ["العربية", "الأفريقية", "الآسيوية", "الأوروبية", "الأمريكية", "أخرى"]) {
+                const countries = regions[region];
+                countries.forEach(country => {
+                    if (banData[country]) {
+                        const data = banData[country];
+                        const countryDiv = document.createElement('div');
+                        countryDiv.classList.add('country-option');
+                        countryDiv.dataset.value = country;
+                        const startYear = data.start ? data.start.split("-")[0] : "N/A";
+                        const endYear = data.end ? data.end.split("-")[0] : "لاتزال ممنوعة";
+                        countryDiv.innerHTML = `<img src="${data.flag}" alt="${country}"> ${country}<span class="en">${data.en}</span><span class="dates">${startYear} - ${endYear}</span>`;
+                        countryDiv.addEventListener('click', () => selectCountry(countryDiv));
+                        countryOptions.appendChild(countryDiv);
+                    }
+                });
+            }
+        });
+
+        function selectCountry(element) {
+            const options = document.querySelectorAll(".country-option");
+            options.forEach(option => option.classList.remove("selected"));
+            element.classList.add("selected");
+            selectedCountry = element.dataset.value;
+
+            // Enable date inputs
+            document.getElementById('day').disabled = false;
+            document.getElementById('month').disabled = false;
+            document.getElementById('year').disabled = false;
+
+            // Hide error message
+            document.getElementById('error-message').style.display = "none";
+
+            // Reset date inputs
+            document.getElementById('day').value = "";
+            document.getElementById('month').value = "01";
+            document.getElementById('year').value = "";
+            document.getElementById('message').style.display = "none";
+        }
+
+        function formatInput(input) {
+            if (input.value.length === 1) {
+                input.value = '0' + input.value;
+            }
+        }
+
+        function formatDateString(day, month, year) {
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+
+        function focusNext(event, nextId) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                document.getElementById(nextId).focus();
+            }
+        }
+
+        function checkDate() {
+            const day = document.getElementById('day').value.padStart(2, '0');
+            const month = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
+            const message = document.getElementById('message');
+
+            if (!selectedCountry) {
+                document.getElementById('error-message').style.display = "block";
+                return;
+            }
+
+            if (!day || !month || !year) {
+                message.textContent = "يرجى ملء جميع الحقول.";
+                message.className = "message error";
+                message.style.display = "block";
+                return;
+            }
+
+            const inputDate = new Date(formatDateString(day, month, year));
+            if (isNaN(inputDate.getTime())) {
+                message.textContent = "الرجاء كتابة التاريخ بالميلادي بشكل صحيح.";
+                message.className = "message error";
+                message.style.display = "block";
+                return;
+            }
+
+            const startDate = banData[selectedCountry].start ? new Date(banData[selectedCountry].start) : null;
+            const endDate = banData[selectedCountry].end ? new Date(banData[selectedCountry].end) : null;
+
+            if (!startDate) {
+                message.textContent = "التاريخ غير موجود في قاعدة البيانات.";
+                message.className = "message error";
+                message.style.display = "block";
+            } else if (inputDate >= startDate && (!endDate || inputDate <= endDate)) {
+                const endDateText = endDate ? endDate.toISOString().split('T')[0] : "لاتزال ممنوعة";
+                message.textContent = `يرجى الانتباه: الختم في تاريخ المنع. ${selectedCountry} ممنوعة من تاريخ ${startDate.toISOString().split('T')[0]} إلى ${endDateText}.`;
+                message.className = "message error";
+                message.style.display = "block";
+            } else {
+                message.textContent = "الختم سليم: في وقت السماح.";
+                message.className = "message success";
+                message.style.display = "block";
+            }
+
+            setTimeout(() => {
+                clearSelection();
+            }, 16000);
+        }
+
+        function clearSelection() {
+            // Clear selected country
+            const options = document.querySelectorAll(".country-option");
+            options.forEach(option => option.classList.remove("selected"));
+            selectedCountry = "";
+
+            // Disable date inputs
+            document.getElementById('day').disabled = true;
+            document.getElementById('month').disabled = true;
+            document.getElementById('year').disabled = true;
+
+            // Reset date inputs
+            document.getElementById('day').value = "";
+            document.getElementById('month').value = "01";
+            document.getElementById('year').value = "";
+
+            // Show error message
+            document.getElementById('error-message').style.display = "block";
+
+            // Hide messages
+            document.getElementById('message').style.display = "none";
+        }
+
+        // تحديث بيانات صفحة RIT عند التحميل
+        window.addEventListener('storage', () => {
+            const updatedBanData = JSON.parse(localStorage.getItem('ritData'));
+            if (updatedBanData) {
+                banData = updatedBanData;
+                document.getElementById('country-options').innerHTML = '';
+                for (const region of ["العربية", "الأفريقية", "الآسيوية", "الأوروبية", "الأمريكية", "أخرى"]) {
+                    const countries = regions[region];
+                    countries.forEach(country => {
+                        if (banData[country]) {
+                            const data = banData[country];
+                            const countryDiv = document.createElement('div');
+                            countryDiv.classList.add('country-option');
+                            countryDiv.dataset.value = country;
+                            const startYear = data.start ? data.start.split("-")[0] : "N/A";
+                            const endYear = data.end ? data.end.split("-")[0] : "لاتزال ممنوعة";
+                            countryDiv.innerHTML = `<img src="${data.flag}" alt="${country}"> ${country}<span class="en">${data.en}</span><span class="dates">${startYear} - ${endYear}</span>`;
+                            countryDiv.addEventListener('click', () => selectCountry(countryDiv));
+                            document.getElementById('country-options').appendChild(countryDiv);
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
