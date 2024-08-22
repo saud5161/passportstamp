@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>نماذج الجوازات</title>
+    <link rel="stylesheet" href="css/all.min.css">
+    <link rel="stylesheet" href="css/all.css">
+   
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="img/icon-g.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+            direction: rtl;
+            background-color: #d3d3d3;
+            margin: 0;
+            padding: 0;
+        }
+        a {
+            text-decoration: none;
+        }
+        .top-bar {
+            background-color: #3d775f;
+            color: white;
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .top-bar .right, .top-bar .left {
+            display: flex;
+            align-items: center;
+        }
+        .top-bar .left {
+            flex-grow: 1;
+            justify-content: flex-end;
+        }
+        .top-bar .left a {
+            color: white;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .top-bar .left a:hover {
+            text-decoration: underline;
+        }
+        .top-bar .right .logo-container {
+            display: flex;
+            align-items: center;
+        }
+        .top-bar .right img {
+            height: 60px;
+            margin-left: 10px;
+        }
+        .top-bar .right div {
+            font-size: 12px;
+            text-align: right;
+        }
+        .top-bar .right div div {
+            line-height: 1.2;
+        }
+        #date {
+            font-family: 'Amiri', serif;
+            font-size: 16px;
+            color: white;
+            margin-left: 15px;
+        }
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: calc(100vh - 100px);
+            justify-content: center;
+            gap: 20px;
+            padding-top: 70px; /* Add padding to avoid overlap with top bar */
+            box-sizing: border-box;
+        }
+        .buttons-container a {
+            background-color: #ffffff;
+            color: #004d00;
+            border: none;
+            padding: 20px 40px;
+            font-size: 24px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 500px;
+            text-decoration: none;
+            box-sizing: border-box;
+            position: relative; /* Added for positioning the icon */
+        }
+        .buttons-container a i {
+            font-size: 36px;
+            position: absolute; /* Position the icon absolutely */
+            right: 20px; /* Align it to the right */
+        }
+        .buttons-container a:hover {
+            background-color: #868e94;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .highlight {
+            background-color: #ffffff;
+            transition: background-color 0.5s;
+        }
+        @media (max-width: 768px) {
+            .buttons-container a {
+                padding: 15px 30px;
+                font-size: 20px;
+            }
+            .buttons-container a i {
+                font-size: 8vw; /* Larger icon size for smaller screens */
+                right: 10px; /* Adjust right position for smaller screens */
+            }
+        }
+        @media (max-width: 480px) {
+            .buttons-container a {
+                padding: 10px 20px;
+                font-size: 18px;
+            }
+            .buttons-container a i {
+                font-size: 10vw; /* Even larger icon size for very small screens */
+                right: 5px; /* Adjust right position for very small screens */
+            }
+        }
+        .password-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
+        .password-box {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+        }
+        .password-box input {
+            padding: 10px;
+            font-size: 18px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .password-box button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            background-color: #3d775f;
+            color: #fff;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .password-box button:hover {
+            background-color: #868e94;
+        }
+        .password-box .close-btn {
+            background-color: #f44336;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
+        .password-box .close-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+    <script>
+        function checkPassword(action) {
+            var passwordContainer = document.getElementById("password-container");
+            passwordContainer.style.display = "flex";
+            document.getElementById("password-action").value = action;
+            document.getElementById("password-input").focus();
+        }
+
+        function closePasswordBox() {
+            var passwordContainer = document.getElementById("password-container");
+            passwordContainer.style.display = "none";
+        }
+
+        function verifyPassword() {
+            var passwordInput = document.getElementById("password-input").value;
+            var correctPassword = "12345";
+            var action = document.getElementById("password-action").value;
+
+            if (passwordInput === correctPassword) {
+                if (action === "developer") {
+                    window.location.href = "link3.html"; // استبدل هذا الرابط بالرابط الذي تريده
+                } else if (action === "departure") {
+                    window.location.href = "Departure.html"; // استبدل هذا الرابط بالرابط الذي تريده
+                } else if (action === "arrival") {
+                    window.location.href = "Arrival.html"; // استبدل هذا الرابط بالرابط الذي تريده
+                }
+            } else {
+                alert("الرقم السري غير صحيح");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var today = new Date();
+            var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            var formattedDate = today.toLocaleDateString('ar-SA', options);
+            document.getElementById("date").textContent = formattedDate;
+
+            var unavailableButtons = document.querySelectorAll(".unavailable");
+
+            unavailableButtons.forEach(function(button) {
+                button.addEventListener("click", function(event) {
+                    event.preventDefault();
+                    alert("سوف يتم توفيره قريباً");
+                });
+            });
+
+            document.getElementById("password-input").addEventListener("keyup", function(event) {
+                if (event.key === "Enter") {
+                    verifyPassword();
+                }
+            });
+
+            document.getElementById("print-button").addEventListener("click", function() {
+                window.print();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="right">
+            <div class="logo-container">
+                <img src="img/main-httpswww.gdp.gov.saportalassetsimglogo.png" alt="الشعار">
+                <div>
+                    <div>المملكة العربية السعودية</div>
+                    <div>وزارة الداخلية - المديرية العامة للجوازات</div>
+                </div>
+            </div>
+        </div>
+        <div class="left">
+            
+            <span id="date"></span>
+            <a id="print-button"><i class="fas fa-print"></i></a>
+            <a href="#"><i class="fas fa-desktop"></i></a>
+            <a href="#"><i class="fas fa-bell"></i></a>
+            <a href="#"><i class="fas fa-headset"></i></a>
+            <a href="#"><i class="fas fa-file-alt"></i></a>
+        </div>
+    </div>
+    <div class="buttons-container">
+        <a href="Arrival.html" ><i class="fas fa-plane-arrival"></i> <span>القدوم</span></a>
+        <a href="Departure.html" ><i class="fas fa-plane-departure"></i> <span>مغادرة</span></a>
+        <a href="#" onclick="checkPassword('developer')"><i class="fas fa-cogs"></i> <span>إعدادات المطور</span></a>
+    </div>
+    <div id="password-container" class="password-container">
+        <div class="password-box">
+            <input id="password-input" type="password" placeholder="أدخل الرقم السري">
+            <input type="hidden" id="password-action" value="">
+            <button onclick="verifyPassword()">تأكيد</button>
+            <button class="close-btn" onclick="closePasswordBox()">إغلاق</button>
+        </div>
+    </div>
+</body>
+</html>
