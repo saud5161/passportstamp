@@ -2,6 +2,8 @@ const { app, BrowserWindow, dialog, autoUpdater } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { shell } = require('electron');
+const simpleGit = require('simple-git'); // إضافة مكتبة simple-git
+const git = simpleGit();
 
 let mainWindow;
 
@@ -30,6 +32,19 @@ function createWindow() {
     mainWindow.maximize();
     mainWindow.show(); // إظهار النافذة بعد تكبيرها
   });
+
+  // جلب التحديثات من GitHub للمجلد 'dic'
+  const dicPath = path.join(__dirname, 'dic');
+  git.cwd(dicPath)
+     .pull('origin', 'main', (err, update) => {
+       if (err) {
+         console.error('Error pulling updates:', err);
+       } else if (update && update.summary.changes) {
+         console.log('Repository updated successfully');
+       } else {
+         console.log('No changes detected');
+       }
+     });
 
   // معالجة التنزيل التلقائي
   mainWindow.webContents.session.on('will-download', (event, item) => {
