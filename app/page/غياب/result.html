@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محضر غياب</title>
+    <!-- إضافة رابط خط Noto Kufi Arabic -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'PT Bold Heading';
+            src: url('path-to-PT-Bold-Heading.ttf') format('truetype');
+        }
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl; /* لضبط اتجاه النص من اليمين لليسار */
+            text-align: right;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            height: 100vh; /* تأكد من أن الصفحة تأخذ كامل الارتفاع */
+            display: flex;
+            align-items: flex-start; /* محاذاة المحتوى إلى الأعلى */
+        }
+        @page {
+            size: A4; /* تحديد حجم الصفحة لتكون A4 */
+            margin: 0;
+        }
+        .page {
+            width: 180mm; /* تعديل عرض الصفحة لتقليل الحواف */
+            height: 290mm; /* ارتفاع الصفحة A4 */
+            margin: auto;
+            padding: 0; /* إزالة الهوامش الداخلية */
+            position: relative;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center; /* محاذاة الصورة في المنتصف */
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .header img {
+            width: 60%; /* عرض الصورة يكون بنسبة 70% */
+            max-width: 500px; /* أقصى عرض للصورة */
+            margin-left: 240px;
+            position: relative;
+            margin-right: -50px;
+            top: -19px; /* رفع الصورة لتكون خارج الإطار */
+        }
+        .container {
+            border: 2px solid #024928; /* إضافة حدود سوداء للإطار */
+            padding: 6mm; /* حواف داخلية للإطار */
+            margin-top: -30px; /* رفع الإطار ليكون قريبًا من الصورة */
+            background-color: #f9f9f9; /* خلفية الإطار */
+            border-radius: 16px;
+        }
+        .content {
+            margin-top: 20px; /* إضافة مساحة فوق المحتوى */
+            margin-bottom: 210px; /* تعديل المسافة أسفل المحتوى */
+        }
+        h2 {
+            text-align: center; /* محاذاة عنوان "محضر غياب" في المنتصف */
+            text-decoration: none; /* إزالة الخط تحت العنوان */
+        }
+        table {
+            width: 100%; /* عرض الجدول يكون بنسبة 100% */
+            border-collapse: collapse; /* دمج حدود الجدول */
+            margin-bottom: 20px;
+            font-size: 19px;
+        }
+        table, th, td {
+            border: 1px solid #000; /* حدود الخلايا في الجدول */
+        }
+        th, td {
+            padding: 10px;
+            text-align: center; /* محاذاة النص في الخلايا في المنتصف */
+        }
+        th {
+            background-color: #d3d3d3; /* خلفية رمادية للخلايا الرأسية */
+        }
+        .bold-text {
+            font-weight: bold;
+            font-size: 24px; /* تكبير النص وجعله عريضًا */
+            font-family: 'PT Bold Heading', Arial, sans-serif;
+            padding: 5px; /* إضافة padding */
+        }
+        .bold-heading {
+            font-family: 'Almarai', sans-serif;
+            font-weight: bold;
+            font-size: 24px; /* حجم الخط */
+        }
+        .large-text {
+            font-size: 24px; /* تكبير النص */
+            line-height: 1.6; /* تحسين تباعد الأسطر */
+            padding: 5px; /* إضافة padding */
+            margin-top: -10px; /* تقليل المسافة فوق النص */
+        }
+        .large-text p {
+            margin: 5px 0; /* تقليل المسافات حول الفقرات */
+        }
+        .signature {
+            margin-top: 20px; /* إضافة مساحة فوق التوقيع */
+            text-align: left; /* محاذاة النص إلى اليسار */
+            font-size: 28px; /* تكبير النص */
+            font-family: 'PT Bold Heading', Arial, sans-serif;
+            font-weight: bold;
+            padding: 5px; /* إضافة padding */
+        }
+        .officer-details {
+            text-align: left; /* محاذاة النص إلى اليسار */
+            margin-left: 50px; /* إضافة هامش إلى اليسار */
+            font-size: 28px; /* تكبير النص */
+            font-family: 'PT Bold Heading', Arial, sans-serif;
+            font-weight: bold;
+            padding: 0; /* إزالة padding */
+        }
+        .signature p {
+            margin: 0; /* إزالة المسافات حول الفقرة */
+        }
+        #officerRank {
+            margin-left: 220px;
+        }
+        #officerName{
+            margin-left: 0px;
+        }
+        .footer {
+            margin-top: 20px; /* إضافة مساحة فوق التذييل */
+            text-align: center; /* محاذاة النص في المنتصف */
+        }
+        .inline {
+            display: inline-block;
+            vertical-align: middle;
+            font-size: 28px;
+        }
+        .bottom-info {
+            margin-top: 20px;
+            font-size: 18px; /* تكبير النص */
+            text-align: center; /* محاذاة النص في المنتصف */
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+        .bottom-info p {
+            margin: 0;
+            padding: 0 10px; /* إضافة مساحة بين الكلمات */
+            display: inline-block;
+        }
+        .bottom-info .left {
+            margin-left: 50px; /* تعديل المسافة للمرفقات */
+        }
+        .spacer {
+            display: inline-block;
+            width: 10px; /* تعديل عرض المسافة حسب الحاجة */
+        }
+
+        /* استعلامات الوسائط لتنسيق الجوال */
+        @media screen and (max-width: 767px) {
+            .page {
+                width: 100%; /* عرض الصفحة يكون بنسبة 100% */
+                height: auto; /* ارتفاع الصفحة يكون تلقائي */
+                margin: 0;
+                padding: 10px; /* إضافة حواف داخلية */
+            }
+            .header img {
+                width: 100%; /* عرض الصورة يكون بنسبة 100% */
+                margin-left: 0;
+                top: 0; /* إعادة ضبط الموضع العلوي */
+            }
+            .container {
+                padding: 10px; /* حواف داخلية للإطار */
+                margin-top: 0; /* إعادة ضبط الهامش العلوي */
+            }
+            .content {
+                margin-top: 10px; /* إضافة مساحة فوق المحتوى */
+                margin-bottom: 10px; /* تعديل المسافة أسفل المحتوى */
+            }
+            .signature {
+                font-size: 20px; /* تكبير النص */
+            }
+            .officer-details {
+                font-size: 20px; /* تكبير النص */
+                margin-left: 0; /* إعادة ضبط الهامش */
+            }
+            .footer {
+                font-size: 16px; /* حجم الخط في التذييل */
+            }
+            .bottom-info {
+                flex-direction: column; /* ترتيب العناصر عمودياً */
+                align-items: flex-start; /* محاذاة العناصر إلى البداية */
+                padding: 10px 0; /* إضافة حواف داخلية */
+            }
+            .bottom-info p {
+                margin-bottom: 10px; /* إضافة مسافة بين العناصر */
+            }
+        }
+        .bold-heading.inline {
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    font-size: 27px; /* حجم الخط */
+}
+
+        
+        
+    </style>
+</head>
+<body>
+
+<div class="page">
+    <!-- قسم الرأس يحتوي على الشعار -->
+    <div class="header">
+        <img src="image.png" alt="شعار">
+    </div>
+
+    <!-- قسم المحتوى يحتوي على الإطار الرئيسي -->
+    <div class="container">
+        <div class="content">
+            <h2>( محضر غياب )</h2>
+            <!-- جدول يحتوي على المعلومات -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الرتبة</th>
+                        <th>المناوبة/الشعبة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="name" contenteditable="true"></td>
+                        <td id="rank" contenteditable="true"></td>
+                        <td contenteditable="true"><span id="department"></span> سفر (<span id="room"></span>)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- نص الرسالة -->
+            <div class="mangar-top" contenteditable="true">
+                <p class="bold-heading inline">سعادة مدير جوازات مطار الملك خالد الدولي</p>
+                <p class="bold-heading inline" style="margin-right: 90px;" >الموقر</p>
+            </div>
+            <div class="large-text" contenteditable="true">
+                <p>السلام عليكم ورحمة الله وبركاته:</p>
+                <p id="absenceParagraph">نفيد سعادتكم بأن المجندة الموضح بياناتها أعلاه تغيبت عن العمل لهذا اليوم     
+                <span id="weekday"></span>  <span class=""></span>الموافق 
+                <span id="hijriDate"></span>  بدون إذن مسبق.</p>
+                <p>بأمل اطلاع سعادتكم والإحاطة. والسلام عليكم،،،،</p>
+            </div>
+            <!-- توقيع -->
+            <div class="signature" contenteditable="true">
+                <p>رئيس مناوبة ( <span id="department-signature"></span> ) سفر ( <span id="room-signature"></span> )</p>
+                <div class="officer-details" contenteditable="true">
+                    <p id="officerRank"></p>
+                    <p id="officerName"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- قسم التذييل يحتوي على معلومات إضافية -->
+    <div class="footer bottom-info">
+        <p>الرقم: <span id="outgoingNumber" contenteditable="true"></span></p>
+        <p>التاريخ: <span id="date3" contenteditable="true"></span></p>
+        <p class="left editable" contenteditable="true">المشفوعات:</p>
+    </div>
+</div>
+
+<script>
+    // دالة للحصول على القيم من URL
+    function getParameterByName(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+    }
+
+    // تحويل الأرقام الإنجليزية إلى أرقام عربية
+    function toArabicNumbers(str) {
+        return str.replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+    }
+
+    // تعبئة البيانات في الصفحة من URL
+    document.getElementById('name').textContent = getParameterByName('name');
+    document.getElementById('rank').textContent = getParameterByName('rank');
+    const department = getParameterByName('department');
+    const room = getParameterByName('room');
+    document.getElementById('department').textContent = department;
+    document.getElementById('room').textContent = toArabicNumbers(room);
+    document.getElementById('department-signature').textContent = department;
+    document.getElementById('room-signature').textContent = toArabicNumbers(room);
+
+    const hijriDate = toArabicNumbers(getParameterByName('hijriDate'));
+    const weekday = getParameterByName('weekday');
+    const officerName = getParameterByName('officerName');
+    const officerRank = getParameterByName('officerRank');
+    const outgoingNumber = toArabicNumbers(getParameterByName('outgoingNumber'));
+
+    document.getElementById('hijriDate').textContent = hijriDate;
+    document.getElementById('weekday').textContent = weekday;
+    document.getElementById('date3').textContent = hijriDate;
+    document.getElementById('officerName').textContent = officerName;
+    document.getElementById('officerRank').textContent = officerRank;
+    document.getElementById('outgoingNumber').textContent = outgoingNumber;
+
+    // تغيير النص بناءً على نوع المحضر
+    const absenceType = getParameterByName('absenceType');
+    const absenceParagraph = document.getElementById('absenceParagraph');
+
+    if (absenceType === "أفراد") {
+        absenceParagraph.innerHTML = absenceParagraph.innerHTML.replace("المجندة", "الفرد")
+                                                              .replace("بياناتها", "بياناته")
+                                                              .replace("تغيبت", "تغيب");
+    }
+</script>
+
+</body>
+</html>

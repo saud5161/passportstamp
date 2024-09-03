@@ -1,0 +1,8 @@
+{
+  "name": "aljawazat",
+  "version": "0.0.3",
+  "main": "main.js",
+  "dependencies": {
+    "simple-git": "^2.48.0"
+  }
+}
