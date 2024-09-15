@@ -33,9 +33,36 @@
         </div>
         <div class="left">
             <a href="#"><i class="fas fa-desktop"></i></a>
-            <a href="#"><i class="fas fa-bell"></i></a>
+        
+            <!-- أيقونة الجرس مع الإشعار -->
+            <a href="#" onclick="fetchLatestRelease()">
+                <div class="icon-with-notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">1</span>
+                </div>
+             </a>
+             
+             <!-- مربع النص لعرض المحتوى أسفل الجرس -->
+             <div id="notification-content" style="display: none;">
+                 <p id="latest-release-text">جارٍ التحميل...</p>
+             </div>
+             
+            
+            
+        
             <a id="print-button"><i class="fas fa-print"></i></a>
-            <a href=""><i class="fas fa-headset"></i></a>
+            <a href="#" onclick="toggleHeadsetNotification(event)">
+                <div class="icon-with-notification">
+                    <i class="fas fa-headset"></i>
+                    <span class="notification-star">1</span> <!-- رقم 1 بدلاً من النجمة -->
+                </div>
+             </a>
+             
+             <!-- مربع النص لعرض محتوى الاقتراح -->
+             <div id="headset-notification-content" style="display: none;">
+                 <p id="headset-latest-release-text">في حال وجود اي ملاحظة او اقتراح يرجى التواصل واتس اب فقط مع سعود الحجي رقم جوال 0568190224</p>
+             </div>
+             
             <a href="passport-d.html"><i class="fa-solid fa-power-off"></i></a>
         </div>
     </div>
@@ -918,7 +945,19 @@
 
                         </div>
                     </div>
+<div class="button">
+                        <div class="icon-container">
+                            <div class="description">
+                                <h3>اقرار وتعهد بخط سير الرحلة </h3>
+                                <p>تعهد لوجود ختم لاحد الدول الممنوعه  </p>
+                            </div>
+                        </div>
+                        <div class="button-container">
+                            <a href="dic-Arrival/السعودين/اقرار وتعهد بسير الرحلة .pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
+                            <a href="dic-Arrival/السعودين/اقرار وتعهد بسير الرحلة .docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
 
+                        </div>
+                    </div>
                     <div class="button">
                         <div class="icon-container">
                             <div class="description">
