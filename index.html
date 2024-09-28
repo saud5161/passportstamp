@@ -175,33 +175,35 @@
 
     <script>
         const banData = JSON.parse(localStorage.getItem('ritData')) || {
-            "تركيا": {start: "2021-05-17", end: "2022-06-21", flag: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Flag_of_Turkey.svg", en: "Turkey"},
-            "إثيوبيا": {start: "2021-07-03", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/et-flag.gif", en: "Ethiopia"},
-            "باكستان": {start: "2023-04-04", end: null, flag: "https://www.worldometers.info/img/flags/pk-flag.gif", en: "Pakistan"},
-            "العراق": {start: "2013-04-01", end: null, flag: "https://www.worldometers.info/img/flags/iz-flag.gif", en: "Iraq"},
-            "سوريا": {start: "2015-04-07", end: null, flag: "https://www.worldometers.info/img/flags/sy-flag.gif", en: "Syria"},
-            "اليمن": {start: "2015-04-22", end: null, flag: "https://www.worldometers.info/img/flags/ym-flag.gif", en: "Yemen"},
-            "إيران": {start: "2016-01-04", end: null, flag: "https://www.worldometers.info/img/flags/ir-flag.gif", en: "Iran"},
-            "ليبيا": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/ly-flag.gif", en: "Libya"},
-            "أفغانستان": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/af-flag.gif", en: "Afghanistan"},
-            "الصومال": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/so-flag.gif", en: "Somalia"},
-            "لبنان": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/le-flag.gif", en: "Lebanon"},
-            "أوكرانيا": {start: "2022-11-17", end: null, flag: "https://www.worldometers.info/img/flags/up-flag.gif", en: "Ukraine"},
-            "إقليم بلوشستان": {start: "2018-07-29", end: null, flag: "https://www.worldometers.info/img/flags/pk-flag.gif", en: "Balochistan"},
-            "إسرائيل": {start: "1948-01-01", end: null, flag: "https://www.worldometers.info/img/flags/is-flag.gif", en: "Israel"},
-            "أرمينيا": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/am-flag.gif", en: "Armenia"},
-            "روسيا البيضاء": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/bo-flag.gif", en: "Belarus"},
-            "فنزويلا": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/ve-flag.gif", en: "Venezuela"},
-            "الكونغو": {start: "2021-05-17", end: "2022-07-22", flag: "https://www.worldometers.info/img/flags/cg-flag.gif", en: "Congo"},
-            "الهند": {start: "2021-05-17", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/in-flag.gif", en: "India"},
-            "تايلاند": {start: "1990-02-15", end: "2022-03-09", flag: "https://www.worldometers.info/img/flags/th-flag.gif", en: "Thailand"},
-            "قطر": {start: "2017-07-30", end: "2020-01-17", flag: "https://www.worldometers.info/img/flags/qa-flag.gif", en: "Qatar"},
-            "الإمارات العربية": {start: "2021-07-03", end: "2021-09-08", flag: "https://www.worldometers.info/img/flags/ae-flag.gif", en: "UAE"},
-            "فيتنام": {start: "2021-07-03", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/vm-flag.gif", en: "Vietnam"},
-            "إندونيسيا": {start: "2021-07-18", end: "2022-06-08", flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Indonesia"},
-            "السودان": {start: "2023-01-01", end: null, flag: "https://www.worldometers.info/img/flags/su-flag.gif", en: "Sudan"},
-            "جمهورية هايتي": {start: "2023-06-04", end: null, flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Haiti"}
-        };
+    "تركيا": {start: "2021-05-17", end: "2022-06-21", flag: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Flag_of_Turkey.svg", en: "Turkey"},
+    "إثيوبيا": {start: "2021-07-03", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/et-flag.gif", en: "Ethiopia"},
+    "باكستان": {start: "2023-04-04", end: null, flag: "https://www.worldometers.info/img/flags/pk-flag.gif", en: "Pakistan"},
+    "العراق": {start: "2013-04-01", end: null, flag: "https://www.worldometers.info/img/flags/iz-flag.gif", en: "Iraq"},
+    "سوريا": {start: "2015-04-07", end: null, flag: "https://www.worldometers.info/img/flags/sy-flag.gif", en: "Syria"},
+    "اليمن": {start: "2015-04-22", end: null, flag: "https://www.worldometers.info/img/flags/ym-flag.gif", en: "Yemen"},
+    "إيران": {start: "2016-01-04", end: null, flag: "https://www.worldometers.info/img/flags/ir-flag.gif", en: "Iran"},
+    "ليبيا": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/ly-flag.gif", en: "Libya"},
+    "أفغانستان": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/af-flag.gif", en: "Afghanistan"},
+    "الصومال": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/so-flag.gif", en: "Somalia"},
+    "لبنان": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/le-flag.gif", en: "Lebanon"},
+    "أوكرانيا": {start: "2022-11-17", end: null, flag: "https://www.worldometers.info/img/flags/up-flag.gif", en: "Ukraine"},
+    "إقليم بلوشستان": {start: "2018-07-29", end: null, flag: "https://www.worldometers.info/img/flags/pk-flag.gif", en: "Balochistan"},
+    "إسرائيل": {start: "1948-01-01", end: null, flag: "https://www.worldometers.info/img/flags/is-flag.gif", en: "Israel"},
+    "أرمينيا": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/am-flag.gif", en: "Armenia"},
+    "روسيا البيضاء": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/bo-flag.gif", en: "Belarus"},
+    "فنزويلا": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/ve-flag.gif", en: "Venezuela"},
+    "الكونغو": {start: "2021-05-17", end: "2022-07-22", flag: "https://www.worldometers.info/img/flags/cg-flag.gif", en: "Congo"},
+    "الهند": {start: "2021-05-17", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/in-flag.gif", en: "India"},
+    "تايلاند": {start: "1990-02-15", end: "2022-03-09", flag: "https://www.worldometers.info/img/flags/th-flag.gif", en: "Thailand"},
+    "قطر": {start: "2017-07-30", end: "2020-01-17", flag: "https://www.worldometers.info/img/flags/qa-flag.gif", en: "Qatar"},
+    "الإمارات العربية": {start: "2021-07-03", end: "2021-09-08", flag: "https://www.worldometers.info/img/flags/ae-flag.gif", en: "UAE"},
+    "فيتنام": {start: "2021-07-03", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/vm-flag.gif", en: "Vietnam"},
+    "إندونيسيا": {start: "2021-07-18", end: "2022-06-08", flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Indonesia"},
+    "السودان": {start: "2023-05-30", end: null, flag: "https://www.worldometers.info/img/flags/su-flag.gif", en: "Sudan"},
+    "جمهورية هايتي": {start: "2023-06-01", end: null, flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Haiti"},
+    "الكونغو الديمقراطية": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/cg-flag.gif", en: "Democratic Republic of the Congo"}
+};
+
 
         let selectedCountry = "";
 
@@ -224,9 +226,11 @@
                         const countryDiv = document.createElement('div');
                         countryDiv.classList.add('country-option');
                         countryDiv.dataset.value = country;
-                        const startYear = data.start ? data.start.split("-")[0] : "N/A";
-                        const endYear = data.end ? data.end.split("-")[0] : "لاتزال ممنوعة";
-                        countryDiv.innerHTML = `<img src="${data.flag}" alt="${country}"> ${country}<span class="en">${data.en}</span><span class="dates">${startYear} - ${endYear}</span>`;
+                        const startDate = data.start ? data.start : "N/A";
+const endDate = data.end ? data.end : "لاتزال ممنوعة";
+countryDiv.innerHTML = `<img src="${data.flag}" alt="${country}"> ${country}<span class="en">${data.en}</span><span class="dates">البداية: ${startDate}<br>النهاية: ${endDate}</span>`;
+
+
                         countryDiv.addEventListener('click', () => selectCountry(countryDiv));
                         countryOptions.appendChild(countryDiv);
                     }
