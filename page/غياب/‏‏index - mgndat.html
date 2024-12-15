@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نموذج غياب</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #fff;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        .section h2 {
+            margin-top: 0;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        input[disabled],
+        select[disabled] {
+            background-color: #e9e9e9;
+            cursor: not-allowed;
+        }
+        button {
+            display: inline-block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        button:hover:enabled {
+            background-color: #45a049;
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+            display: none;
+        }
+        .editable {
+            border: none;
+            outline: none;
+            background: none;
+            resize: none;
+        }
+        .note {
+            color: green;
+            font-size: small;
+        }
+        .skip-container {
+            display: flex;
+            align-items: center;
+            font-size: small;
+            margin-top: 10px;
+        }
+        .record {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            background-color: #fefefe;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="editable" contenteditable="true">نموذج غياب</h1>
+
+    <!-- إضافة حقل اختيار عدد المحضر -->
+    <div class="section">
+        <label for="recordCount">عدد المحضر:</label>
+        <select id="recordCount" name="recordCount" required>
+            <option value="">اختر عدد المحاضر</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+    </div>
+
+    <div class="section">
+        <h2 class="editable" contenteditable="true">معلومات التاريخ</h2>
+        <span id="timeNote" class="note" style="display: none;">التاريخ وقت الاستلام</span>
+        <label for="hijriDate">التاريخ (هجري):</label>
+        <input type="text" id="hijriDate" name="hijriDate" required disabled>
+        <label for="weekday">اليوم (أسبوعي):</label>
+        <input type="text" id="weekday" name="weekday" required disabled>
+    </div>
+
+    <div class="section">
+        <h2 class="editable" contenteditable="true">المناوبة والصالة</h2>
+        <label for="department">المناوبة/ الشعبة:</label>
+        <select id="department" name="department" required disabled>
+            <option value="">اختر المناوبة</option>
+            <option value="أ">أ</option>
+            <option value="ب">ب</option>
+            <option value="ج">ج</option>
+            <option value="د">د</option>
+        </select>
+        <label for="room">رقم الصالة:</label>
+        <select id="room" name="room" required disabled>
+            <option value="">اختر رقم الصالة</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
+    </div>
+
+    <div class="section">
+        <h2 class="editable" contenteditable="true">معلومات الاسم والرتبة</h2>
+        <div id="nameRankContainer">
+            <!-- حقول الاسم والرتبة ستُضاف هنا ديناميكيًا -->
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="editable" contenteditable="true">معلومات ضابط الصالة</h2>
+        <label for="officerName">اسم ضابط الصالة:</label>
+        <input type="text" id="officerName" name="officerName" required list="officerNameList" disabled>
+        <datalist id="officerNameList">
+            <!-- قائمة أسماء الضباط -->
+            <option value="فيصل منصور السعيد">
+            <option value="عبد الرحمن راشد البنية">
+            <option value="معاذ ظفر ال دريس">
+            <option value="عادل بنيدر المطيري">
+            <option value="ماجد عبدالعزيز السحيم">
+            <option value="فيصل عبد الاله الهرف">
+            <option value="احمد علي العمري">
+            <option value="الريان عبدالله الهويمل">
+            <option value="تركي سعد المطيري">
+            <option value="صالح ابراهيم السالم">
+            <option value="عبدالله سعد المطيري">
+            <option value="سعد عبدالعزيز الخشلان">
+            <option value="حسن عايض القحطاني">
+            <option value="جابر فتنان الحربي">
+            <option value="عبدالعزيز سعيد القحطاني">
+            <option value="عبدالله محمد البقمي">
+            <option value="عبدالله عويض الحارثي">
+            <option value="فايز سعيد الشهراني">
+            <option value="رامي عوض الله السلمي">
+            <option value="اسامه راشد المشوح">
+            <option value="سامي عاشور الزهراني">
+            <option value="مترك مهدي السبيعي">
+            <option value="خالد عبدالله الحسين">
+            <option value="سعود فراج السهلي">
+            <option value="عبد الرحمن محمد العوشن">
+            <option value="سعود محمد ال جبل">
+            <option value="حمود علي الباهلي">
+            <option value="فيصل موسى المطيري">
+            <option value="فيصل سعد الضفيان">
+            <option value="عبدالاله ضيف الله بن عميض">
+            <option value="مالك احمد العنقري">
+            <option value="عبدالله عوض المالكي">
+            <option value="مهند فهد ال جلده">
+            <option value="تركي عبدالله الزهراني">
+            <option value="عبدالعزيز عبدالله الحارثي">
+            <option value="عبدالعزيز عبدالله ال مطلق">
+            <option value="صالح محمد الحميدان">
+        </datalist>
+        <label for="officerRank">رتبة ضابط الصالة:</label>
+        <input type="text" id="officerRank" name="officerRank" required list="officerRankList" disabled>
+        <datalist id="officerRankList">
+            <option value="ملازم">
+            <option value="ملازم اول">
+            <option value="نقيب">
+            <option value="رائد">
+            <option value="مقدم">
+            <option value="عقيد">
+        </datalist>
+    </div>
+
+    <button type="button" id="submitButton" onclick="submitForm()" disabled>تنفيذ</button>
+    <div class="skip-container">
+        <input type="checkbox" id="skipValidation">
+        <label for="skipValidation">تخطي</label>
+    </div>
+    <p class="error-message" id="errorMessage">الرجاء تعبئة جميع الخانات</p>
+</div>
+
+<script>
+    // قوائم الأسماء حسب القسم والصالة
+    const namesA2 = [
+        "أحمد مبارك ناصر الدوسري", "عمشاء خزيم السهلي", "باسم حمادي زولي", "سلطان سلامه العليمي",
+        "شوق عائض القحطاني", "سعيد سعد سعيد ال طزاء", "سحر فايز آل قاعد", "يوسف محمد صالح العمري",
+        "مسفر مجهار مسفر الدوسري", "مريم علي الزهراني", "هياء بركه العتيبي", "بندر إبراهيم محمد حبيبي",
+        "هادي مناحي محمد الدوسري", "رنيم إبراهيم العواجي", "سعود علي حاضر الخثعمي", "مبارك محمد مبارك البليم",
+        "محمد صقر العتيبي", "سالم مسفر فالح القحطاني", "العنود محمد العرفج", "مشاعل حسن الزهراني",
+        "محمد عبدالله سعد العمري", "مانع سالم الشهراني", "الهنوف محمد الشهراني", "سعد بشيت فهيد العنزي",
+        "فهد محمد ناصر ال بريك"
+    ];
+    const namesB2 = [
+        "عيسى خليف سعد الرشيدي", "محمد مطلق الشيباني", "زيد عبدالله زيد التميمي", "عبدالمجيد سلطان المغيري",
+        "محمد محيميد الحربي", "بريك مبرك جود الله المطيري", "فهد مملوح الرشيدي", "هند حسن آل شقية",
+        "رنا مسفر الوادعي", "عبير سلطان البقمي", "أسماء مطرد العنزي", "عبدالعزيز عواد مناور الحربي",
+        "نوف عبدالعزيز الدوسري", "نجود صالح الصيعري", "الهنوف علي الأعجم", "هديل سلمان الشمري",
+        "هاجر فهد العنزي", "مرام سعيد الشمراني", "سناء عبدالله القرني", "لبده فيحان بن لبده",
+        "وفاء محمد الشهري", "رندا رابح الحربي", "نوف حمد الظهير", "هيثم عبدالله العثيم",
+        "محمود فاطم المطيري"
+    ];
+    const namesC2 = [
+        "فهد سعدي عبدالعزيز الشمري", "فواز طيب العتيبي", "سلطان هزاع غزاي الرويس", "عبدالرحمن الفالح شروق",
+        "خديجة عبدالله الشهراني", "ايمان سلمان الشغرود", "ابرار محمد الهدهدي", "جمله نجاء المطيري",
+        "ثامر منير قزعان العتيبي", "نواف عليان فنيس العتيبي", "خلود سند المطيري", "سلمى عيسى عسيري",
+        "عواطف ذعار العتيبي", "نوف محمد المديني", "هتاف معيض المطيري", "نوف صياح العنزي",
+        "عمر محمد علي الحجيلي", "رايد سويلم فهاد الشمري", "أنهار منصور الحمداني", "عبدالهادي مويسان العتيبي",
+        "أحمد مهل سعد العتيبي", "شايع عبدالرحمن محمد العتيق", "عبدالعزيز مصلح آل عيد", "محمد طراد عبدالله الاسمري"
+    ];
+    const namesD2 = [
+        "محمد حمد العتيبي", "محمد معتاد عبدالرحمن العتيبي", "إبراهيم عبدالله المباركي", "سعود فهد عبود العتيبي",
+        "فيصل عيد عساف العتيبي", "ريم مطرود العنزي", "ريما سعد القحطاني", "حسن مطلق خلف السويدي",
+        "هديل عبدالله البويريد", "ربى حمزة الزهراني", "فاطمة محمد البارقي", "رقية حمود العديساني",
+        "غادة رمضان العنزي", "تماني علي البلوي", "تركي سعد يعقوب العتيبي", "ماجد سعيد عبدالرحمن العتيبي",
+        "وليد جمعان مبارك ال حفيان", "علي حسن سراح الشهري", "صافيه ناصر الدوسري", "رفعه مرزوق الدوسري",
+        "نوره مسفر القحطاني", "ولاء خالد العمري", "عبدالرحمن طراد حامد الشمري", "عبدالله فهد بداح الدوسري",
+        "مطر سميح محمد النفيعي", "علي خيران الشهري", "نواف أحمد محمد كاملي"
+    ];
+    const namesA3 = [
+        "سعد سعود سعد العصيمي", "ناهض مبارك عبدالله الدوسري", "ارجوان زيد أبو ذياب", "سارة راشد العجمي",
+        "محمد شاكر مطني الشمري", "نورة محمد البيشي", "تماضر محمد المطيري", "الهنوف محمد الهذيلي",
+        "مريم إسماعيل الصيني", "فهد عبدالله عسير المطيري", "حاتم رحيم فارس العتيبي", "ريان دخيل حمود الدخيل",
+        "نورة علي القحطاني", "راكان بداح سلطان الشهراني", "نورة محمد معشي", "سميرة أحمد معيني",
+        "عائض العتيبيسحر", "بيان عبدالرحمن العمري", "رشا منير العتيبي", "حاتم سليمان المطيري",
+        "دخيل عوض دخيل المطيري", "حمود عبدالله حمود الحربي", "حصه مساعد المطيري", "بسمه عليان العتيبي",
+        "هاجد عوض هاجد المطيري", "امل حسن علي الشامي", "عائشة مريف العديساني", "سارة إبراهيم الطشلان",
+        "ثامر منسي عقيل العنزي"
+    ];
+    const namesB3 = [
+        "محمد سند العتيبي", "عليثه جروان عليثه الروقي", "محمود علي غرمان العمري", "فيصل دخيل القحطاني",
+        "شيماء محمد ربيدي", "يزيد مصلح الحربي", "فايز عائض عبدالله الغامدي", "فهد مسفر حسن ال فهاد",
+        "مها محمد حمود الجراد", "العزام هند صالح", "غدير ابراهيم العفيصان", "زينب حنيف القرني",
+        "حزام حمود محمد العصيمي", "احمد صالح علان الغامدي", "عقاب ناير بدر المطيري", "أمواج سلطان العتيبي",
+        "صالحة علي الاسمري", "فوزية حسن الزهراني", "أميرة مبارك الغامدي", "نوره ناصر المبرد",
+        "تهاني سعد البيشي", "ابرار مزعل الدهمشي", "أريج جمعان العصيمي", "فاطمة جابر محمد عبدلي",
+        "محسن ذيب شليل العتيبي", "تركي مشعان نايض العتيبي", "عبدالرحمن أحمد الغامدي", "يحيى عسران موسى فقيهي"
+    ];
+    const namesC3 = [
+        "محمد سفر عبدالله القحطاني", "مشاري سعود عواض المطيري", "محمد حمود دباشي العلياني",
+        "نايف سعد محمد القحطاني", "خالد عبدالله محمد العتيبي", "عبدالعزيز فهد غازي العتيبي", "خلود حارث العمري",
+        "شوق ناصر الشهراني", "عايشة جوعان العنزي", "سفره ظافر الشهراني", "محمد ابراهيم عبدالله منيف",
+        "عبدالله محمد عبدالله الشمراني", "عبدالعزيز عبدالله الغامدي", "ريم هادي الصيعري", "نورة علي القرني",
+        "باشه منصور الدوسري", "مي محمد عبيد", "سلمان عشوي سمر الرويلي", "عبدالله فيحان مضحي العتيبي",
+        "رزان سالم القحطاني", "نوف فيصل الشمري", "شاديه حسن احمد", "ريم علي الشهري", "امل عبدالله سهلي",
+        "لوله عبدالله الزهراني", "عبدالعزيز حميد باتل الرشيدي", "ماجد عشق بركة العتيبي", "عيسى عزوز محسن الحربي",
+        "صالح خلف الرشيدي", "ناصر مذكر ناصر السبيعي"
+    ];
+    const namesD3 = [
+        "سلمان محمد ثويمر المطيري", "أحمد نايف صالح المطيري", "محمد مناحي عبدالله القحطاني", "فهد فلاح مرزوق السبيعي",
+        "وليد عواض محمد الحربي", "أحمد سلمان الرشيدي", "فهد محمد العتيبي", "أنجود منور المطيري", "سجى علي الوهيبي",
+        "زينب فهد الحربي", "امنية راشد الأحمري", "مشاعل ضاري العنزي", "نبيل أحمد عبده مسرحي", "حمد صالح حمد القحطاني",
+        "امنه سعد القحطاني", "ريم فهد الحربي", "حسن محمد حسن أبو طالب", "سلطان ثاقل عايد الشراري", "اصيل عبدالله المطيري",
+        "تهاني سعود العتيبي", "نورة سلطان السلطان", "حصه صالح العتيبي", "نهى عيد المطيري", "أبتهال غازي المطيري",
+        "خلود خالد العتيبي", "عبدالله الودعاني نايف ناصر", "ناصر شليويح فالح الدوسري", "عبدالعزيز محمد الزهراني",
+        "عالي علي الزهراني"
+    ];
+
+    const namesA4 = [
+        "حسين محمد سعود القحطاني", "عائشة سعد الشهري", "فايز غازي عجب الحربي",
+        "ايمان سعيد العلياني", "بلغيث علي محمد البارقي", "نوره عوض الحربي",
+        "أثير سعيد الشهراني", "فاطمة عبدالرحمن الشهري", "علياء منير المطيري",
+        "فالح مبارك حضرم الدوسري", "عبدالله هادي سابر آل فهاد", "سعيد صالح شاجع العجمي",
+        "أفراح نهار العنزي", "خالد عبدالكريم محمد الزهراني", "وداد محمد سويعد المطيري",
+        "عائشة خالد المطيري", "جواهر إبراهيم الحميد", "دلال عمر المطيري",
+        "علي عايض حسن العمري", "سعد سعيد القرني", "ماجد عبدالعزيز العتيبي",
+        "مزنه فائز الاكلبي", "ايمان فهد بن ثنيان", "نوال ناصر الشهراني",
+        "ثاري اديهم ثاري الرشيدي", "سلمان محمد احمد الزهراني", "غرام عائض الشمراني",
+        "انوار عبدالله الحجيلان", "حنان سعد القحطاني", "خالد عبدالرحمن الشهري"
+    ];
+    const namesB4 = [
+        "سعد عتيوي حبيب الرشيدي", "فهد رابح عويش المطيري", "نايف ناصر عويض العتيبي",
+        "عيسى وجدان محمد", "فاتن عبيد الحربي", "هاله علي شعران",
+        "سحر سليم العطوي", "أحلام سلطان الحربي", "عبدالمحسن محمد الشراري",
+        "مشل سعود مشل التمياط", "عبدالقادر محمد سيد الشهراني", "مشعل مفرح هليل الرشيدي",
+        "وداد محمد منور المطيري", "منى فهد العتيبي", "جواهر سفر الغامدي",
+        "الهام أحمد الاحمري", "عبير ماجد العوفي", "يوسف زياد يوسف البيشي",
+        "ابتسام حميد الحميد", "الهنوف إبراهيم الرميح", "أمل سالم الصيعري",
+        "نجوى أحمد الزهراني", "نوف احمد السريحي", "منيرة صالح القنصعي",
+        "أمجاد ناجي الدلبحي", "امل موسى العتيبي", "جسار مفرح العتيبي",
+        "محمد عواض سارح القرني", "عبدالكريم صالح المطيري", "بدور سعيد الزهراني"
+    ];
+    const namesC4 = [
+        "تركي سعد المطيري", "عبدالعزيز عبيد طامي الحربي", "محمد علي جراد الشهري",
+        "عيد محمد عيد القرني", "ظافر عايض سالم العمري", "ممدوح عائض العتيبي",
+        "نايف ابراهيم نائف الدوسري", "سميه منصور العتيبي", "محسن مسعود مهدي علي",
+        "عبدالله يحي عبدان الزهراني", "عبدالرحمن سند عتيق الشراري", "سلطان وهق علي السهلي",
+        "منى محمد الرشيدي", "نوف سعد الرويس", "وعد فهد العنزي", "مسفر مترك مسفر الدوسري",
+        "عبدالعزيز أحمد علي الشهراني", "عبدالعزيز طريخم خمخم العنزي", "رندا سالم الحربي",
+        "سهام دخيل الحربي", "إيمان مهياء العنزي", "سفره نوار العصيمي", "خلود عبدالله الشهراني",
+        "سماهر سعد الصاعدي", "ريم احمد عبدالرحمن", "حلا عبدالله الحويطي",
+        "الهنوف محمد الهويمل", "مناحي هتاش منير المرشدي", "فهد مبارك حضرم الدوسري",
+        "طلال عايد عيد المطيري", "سعود محمد سعود الحجي"
+    ];
+    const namesD4 = [
+        "عبدالرحمن تركي الشيباني", "رامي شقير المطيري", "محمد تميم مضحي الدوسري",
+        "محمد ضاوي المطيري", "سعود عبدالله تركي السبيعي", "غنيه ظافر سهلي",
+        "طلال محمد بخيت العتيبي", "شايع عبدالله غانم القحطاني", "سلطان عبدالله نفوع الرشيدي",
+        "أريج يحيى معافا", "ابتهال معيض القحطاني", "ريم مطلق البقمي",
+        "فاطمة علي الحلافي", "خلود محمد الخثعمي", "مصعب حسن سعيد ال علوان",
+        "عبدالله ضحيان هجود الحارثي", "معاذ علي محمد الحبيب", "مطلق فايز مطلق السلولي",
+        "عبدالله علي أحمد القرني", "عفاف سعود الزنيتان", "شروق نزال الحربي",
+        "نرجس عيسى الدوسري", "مريم عبدالله الزهراني", "بشائر محمد الفيفي",
+        "منيفه صويلح العتيبي", "محمد معيوض حمود العتيبي", "صالح محمد الطوب",
+        "عيسى حمد جعيبر العنزي", "ناصر مفرح العتيبي", "غادة ناصر ال مرعي"
+    ];
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const today = new Date();
+        const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+
+        const hours = today.getHours();
+        if (hours >= 0 && hours < 6) {
+            today.setDate(today.getDate() - 1);
+            document.getElementById("timeNote").style.display = "block";
+        }
+
+        let formattedDate = today.toLocaleDateString('ar-SA', options).replace(/\d+/g, function(d) {
+            return ('0' + d).slice(-2);
+        }).replace(/\/(\d{2})\//g, '/$1/');
+        document.getElementById("hijriDate").value = toArabicNumbers(formattedDate);
+        document.getElementById("weekday").value = today.toLocaleDateString('ar-SA', { weekday: 'long' });
+
+        // تمكين الحقول عند اختيار عدد المحضر
+        document.getElementById("recordCount").addEventListener("change", function() {
+            updateNameRankFields(this.value);
+            enableFields(); // تمكين الحقول بناءً على اختيار عدد المحضر
+            validateForm();
+        });
+
+        // تمكين قسم وصالة فقط بعد اختيار عدد المحضر
+        document.getElementById("department").addEventListener("change", function() {
+            updateNames();
+            validateForm();
+        });
+
+        document.getElementById("room").addEventListener("change", function() {
+            updateNames();
+            validateForm();
+        });
+
+        // إضافة مستمعين لأحداث الإدخال والتحقق من صحة النموذج
+        document.querySelectorAll('input, select').forEach(element => {
+            element.addEventListener('input', validateForm);
+            element.addEventListener('change', validateForm);
+        });
+
+        document.getElementById("skipValidation").addEventListener("change", function() {
+            validateForm();
+        });
+
+        validateForm();
+    });
+
+    function toArabicNumbers(str) {
+        return str.replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+    }
+
+    function updateNames() {
+        const department = document.getElementById("department").value;
+        const room = document.getElementById("room").value;
+
+        // تحديد المصفوفة المناسبة بناءً على القسم والصالة
+        let names;
+        switch (department) {
+            case 'أ':
+                names = room === '3' ? namesA2 : room === '4' ? namesA3 : room === '2' ? namesA4 : [];
+                break;
+            case 'ب':
+                names = room === '3' ? namesB2 : room === '4' ? namesB3 : room === '2' ? namesB4 : [];
+                break;
+            case 'ج':
+                names = room === '3' ? namesC2 : room === '4' ? namesC3 : room === '2' ? namesC4 : [];
+                break;
+            case 'د':
+                names = room === '3' ? namesD2 : room === '4' ? namesD3 : room === '2' ? namesD4 : [];
+                break;
+            default:
+                names = [];
+        }
+
+        // تحديث عناصر select الخاصة بالأسماء
+        const recordCount = parseInt(document.getElementById("recordCount").value) || 0;
+        for (let i = 1; i <= recordCount; i++) {
+            const nameSelect = document.getElementById(`name${i}`);
+            if (nameSelect) {
+                nameSelect.innerHTML = '<option value="">اختر الاسم</option>'; // مسح الخيارات الحالية وإضافة الخيار الافتراضي
+                names.forEach(name => {
+                    const option = document.createElement("option");
+                    option.value = name.trim(); // إزالة الفراغات الزائدة
+                    option.textContent = name.trim();
+                    nameSelect.appendChild(option);
+                });
+            }
+        }
+    }
+
+    function updateNameRankFields(count) {
+        const container = document.getElementById("nameRankContainer");
+        container.innerHTML = ''; // مسح الحقول السابقة
+
+        for (let i = 1; i <= count; i++) {
+            const recordDiv = document.createElement("div");
+            recordDiv.className = "record";
+
+            // اسم
+            const nameLabel = document.createElement("label");
+            nameLabel.setAttribute("for", `name${i}`);
+            nameLabel.textContent = `الاسم ${i}:`;
+            recordDiv.appendChild(nameLabel);
+
+            const nameSelect = document.createElement("select");
+            nameSelect.id = `name${i}`;
+            nameSelect.name = `name${i}`;
+            nameSelect.required = true;
+            nameSelect.disabled = true; // سيتم تمكينه عند اختيار المناوبة والصالة
+            recordDiv.appendChild(nameSelect);
+
+            // رتبة
+            const rankLabel = document.createElement("label");
+            rankLabel.setAttribute("for", `rank${i}`);
+            rankLabel.textContent = `الرتبة ${i}:`;
+            recordDiv.appendChild(rankLabel);
+
+            const rankSelect = document.createElement("select");
+            rankSelect.id = `rank${i}`;
+            rankSelect.name = `rank${i}`;
+            rankSelect.required = true;
+            rankSelect.disabled = true;
+
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = "اختر الرتبة";
+            rankSelect.appendChild(defaultOption);
+
+            const ranks = ["جندي", "جندي اول", "عريف", "وكيل رقيب", "رقيب", "رقيب اول", "رئيس رقباء"];
+            ranks.forEach(rank => {
+                const option = document.createElement("option");
+                option.value = rank;
+                option.textContent = rank;
+                rankSelect.appendChild(option);
+            });
+
+            recordDiv.appendChild(rankSelect);
+
+            // نوع المحضر
+            const absenceLabel = document.createElement("label");
+            absenceLabel.setAttribute("for", `absenceType${i}`);
+            absenceLabel.textContent = `نوع المحضر ${i}:`;
+            recordDiv.appendChild(absenceLabel);
+
+            const absenceSelect = document.createElement("select");
+            absenceSelect.id = `absenceType${i}`;
+            absenceSelect.name = `absenceType${i}`;
+            absenceSelect.required = true;
+            absenceSelect.disabled = true;
+
+            const absenceDefaultOption = document.createElement("option");
+            absenceDefaultOption.value = "";
+            absenceDefaultOption.textContent = "اختر نوع المحضر";
+            absenceSelect.appendChild(absenceDefaultOption);
+
+            const absenceTypes = ["مجندات", "أفراد"];
+            absenceTypes.forEach(type => {
+                const option = document.createElement("option");
+                option.value = type;
+                option.textContent = type;
+                absenceSelect.appendChild(option);
+            });
+
+            recordDiv.appendChild(absenceSelect);
+
+            // رقم الصادر
+            const outgoingLabel = document.createElement("label");
+            outgoingLabel.setAttribute("for", `outgoingNumber${i}`);
+            outgoingLabel.textContent = `رقم الصادر ${i}:`;
+            recordDiv.appendChild(outgoingLabel);
+
+            const outgoingInput = document.createElement("input");
+            outgoingInput.type = "text";
+            outgoingInput.id = `outgoingNumber${i}`;
+            outgoingInput.name = `outgoingNumber${i}`;
+            outgoingInput.required = true;
+            outgoingInput.disabled = true;
+            recordDiv.appendChild(outgoingInput);
+
+            container.appendChild(recordDiv);
+        }
+
+        // عند تغيير المناوبة أو الصالة، يتم تحديث الأسماء وتمكين حقول الاسم والرتبة
+        document.getElementById("department").addEventListener("change", function() {
+            toggleNameFields(true);
+            updateNames();
+            validateForm();
+        });
+
+        document.getElementById("room").addEventListener("change", function() {
+            toggleNameFields(true);
+            updateNames();
+            validateForm();
+        });
+    }
+
+    function toggleNameFields(enable) {
+        const recordCount = parseInt(document.getElementById("recordCount").value) || 0;
+        for (let i = 1; i <= recordCount; i++) {
+            const nameSelect = document.getElementById(`name${i}`);
+            const rankSelect = document.getElementById(`rank${i}`);
+            const absenceSelect = document.getElementById(`absenceType${i}`);
+            const outgoingInput = document.getElementById(`outgoingNumber${i}`);
+
+            if (nameSelect) nameSelect.disabled = !enable;
+            if (rankSelect) rankSelect.disabled = !enable;
+            if (absenceSelect) absenceSelect.disabled = !enable;
+            if (outgoingInput) outgoingInput.disabled = !enable;
+        }
+    }
+
+    function validateForm() {
+        const recordCount = parseInt(document.getElementById("recordCount").value) || 0;
+        let allFilled = true;
+
+        // التحقق من الحقول الأخرى (التاريخ، اليوم، المناوبة، الصالة، ضابط الصالة، رتبة ضابط الصالة)
+        const requiredFields = document.querySelectorAll('input[required], select[required]');
+        requiredFields.forEach(input => {
+            if (input.disabled) return;
+            if (input.value.trim() === '') {
+                allFilled = false;
+            }
+        });
+
+        // التحقق من حقول الاسم، الرتبة، نوع المحضر، ورقم الصادر لكل سجل
+        for (let i = 1; i <= recordCount; i++) {
+            const name = document.getElementById(`name${i}`);
+            const rank = document.getElementById(`rank${i}`);
+            const absenceType = document.getElementById(`absenceType${i}`);
+            const outgoingNumber = document.getElementById(`outgoingNumber${i}`);
+
+            if (name && name.value.trim() === '') {
+                allFilled = false;
+            }
+            if (rank && rank.value.trim() === '') {
+                allFilled = false;
+            }
+            if (absenceType && absenceType.value.trim() === '') {
+                allFilled = false;
+            }
+            if (outgoingNumber && outgoingNumber.value.trim() === '') {
+                allFilled = false;
+            }
+        }
+
+        const submitButton = document.getElementById('submitButton');
+        const errorMessage = document.getElementById('errorMessage');
+        const skipValidation = document.getElementById('skipValidation').checked;
+
+        submitButton.disabled = !allFilled && !skipValidation;
+        errorMessage.style.display = allFilled || skipValidation ? 'none' : 'block';
+    }
+
+    function submitForm() {
+        const hijriDate = toArabicNumbers(document.getElementById('hijriDate').value);
+        const weekday = document.getElementById('weekday').value;
+        const department = document.getElementById('department').value;
+        const room = document.getElementById('room').value;
+        const officerName = document.getElementById('officerName').value;
+        const officerRank = document.getElementById('officerRank').value;
+
+        const recordCount = parseInt(document.getElementById("recordCount").value) || 1;
+
+        for (let i = 1; i <= recordCount; i++) {
+            const name = document.getElementById(`name${i}`).value;
+            const rank = document.getElementById(`rank${i}`).value;
+            const absenceType = document.getElementById(`absenceType${i}`).value;
+            const outgoingNumber = document.getElementById(`outgoingNumber${i}`).value;
+
+            const fullOutgoingNumber = `${outgoingNumber} / م ${department} سفر ${room}`;
+
+            const url = `result.html?absenceType=${encodeURIComponent(absenceType)}&hijriDate=${encodeURIComponent(hijriDate)}&weekday=${encodeURIComponent(weekday)}&department=${encodeURIComponent(department)}&room=${encodeURIComponent(room)}&name=${encodeURIComponent(name)}&rank=${encodeURIComponent(rank)}&officerName=${encodeURIComponent(officerName)}&officerRank=${encodeURIComponent(officerRank)}&outgoingNumber=${encodeURIComponent(fullOutgoingNumber)}`;
+
+            window.open(url, '_blank'); // فتح صفحة جديدة لكل محضر
+        }
+    }
+
+    function enableFields() {
+        // تمكين الحقول الأساسية
+        const department = document.getElementById("department");
+        const room = document.getElementById("room");
+        const hijriDate = document.getElementById("hijriDate");
+        const weekday = document.getElementById("weekday");
+        const officerName = document.getElementById("officerName");
+        const officerRank = document.getElementById("officerRank");
+
+        if (document.getElementById("recordCount").value !== "") {
+            department.disabled = false;
+            room.disabled = false;
+            hijriDate.disabled = false;
+            weekday.disabled = false;
+            officerName.disabled = false;
+            officerRank.disabled = false;
+
+            // تمكين حقول الاسم والرتبة ونوع المحضر ورقم الصادر لكل سجل
+            const recordCount = parseInt(document.getElementById("recordCount").value) || 0;
+            for (let i = 1; i <= recordCount; i++) {
+                const name = document.getElementById(`name${i}`);
+                const rank = document.getElementById(`rank${i}`);
+                const absenceType = document.getElementById(`absenceType${i}`);
+                const outgoingNumber = document.getElementById(`outgoingNumber${i}`);
+
+                if (name) name.disabled = false;
+                if (rank) rank.disabled = false;
+                if (absenceType) absenceType.disabled = false;
+                if (outgoingNumber) outgoingNumber.disabled = false;
+            }
+        }
+    }
+
+    // استماع لأحداث الإدخال لتحويل الأرقام إلى العربية
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            input.addEventListener('input', function() {
+                this.value = toArabicNumbers(this.value);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
