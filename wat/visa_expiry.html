@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نموذج انتهاء تأشيرة زيارة</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* لتصغير حجم select */
+        #numPassengers {
+            width: 120px; /* حجم أصغر قليلاً */
+            padding: 5px;
+        }
+
+        /* إضافة المسافة بين زر الإرسال وزر العودة */
+        #submitButton, #backButton {
+            margin-bottom: 10px; /* إضافة مسافة قليلة بين الأزرار */
+        }
+
+        /* جعل كلمة غير الزامية باللون الأخضر */
+        .optional {
+            color: green;
+            font-size: 0.9em;
+        }
+
+        /* تلوين النص في الأعلى باللون الأخضر */
+        .info-text {
+            color: green;
+            font-size: 1.2em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* تحسين زر الإرسال مع أيقونة الواتساب */
+        #submitButton {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            background-color: #25d366;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+        }
+
+        #submitButton i {
+            margin-left: 10px;
+            font-size: 20px;
+        }
+
+        /* تنسيق الحقول لتظهر بشكل جيد */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .date-container select {
+            margin: 0 5px;
+        }
+
+        /* إضافة خطوط متقطعة بين المسافر */
+        .dashed-line {
+            border-top: 1px dashed #000;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- نص باللون الأخضر في الأعلى -->
+
+        <h2>نموذج انتهاء تأشيرة زيارة</h2>
+
+        <form id="visaExpiryForm">
+            <!-- نوع الملاحظة مُحدد مسبقًا -->
+            <input type="hidden" id="noteType" value="انتهاء تأشيرة زيارة">
+
+            <!-- نوع التأشيرة -->
+            <div class="input-group">
+                <label for="visaType">نوع التأشيرة:</label>
+                <select id="visaType" name="visaType" required>
+                    <option value="">-- اختر نوع التأشيرة --</option>
+                    <option value="زيارة سياحية">زيارة سياحية</option>
+                    <option value="زيارة عائلية">زيارة عائلية</option>
+                    <option value="زيارة مرور">زيارة مرور</option>
+                    <option value="زيارة عمل">زيارة عمل</option>
+                    <option value="زيارة رجال اعمال">زيارة رجال اعمال</option>
+                    <option value="زيارة مؤقتة">زيارة مؤقتة</option>
+                    <option value="زيارة حكومية">زيارة حكومية</option>
+                    <option value="زيارة ">زيارة </option>
+
+                </select>
+            </div>
+
+            <!-- عدد المسافرين -->
+            <div id="numPassengersContainer" class="input-group">
+                <label for="numPassengers">عدد المسافرين:</label>
+                <select id="numPassengers" name="numPassengers">
+                    <option value="">-- اختر عدد المسافرين --</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+
+            <!-- حقول المسافرين -->
+            <div id="passengerFields"></div>
+
+            <div id="additionalPassengers"></div>
+
+            <!-- الملاحظة / -->
+            <div class="input-group">
+                <label for="notes">الملاحظة /:</label>
+                <textarea id="notes" name="notes" placeholder="عند الشروع في انهاء إجراءات مغادرته تبين ان المغادرة النهائية لتأشيرته منتهية بتاريخ ..."></textarea>
+                <span class="optional">غير الزامية</span>
+            </div>
+
+            <!-- تاريخ انتهاء التأشيرة -->
+            <div id="visaExpiryFields" class="input-group">
+                <label for="expiryDay">تاريخ انتهاء التأشيرة:</label>
+                <div class="date-container">
+                    <select id="expiryDay" name="expiryDay" required>
+                        <option value="">-- اختر اليوم --</option>
+                        <!-- خيارات من 1 إلى 30 -->
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                        <option value="14">14</option>
+                        <option value="15">15</option>
+                        <option value="16">16</option>
+                        <option value="17">17</option>
+                        <option value="18">18</option>
+                        <option value="19">19</option>
+                        <option value="20">20</option>
+                        <option value="21">21</option>
+                        <option value="22">22</option>
+                        <option value="23">23</option>
+                        <option value="24">24</option>
+                        <option value="25">25</option>
+                        <option value="26">26</option>
+                        <option value="27">27</option>
+                        <option value="28">28</option>
+                        <option value="29">29</option>
+                        <option value="30">30</option>
+                    </select>
+                    <select id="expiryMonth" name="expiryMonth" required>
+                        <option value="">-- اختر الشهر --</option>
+                        <!-- خيارات من 1 إلى 12 -->
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                    </select>
+                    <select id="expiryYear" name="expiryYear" required>
+                        <option value="">-- اختر السنة --</option>
+                        <!-- خيارات من 1443 إلى 1449 -->
+                        <option value="1443">1443</option>
+                        <option value="1444">1444</option>
+                        <option value="1445">1445</option>
+                        <option value="1446">1446</option>
+                        <option value="1447">1447</option>
+                        <option value="1448">1448</option>
+                        <option value="1449">1449</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- مدة انتهاء التأشيرة بالأيام -->
+            <div id="expiryDuration" class="input-group">
+                <label for="expiryDays">مدة انتهاء التأشيرة بالأيام:</label>
+                <select id="expiryDays" name="expiryDays" required>
+                    <option value="">-- اختر المدة --</option>
+                    <!-- خيارات من 1 إلى 30 -->
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                </select>
+            </div>
+
+            <!-- وقت الإقلاع -->
+            <div class="input-group">
+                <label for="departureHour">وقت الإقلاع:</label>
+                <div id="departureTimeContainer">
+                    <input type="number" id="departureHour" name="departureHour" placeholder="الساعة" min="0" max="23" oninput="enforceEnglishDigits(event)">
+                    <span>:</span>
+                    <input type="number" id="departureMinutes" name="departureMinutes" placeholder="الدقائق" list="minuteOptions" min="0" max="59" oninput="enforceEnglishDigits(event)">
+                    <datalist id="minuteOptions">
+                        <option value="00">
+                        <option value="15">
+                        <option value="30">
+                        <option value="45">
+                    </datalist>
+                </div>
+            </div>
+
+            <!-- خطوط الطيران ورقم الرحلة -->
+            <div class="input-group">
+                <label for="airlines">خطوط الطيران:</label>
+                <input type="text" id="airlines" name="airlines">
+                <label for="flightNumber">رقم الرحلة:</label>
+                <input type="text" id="flightNumber" name="flightNumber" placeholder="مثال: sv560 - السعودية">
+            </div>
+
+            <!-- زر إرسال مع أيقونة الواتساب -->
+            <button type="button" id="submitButton">
+                إرسال إلى الواتس اب
+                <i class="fab fa-whatsapp"></i>
+            </button>
+
+            <!-- زر العودة للصفحة الرئيسية -->
+            <button type="button" id="backButton">عودة</button>
+        </form>
+    </div>
+
+    <!-- كود JavaScript مدمج -->
+    <script>
+        // عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            addEventListeners();
+        });
+
+        /***** زر العودة للصفحة الرئيسية *****/
+        document.getElementById('backButton').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        /***** دالة لتحديث الحقول بناءً على عدد المسافرين *****/
+        function updatePassengerFields() {
+            const numPassengersSelect = document.getElementById("numPassengers");
+            const numPassengers = parseInt(numPassengersSelect.value, 10) || 1;
+            const passengerFieldsContainer = document.getElementById("passengerFields");
+            passengerFieldsContainer.innerHTML = "";
+
+            // إنشاء حقول المسافرين بناءً على عدد المسافرين المحدد
+            for (let i = 1; i <= numPassengers; i++) {
+                const passengerGroup = createPassengerGroup(i);
+                passengerFieldsContainer.appendChild(passengerGroup);
+            }
+
+            // بعد إنشاء الحقول، إذا كان هناك أكثر من مسافر، ربط حدث تغيير جنسية المسافر الأول بتحديث جنسيات الآخرين
+            if (numPassengers > 1) {
+                const firstNationalityInput = document.getElementById(`nationality1`);
+                firstNationalityInput.addEventListener('input', () => {
+                    const firstNationality = firstNationalityInput.value;
+                    for (let i = 2; i <= numPassengers; i++) {
+                        const otherNationalityInput = document.getElementById(`nationality${i}`);
+                        if (otherNationalityInput) {
+                            otherNationalityInput.value = firstNationality;
+                        }
+                    }
+                });
+            }
+        }
+
+        /***** إنشاء مجموعة حقول المسافر *****/
+        function createPassengerGroup(index) {
+            const passengerGroup = document.createElement("div");
+            passengerGroup.className = "passenger-group";
+
+            // عنوان المسافر
+            const travelerHeader = document.createElement("h3");
+            travelerHeader.textContent = `المسافر ${index}`;
+            passengerGroup.appendChild(travelerHeader);
+
+            // اسم المسافر
+            const nameLabel = document.createElement("label");
+            nameLabel.setAttribute("for", `name${index}`);
+            nameLabel.textContent = "اسم المسافر:";
+            passengerGroup.appendChild(nameLabel);
+
+            const nameInput = document.createElement("input");
+            nameInput.type = "text";
+            nameInput.id = `name${index}`;
+            nameInput.name = `name${index}`;
+            nameInput.required = true;
+            passengerGroup.appendChild(nameInput);
+
+            // رقم الحدود
+            const borderLabel = document.createElement("label");
+            borderLabel.setAttribute("for", `borderNumber${index}`);
+            borderLabel.textContent = "رقم الحدود:";
+            passengerGroup.appendChild(borderLabel);
+
+            const borderInput = document.createElement("input");
+            borderInput.type = "number";
+            borderInput.id = `borderNumber${index}`;
+            borderInput.name = `borderNumber${index}`;
+            borderInput.required = true;
+            borderInput.min = "0";
+            borderInput.addEventListener('input', enforceEnglishDigits);
+            passengerGroup.appendChild(borderInput);
+
+            // الجنسية
+            const nationalityLabel = document.createElement("label");
+            nationalityLabel.setAttribute("for", `nationality${index}`);
+            nationalityLabel.textContent = "الجنسية:";
+            passengerGroup.appendChild(nationalityLabel);
+
+            const nationalityInput = document.createElement("input");
+            nationalityInput.type = "text";
+            nationalityInput.id = `nationality${index}`;
+            nationalityInput.name = `nationality${index}`;
+            if (index === 1) {
+                nationalityInput.required = true;
+            } else {
+                nationalityInput.readOnly = true;
+            }
+            passengerGroup.appendChild(nationalityInput);
+
+            // إذا كان المسافر الأول فقط، إزالة النص "تم اقتراح الجنسية حسب المسافر الأول"
+            if (index > 1) {
+                const hint = document.createElement("p");
+                hint.className = "hint";
+                hint.textContent = "تم اقتراح الجنسية حسب المسافر الأول";
+                passengerGroup.appendChild(hint);
+            }
+
+            return passengerGroup;
+        }
+
+        /***** دالة لإجبار المستخدم على كتابة الأرقام بالإنجليزي فقط *****/
+        function enforceEnglishDigits(event) {
+            const input = event.target;
+            input.value = input.value.replace(/[^\d]/g, '');
+        }
+
+        /***** دالة للحصول على قيمة الحقل *****/
+        function getInputValue(id) {
+            const element = document.getElementById(id);
+            return element ? element.value.trim() : '';
+        }
+
+        /***** دالة لإضافة صفر بادئ للأرقام أقل من 10 *****/
+        function padNumber(number) {
+            return number.toString().padStart(2, '0');
+        }
+
+        /***** الدالة الأساسية للإرسال للواتس *****/
+        function submitForm() {
+            const numPassengersSelect = document.getElementById("numPassengers");
+            const numPassengers = parseInt(numPassengersSelect.value, 10) || 1;
+            const message = [];
+
+            // الحصول على جنسية المسافر الأول
+            const firstNationality = getInputValue('nationality1');
+
+            // 1) نسرد بيانات المسافرين
+            for (let i = 1; i <= numPassengers; i++) {
+                const travelerName = getInputValue(`name${i}`);
+                const travelerBorder = getInputValue(`borderNumber${i}`);
+                let travelerNationality = firstNationality; // استخدام جنسية المسافر الأول
+
+                message.push(`اسم المسافر: ${travelerName}`);
+                message.push(`رقم الحدود: ${travelerBorder}`);
+                message.push(`الجنسية: ${travelerNationality}`);
+                message.push(""); // سطر فارغ بين المسافرين
+            }
+
+            // 2) إضافة نوع التأشيرة
+            const visaType = getInputValue("visaType");
+            if (visaType) {
+                message.push(`نوع التأشيرة: ${visaType}`);
+            }
+
+            // 3) إضافة الملاحظة
+            const notesVal = getInputValue("notes");
+            if (notesVal) {
+                message.push(`الملاحظة /: ${notesVal}`);
+            }
+
+            // 4) إضافة تاريخ انتهاء التأشيرة ومدة انتهاء التأشيرة بالأيام تحت الملاحظة
+            const expiryDay = getInputValue("expiryDay");
+            const expiryMonth = getInputValue("expiryMonth");
+            const expiryYear = getInputValue("expiryYear");
+            const expiryDate = `${padNumber(expiryDay)}-${padNumber(expiryMonth)}-${expiryYear}`;
+
+            const expiryDays = getInputValue("expiryDays");
+            if (expiryDays) {
+                message.push(`تاريخ انتهاء التأشيرة: ${expiryDate}`);
+                message.push(`مدة انتهاء التأشيرة بالأيام: ${expiryDays} أيام`);
+            } else {
+                message.push(`تاريخ انتهاء التأشيرة: ${expiryDate}`);
+            }
+
+            // 5) إضافة خطوط الطيران ورقم الرحلة
+            const airlines = getInputValue("airlines");
+            const flightNumber = getInputValue("flightNumber");
+
+            if (airlines && flightNumber) {
+                message.push(`خطوط الطيران: ${airlines}`);
+                message.push(`رقم الرحلة: ${flightNumber}`);
+            }
+
+            // 6) إضافة وقت الإقلاع
+            const departureHour = getInputValue("departureHour");
+            const departureMinutes = getInputValue("departureMinutes");
+
+            if (departureHour && departureMinutes) {
+                message.push(`وقت الإقلاع: ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
+            }
+
+            // 7) إضافة نص الملاحظة بناءً على عدد المسافرين
+            if (numPassengers > 1) {
+                message.push(`الملاحظة /: عند الشروع في انهاء إجراءات مغادرتهم تبين ان المغادرة النهائية لتأشيرتهم منتهية بتاريخ ${expiryDate}.`);
+            } else {
+                message.push(`الملاحظة /: عند الشروع في انهاء إجراءات مغادرته تبين ان المغادرة النهائية لتأشيرته منتهية بتاريخ ${expiryDate}.`);
+            }
+
+            // 8) ختام الرسالة
+            message.push("");
+            message.push("بأمل اطلاع سعادتكم والتوجيه");
+
+            // 9) فتح الواتس مباشرة دون تحديد رقم، مما يتيح للمستخدم اختيار المستلم
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
+            window.location.href = whatsappUrl; // Redirect the current window to WhatsApp
+        }
+
+        /***** إضافة مستمعي الأحداث *****/
+        function addEventListeners() {
+            const numPassengersSelect = document.getElementById("numPassengers");
+            if (numPassengersSelect) {
+                numPassengersSelect.addEventListener('change', updatePassengerFields);
+            }
+
+            const submitButton = document.getElementById("submitButton");
+            if (submitButton) {
+                submitButton.addEventListener('click', submitForm);
+            }
+        }
+    </script>
+
+</body>
+</html>

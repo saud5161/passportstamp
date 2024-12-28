@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الصفحة الرئيسية</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2>اختيار نوع الملاحظة</h2>
+
+        <form id="mainForm">
+            <!-- نوع الملاحظة -->
+            <div class="input-group">
+                <label for="noteType">نوع الملاحظة:</label>
+                <select id="noteType" required>
+                    <option value="">-- اختر نوع الملاحظة --</option>
+                    <option value="انتهاء تأشيرة زيارة">انتهاء تأشيرة زيارة</option>
+                    <option value="أقل من 6 أشهر">أقل من 6 أشهر</option>
+                    <option value="عدم قبول بصمة راكب">عدم قبول بصمة راكب</option>
+
+                </select>
+            </div>
+
+            <!-- زر انتقال -->
+            <button type="button" id="nextButton">انتقال</button>
+        </form>
+    </div>
+
+    <!-- كود JavaScript مدمج -->
+    <script>
+        // عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            const nextButton = document.getElementById('nextButton');
+            const noteTypeSelect = document.getElementById('noteType');
+
+            nextButton.addEventListener('click', () => {
+            const selectedNoteType = noteTypeSelect.value;
+
+            if (!selectedNoteType) {
+                alert('يرجى اختيار نوع الملاحظة قبل الانتقال.');
+                return;
+            }
+
+            if (selectedNoteType === 'انتهاء تأشيرة زيارة') {
+                window.location.href = 'visa_expiry.html';
+            } else if (selectedNoteType === 'أقل من 6 أشهر') {
+                window.location.href = 'less_than_6_months.html';
+            } else if (selectedNoteType === 'عدم قبول بصمة راكب') {
+                window.location.href = 'noacspt.html';
+            } else {
+                alert('نوع الملاحظة غير معروف.');
+            }
+        });
+        });
+    </script>
+
+</body>
+</html>
