@@ -44,36 +44,36 @@
 
             <!-- حقول المسافرين -->
             <div id="passengerFields"></div>
+<!-- وقت الإقلاع -->
+<div class="input-group">
+    <label for="departureHour">وقت الإقلاع:</label>
+    <div id="departureTimeContainer">
+        <input type="number" id="departureHour" name="departureHour" placeholder="الساعة" min="0" max="23" oninput="enforceEnglishDigits(event)">
+        <span>:</span>
+        <input type="number" id="departureMinutes" name="departureMinutes" placeholder="الدقائق" list="minuteOptions" min="0" max="59" oninput="enforceEnglishDigits(event)">
+        <datalist id="minuteOptions">
+            <option value="00">
+            <option value="15">
+            <option value="30">
+            <option value="45">
+        </datalist>
+    </div>
+</div>
 
+<!-- الخطوط -->
+<div class="input-group">
+    <label for="airlines">الخطوط:</label>
+    <input type="text" id="airlines" name="airlines" placeholder="أدخل اسم الخطوط الجوية">
+</div>
             <!-- الملاحظة -->
             <div class="input-group">
             <label for="notes">الملاحظة:</label>
             <textarea id="notes" name="notes">
-راجعنا الموضح بياناته باعلاه بقصد المغادرة وعند الشروع في انهاء إجراءات مغادرته وتحقق من الخصائص الحيوية لم يتم قبول الخصائص الحيوية وحيث تم الاستعلام عن الخصائص الحيوية بالطرق الأربعة والتشييك بنظام الممنوعين والمطلوبين ولم يوجد عليه أي ملاحظات
+عند الشروع في انهاء إجراءات مغادرته وتحقق من الخصائص الحيوية لم يتم قبول الخصائص الحيوية وحيث تم الاستعلام عن الخصائص الحيوية بالطرق الأربعة والتشييك بنظام الممنوعين والمطلوبين ولم يوجد عليه أي ملاحظات
              </textarea>
 </div>
 
-            <!-- وقت الإقلاع -->
-            <div class="input-group">
-                <label for="departureHour">وقت الإقلاع:</label>
-                <div id="departureTimeContainer">
-                    <input type="number" id="departureHour" name="departureHour" placeholder="الساعة" min="0" max="23" oninput="enforceEnglishDigits(event)">
-                    <span>:</span>
-                    <input type="number" id="departureMinutes" name="departureMinutes" placeholder="الدقائق" list="minuteOptions" min="0" max="59" oninput="enforceEnglishDigits(event)">
-                    <datalist id="minuteOptions">
-                        <option value="00">
-                        <option value="15">
-                        <option value="30">
-                        <option value="45">
-                    </datalist>
-                </div>
-            </div>
-
-            <!-- الخطوط -->
-            <div class="input-group">
-                <label for="airlines">الخطوط:</label>
-                <input type="text" id="airlines" name="airlines" placeholder="أدخل اسم الخطوط الجوية">
-            </div>
+            
 
             <!-- زر إرسال مع أيقونة الواتساب -->
             <button type="button" id="submitButton">
@@ -176,54 +176,54 @@
 
         /***** الدالة الأساسية للإرسال للواتس *****/
         function submitForm() {
-            const numPassengersSelect = document.getElementById("numPassengers");
-            const numPassengers = parseInt(numPassengersSelect.value, 10) || 1;
-            const message = [];
+    const numPassengersSelect = document.getElementById("numPassengers");
+    const numPassengers = parseInt(numPassengersSelect.value, 10) || 1;
+    const message = [];
 
-            // 1) نسرد بيانات المسافرين
-            for (let i = 1; i <= numPassengers; i++) {
-                const travelerName = getInputValue(`name${i}`);
-                const travelerPassport = getInputValue(`passportNumber${i}`);
-                const travelerNationality = getInputValue(`nationality${i}`);
+    // 1) نسرد بيانات المسافرين
+    for (let i = 1; i <= numPassengers; i++) {
+        const travelerName = getInputValue(`name${i}`);
+        const travelerPassport = getInputValue(`passportNumber${i}`);
+        const travelerNationality = getInputValue(`nationality${i}`);
+        const departureHour = getInputValue("departureHour");
+        const departureMinutes = getInputValue("departureMinutes");
+        const airlinesVal = getInputValue("airlines");
 
-                message.push(`*اسم المسافر:* ${travelerName}`);
-                message.push(`*رقم الجواز:* ${travelerPassport}`);
-                message.push(`*الجنسية:* ${travelerNationality}`);
-                message.push("----");
-            }
-
-            // إزالة الفاصل الأخير
-            if (message[message.length - 1] === "----") {
-                message.pop();
-            }
-
-            // 2) إضافة المعلومات المشتركة
-            message.push("\n");
-
-            // إضافة الملاحظة الثابتة
-            const notesVal = getInputValue("notes");
-            if (notesVal) {
-                message.push(`*الملاحظة:* ${notesVal}`);
-            }
-
-            const departureHour = getInputValue("departureHour");
-            const departureMinutes = getInputValue("departureMinutes");
-            if (departureHour || departureMinutes) {
-                message.push(`*وقت الإقلاع:* ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
-            }
-
-            const airlinesVal = getInputValue("airlines");
-            if (airlinesVal) {
-                message.push(`*الخطوط:* ${airlinesVal}`);
-            }
-
-            // 3) ختام الرسالة
-            message.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
-
-            // 4) فتح الواتس
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
-            window.location.href = whatsappUrl; // إعادة توجيه النافذة الحالية إلى WhatsApp
+        message.push(`*اسم المسافر:* ${travelerName}`);
+        message.push(`*رقم الجواز:* ${travelerPassport}`);
+        message.push(`*الجنسية:* ${travelerNationality}`);
+        
+        // إضافة وقت الإقلاع والخطوط بعد كل مسافر
+        if (departureHour || departureMinutes) {
+            message.push(`*وقت الإقلاع:* ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
         }
+        if (airlinesVal) {
+            message.push(`*الخطوط:* ${airlinesVal}`);
+        }
+        
+        message.push("----");
+    }
+
+    // إزالة الفاصل الأخير
+    if (message[message.length - 1] === "----") {
+        message.pop();
+    }
+
+    // 2) إضافة الملاحظات الثابتة
+    const notesVal = getInputValue("notes");
+    if (notesVal) {
+        message.push("\n*الملاحظة:*");
+        message.push(notesVal);
+    }
+
+    // 3) ختام الرسالة
+    message.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
+
+    // 4) فتح الواتس
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
+    window.location.href = whatsappUrl; // إعادة توجيه النافذة الحالية إلى WhatsApp
+}
+
 
         /***** دالة للحصول على قيمة الحقل *****/
         function getInputValue(id) {
