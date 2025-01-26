@@ -142,6 +142,19 @@
             passportInput.style.direction = "ltr";
             passportInput.required = true;
             passengerGroup.appendChild(passportInput);
+// الجنسية
+const nationalityLabel = document.createElement("label");
+            nationalityLabel.setAttribute("for", `nationality${index}`);
+            nationalityLabel.textContent = "الجنسية:";
+            passengerGroup.appendChild(nationalityLabel);
+
+            const nationalityInput = document.createElement("input");
+            nationalityInput.type = "text";
+            nationalityInput.id = `nationality${index}`;
+            nationalityInput.name = `nationality${index}`;
+            nationalityInput.placeholder = "سعودي";
+            nationalityInput.required = true;
+            passengerGroup.appendChild(nationalityInput);
 
             // تاريخ انتهاء الجواز (هجري)
             const expiryLabel = document.createElement("label");
@@ -184,20 +197,7 @@
 
             passengerGroup.appendChild(expiryContainer);
 
-            // الجنسية
-            const nationalityLabel = document.createElement("label");
-            nationalityLabel.setAttribute("for", `nationality${index}`);
-            nationalityLabel.textContent = "الجنسية:";
-            passengerGroup.appendChild(nationalityLabel);
-
-            const nationalityInput = document.createElement("input");
-            nationalityInput.type = "text";
-            nationalityInput.id = `nationality${index}`;
-            nationalityInput.name = `nationality${index}`;
-            nationalityInput.placeholder = "سعودي";
-            nationalityInput.required = true;
-            passengerGroup.appendChild(nationalityInput);
-
+            
             // المدة المتبقية
             const remainingLabel = document.createElement("label");
             remainingLabel.setAttribute("for", `remainingDuration${index}`);
