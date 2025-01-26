@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نموذج أقل من 6 أشهر</title>
+    <title>عدم قبول بصمة راكب</title>
     <!-- ربط ملف التنسيق الخارجي -->
     <link rel="stylesheet" href="style1.css">
     <!-- ربط مكتبة Font Awesome للأيقونات -->
@@ -18,11 +18,11 @@
         <!-- نص باللون الأخضر في الأعلى -->
         <p class="info-text">هذه الصفحة للمساعدة في إنشاء خطابات الواتس اب لن يتم حفظ أي معلومات مذكورة</p>
 
-        <h2>نموذج أقل من 6 أشهر</h2>
+        <h2>عدم قبول بصمة راكب</h2>
 
         <form id="lessThanSixMonthsForm">
             <!-- نوع الملاحظة مُحدد مسبقًا -->
-            <input type="hidden" id="noteType" value="أقل من 6 أشهر">
+            <input type="hidden" id="noteType" value="عدم قبول بصمة راكب">
 
             <!-- عدد المسافرين -->
             <div id="numPassengersContainer" class="input-group">
@@ -45,21 +45,6 @@
             <!-- حقول المسافرين -->
             <div id="passengerFields"></div>
 
-            <!-- المدة المتبقية -->
-            <div id="remainingTimeContainer" class="input-group">
-                <label for="remainingMonths">المدة المتبقية:</label>
-                <div class="date-container">
-                    <input type="number" id="remainingMonths" name="remainingMonths" placeholder="عدد الأشهر" min="0">
-                    <input type="number" id="remainingDays" name="remainingDays" placeholder="عدد الأيام" min="0">
-                </div>
-            </div>
-
-            <!-- الملاحظات -->
-            <div class="input-group">
-                <label for="notes">وثيقة السفر أقل من المدة النظامية:</label>
-                <textarea id="notes" name="notes" placeholder="أدخل ملاحظات حول أن وثيقة السفر أقل من المدة النظامية..."></textarea>
-            </div>
-
             <!-- وقت الإقلاع -->
             <div class="input-group">
                 <label for="departureHour">وقت الإقلاع:</label>
@@ -76,10 +61,10 @@
                 </div>
             </div>
 
-            <!-- الخطوط -->
+            <!-- وجه السفر -->
             <div class="input-group">
-                <label for="airlines">الخطوط:</label>
-                <input type="text" id="airlines" name="airlines" placeholder="أدخل اسم الخطوط الجوية">
+                <label for="destination">وجه السفر:</label>
+                <input type="text" id="destination" name="destination" placeholder="أدخل وجه السفر">
             </div>
 
             <!-- زر إرسال مع أيقونة الواتساب -->
@@ -160,46 +145,44 @@
 
             // تاريخ انتهاء الجواز (هجري)
             const expiryLabel = document.createElement("label");
+            expiryLabel.setAttribute("for", `passportExpiry${index}`);
             expiryLabel.textContent = "تاريخ انتهاء الجواز (هجري):";
             passengerGroup.appendChild(expiryLabel);
 
-            const dateContainer = document.createElement("div");
-            dateContainer.className = "date-container";
+            const expiryContainer = document.createElement("div");
+            expiryContainer.className = "expiry-container";
 
-            const expiryDayInput = document.createElement("input");
-            expiryDayInput.type = "number";
-            expiryDayInput.id = `passportExpiryDay${index}`;
-            expiryDayInput.name = `passportExpiryDay${index}`;
-            expiryDayInput.placeholder = "اليوم";
-            expiryDayInput.min = "1";
-            expiryDayInput.max = "30";
-            expiryDayInput.required = true;
-            expiryDayInput.oninput = enforceEnglishDigits;
-            dateContainer.appendChild(expiryDayInput);
+            const dayInput = document.createElement("input");
+            dayInput.type = "number";
+            dayInput.id = `expiryDay${index}`;
+            dayInput.name = `expiryDay${index}`;
+            dayInput.placeholder = "اليوم";
+            dayInput.min = 1;
+            dayInput.max = 31;
+            dayInput.required = true;
+            expiryContainer.appendChild(dayInput);
 
-            const expiryMonthInput = document.createElement("input");
-            expiryMonthInput.type = "number";
-            expiryMonthInput.id = `passportExpiryMonth${index}`;
-            expiryMonthInput.name = `passportExpiryMonth${index}`;
-            expiryMonthInput.placeholder = "الشهر";
-            expiryMonthInput.min = "1";
-            expiryMonthInput.max = "12";
-            expiryMonthInput.required = true;
-            expiryMonthInput.oninput = enforceEnglishDigits;
-            dateContainer.appendChild(expiryMonthInput);
+            const monthInput = document.createElement("input");
+            monthInput.type = "number";
+            monthInput.id = `expiryMonth${index}`;
+            monthInput.name = `expiryMonth${index}`;
+            monthInput.placeholder = "الشهر";
+            monthInput.min = 1;
+            monthInput.max = 12;
+            monthInput.required = true;
+            expiryContainer.appendChild(monthInput);
 
-            const expiryYearInput = document.createElement("input");
-            expiryYearInput.type = "number";
-            expiryYearInput.id = `passportExpiryYear${index}`;
-            expiryYearInput.name = `passportExpiryYear${index}`;
-            expiryYearInput.placeholder = "السنة";
-            expiryYearInput.min = "1300";
-            expiryYearInput.max = "1500";
-            expiryYearInput.required = true;
-            expiryYearInput.oninput = enforceEnglishDigits;
-            dateContainer.appendChild(expiryYearInput);
+            const yearInput = document.createElement("input");
+            yearInput.type = "number";
+            yearInput.id = `expiryYear${index}`;
+            yearInput.name = `expiryYear${index}`;
+            yearInput.placeholder = "السنة";
+            yearInput.min = 1300;
+            yearInput.max = 1500;
+            yearInput.required = true;
+            expiryContainer.appendChild(yearInput);
 
-            passengerGroup.appendChild(dateContainer);
+            passengerGroup.appendChild(expiryContainer);
 
             // الجنسية
             const nationalityLabel = document.createElement("label");
@@ -211,9 +194,66 @@
             nationalityInput.type = "text";
             nationalityInput.id = `nationality${index}`;
             nationalityInput.name = `nationality${index}`;
-            nationalityInput.value = "سعودي";
-            nationalityInput.readOnly = true;
+            nationalityInput.placeholder = "سعودي";
+            nationalityInput.required = true;
             passengerGroup.appendChild(nationalityInput);
+
+            // المدة المتبقية
+            const remainingLabel = document.createElement("label");
+            remainingLabel.setAttribute("for", `remainingDuration${index}`);
+            remainingLabel.textContent = "المدة المتبقية:";
+            passengerGroup.appendChild(remainingLabel);
+
+            const remainingContainer = document.createElement("div");
+            remainingContainer.className = "remaining-container";
+
+            const monthsInput = document.createElement("input");
+            monthsInput.type = "number";
+            monthsInput.id = `remainingMonths${index}`;
+            monthsInput.name = `remainingMonths${index}`;
+            monthsInput.placeholder = "عدد الأشهر";
+            monthsInput.min = 0;
+            monthsInput.required = true;
+            remainingContainer.appendChild(monthsInput);
+
+            const daysInput = document.createElement("input");
+            daysInput.type = "number";
+            daysInput.id = `remainingDays${index}`;
+            daysInput.name = `remainingDays${index}`;
+            daysInput.placeholder = "عدد الأيام";
+            daysInput.min = 0;
+            daysInput.max = 30;
+            daysInput.required = true;
+            remainingContainer.appendChild(daysInput);
+
+            passengerGroup.appendChild(remainingContainer);
+
+            // سبب السفر
+            const reasonLabel = document.createElement("label");
+            reasonLabel.setAttribute("for", `travelReason${index}`);
+            reasonLabel.textContent = "سبب السفر:";
+            passengerGroup.appendChild(reasonLabel);
+
+            const reasonInput = document.createElement("input");
+            reasonInput.type = "text";
+            reasonInput.id = `travelReason${index}`;
+            reasonInput.name = `travelReason${index}`;
+            reasonInput.placeholder = "أدخل سبب السفر";
+            reasonInput.required = true;
+            passengerGroup.appendChild(reasonInput);
+
+            // وثيقة السفر أقل من المدة النظامية
+            const documentLabel = document.createElement("label");
+            documentLabel.setAttribute("for", `documentNotes${index}`);
+            documentLabel.textContent = "وثيقة السفر أقل من المدة النظامية:";
+            passengerGroup.appendChild(documentLabel);
+
+            const documentTextarea = document.createElement("textarea");
+            documentTextarea.id = `documentNotes${index}`;
+            documentTextarea.name = `documentNotes${index}`;
+            documentTextarea.placeholder = "في حال وجود ملاحظات اضافية اكتب هنا...";
+            documentTextarea.required = true;
+            passengerGroup.appendChild(documentTextarea);
 
             return passengerGroup;
         }
@@ -234,44 +274,39 @@
             for (let i = 1; i <= numPassengers; i++) {
                 const travelerName = getInputValue(`name${i}`);
                 const travelerPassport = getInputValue(`passportNumber${i}`);
+                const travelerExpiryDay = getInputValue(`expiryDay${i}`);
+                const travelerExpiryMonth = getInputValue(`expiryMonth${i}`);
+                const travelerExpiryYear = getInputValue(`expiryYear${i}`);
                 const travelerNationality = getInputValue(`nationality${i}`);
-
-                const passportExpiryDay = getInputValue(`passportExpiryDay${i}`);
-                const passportExpiryMonth = getInputValue(`passportExpiryMonth${i}`);
-                const passportExpiryYear = getInputValue(`passportExpiryYear${i}`);
-
-                // تحويل التاريخ الهجري إلى ميلادي باستخدام moment-hijri
-                const hijriDateString = `${passportExpiryYear}-${passportExpiryMonth}-${passportExpiryDay}`;
-                const gregorianDate = moment(hijriDateString, 'iYYYY-iMM-iDD').format('YYYY-MM-DD');
-
-                // التحقق من صحة التاريخ
-                if (!moment(gregorianDate, 'YYYY-MM-DD', true).isValid()) {
-                    alert(`التاريخ الهجري للمسافر ${i} غير صالح.`);
-                    return;
-                }
-
-                const today = moment().startOf('day');
-                const expiryDate = moment(gregorianDate, 'YYYY-MM-DD');
-
-                if (expiryDate.isBefore(today)) {
-                    alert(`تاريخ انتهاء الجواز للمسافر ${i} قد مضى بالفعل.`);
-                    return;
-                }
-
-                const duration = moment.duration(expiryDate.diff(today));
-
-                const remainingMonths = Math.floor(duration.asMonths());
-                const remainingDays = Math.floor(duration.asDays() - remainingMonths * 30); // تقريب الأيام
-
-                // تحديث حقول المدة المتبقية
-                document.getElementById("remainingMonths").value = remainingMonths;
-                document.getElementById("remainingDays").value = remainingDays;
+                const remainingMonths = getInputValue(`remainingMonths${i}`);
+                const remainingDays = getInputValue(`remainingDays${i}`);
+                const travelReason = getInputValue(`travelReason${i}`);
+                const documentNotes = getInputValue(`documentNotes${i}`);
+                const departureHour = getInputValue("departureHour");
+                const departureMinutes = getInputValue("departureMinutes");
+                const destinationVal = getInputValue("destination"); // تغيير من airlines إلى destination
 
                 message.push(`*اسم المسافر:* ${travelerName}`);
                 message.push(`*رقم الجواز:* ${travelerPassport}`);
-                message.push(`*تاريخ انتهاء الجواز:* ${passportExpiryDay}/${passportExpiryMonth}/${passportExpiryYear} هجري`);
+                // تغيير تنسيق تاريخ الانتهاء إلى yyyy/mm/dd
+                message.push(`*تاريخ انتهاء الجواز (هجري):* ${travelerExpiryYear}/${padNumber(travelerExpiryMonth)}/${padNumber(travelerExpiryDay)}`);
                 message.push(`*الجنسية:* ${travelerNationality}`);
                 message.push(`*المدة المتبقية:* ${remainingMonths} شهر و ${remainingDays} يوم`);
+                message.push(`*سبب السفر:* ${travelReason}`);
+
+                // إضافة وقت الإقلاع بعد حقل سبب السفر
+                if (departureHour || departureMinutes) {
+                    message.push(`*وقت الإقلاع:* ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
+                }
+
+                // إضافة وجه السفر بعد وقت الإقلاع
+                if (destinationVal) {
+                    message.push(`*وجه السفر:* ${destinationVal}`);
+                }
+
+                // إضافة الملاحظة بعد وجه السفر
+                message.push(`*الملاحظة / وثيقة السفر أقل من المدة النظامية:* ${documentNotes}`);
+
                 message.push("----");
             }
 
@@ -280,29 +315,10 @@
                 message.pop();
             }
 
-            // 2) إضافة المعلومات المشتركة
-            message.push("\n");
-
-            const notesVal = getInputValue("notes");
-            if (notesVal) {
-                message.push(`*وثيقة السفر أقل من المدة النظامية:* ${notesVal}`);
-            }
-
-            const departureHour = getInputValue("departureHour");
-            const departureMinutes = getInputValue("departureMinutes");
-            if (departureHour || departureMinutes) {
-                message.push(`*وقت الإقلاع:* ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
-            }
-
-            const airlinesVal = getInputValue("airlines");
-            if (airlinesVal) {
-                message.push(`*الخطوط:* ${airlinesVal}`);
-            }
-
-            // 3) ختام الرسالة
+            // 2) ختام الرسالة
             message.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
 
-            // 4) فتح الواتس
+            // 3) فتح الواتس
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
             window.location.href = whatsappUrl; // إعادة توجيه النافذة الحالية إلى WhatsApp
         }
