@@ -142,8 +142,9 @@
             passportInput.style.direction = "ltr";
             passportInput.required = true;
             passengerGroup.appendChild(passportInput);
-// الجنسية
-const nationalityLabel = document.createElement("label");
+
+            // الجنسية
+            const nationalityLabel = document.createElement("label");
             nationalityLabel.setAttribute("for", `nationality${index}`);
             nationalityLabel.textContent = "الجنسية:";
             passengerGroup.appendChild(nationalityLabel);
@@ -197,7 +198,6 @@ const nationalityLabel = document.createElement("label");
 
             passengerGroup.appendChild(expiryContainer);
 
-            
             // المدة المتبقية
             const remainingLabel = document.createElement("label");
             remainingLabel.setAttribute("for", `remainingDuration${index}`);
@@ -274,10 +274,10 @@ const nationalityLabel = document.createElement("label");
             for (let i = 1; i <= numPassengers; i++) {
                 const travelerName = getInputValue(`name${i}`);
                 const travelerPassport = getInputValue(`passportNumber${i}`);
+                const travelerNationality = getInputValue(`nationality${i}`);
                 const travelerExpiryDay = getInputValue(`expiryDay${i}`);
                 const travelerExpiryMonth = getInputValue(`expiryMonth${i}`);
                 const travelerExpiryYear = getInputValue(`expiryYear${i}`);
-                const travelerNationality = getInputValue(`nationality${i}`);
                 const remainingMonths = getInputValue(`remainingMonths${i}`);
                 const remainingDays = getInputValue(`remainingDays${i}`);
                 const travelReason = getInputValue(`travelReason${i}`);
@@ -288,9 +288,9 @@ const nationalityLabel = document.createElement("label");
 
                 message.push(`*اسم المسافر:* ${travelerName}`);
                 message.push(`*رقم الجواز:* ${travelerPassport}`);
+                message.push(`*الجنسية:* ${travelerNationality}`);
                 // تغيير تنسيق تاريخ الانتهاء إلى yyyy/mm/dd
                 message.push(`*تاريخ انتهاء الجواز (هجري):* ${travelerExpiryYear}/${padNumber(travelerExpiryMonth)}/${padNumber(travelerExpiryDay)}`);
-                message.push(`*الجنسية:* ${travelerNationality}`);
                 message.push(`*المدة المتبقية:* ${remainingMonths} شهر و ${remainingDays} يوم`);
                 message.push(`*سبب السفر:* ${travelReason}`);
 
