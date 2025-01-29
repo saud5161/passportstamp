@@ -39,7 +39,7 @@
 
         <!-- سبب الرفض -->
         <div class="input-group">
-            <label>سبب الرفض:</label>
+            <label>سبب :</label>
             <div class="radio-group-vertical">
                 <label><input type="radio" name="reason" value="فترة طويلة" required> فترة طويلة</label>
                 <label><input type="radio" name="reason" value="قدوم من دول الصراع (اليمن - العراق - سوريا - ليبيا - إيران - لبنان)"> قدوم من دول الصراع (اليمن - العراق - سوريا - ليبيا - إيران - لبنان)</label>
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // تفاصيل الرحلة
         message.push(`الرحلة: ${document.getElementById('flightDetails').value}`);
 
-        // سبب الرفض
+        // سبب 
         const selectedReason = document.querySelector('input[name="reason"]:checked');
         let reasonText = selectedReason.value;
         
