@@ -31,28 +31,40 @@
 
     <script>
         // الرقم السري المشفر
-        const correctPassword = "1212";
+        const correctPassword = "123123";
 
-        // طلب الرقم السري عند تحميل الصفحة
+        // عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
-            let userPassword = prompt("يرجى إدخال الرقم السري:");
+            // التحقق من وجود الرقم السري في localStorage
+            const savedPassword = localStorage.getItem('savedPassword');
 
-            // التحقق من إلغاء العملية
-            if (userPassword === null) {
-                window.close(); // إغلاق الصفحة إذا تم الضغط على إلغاء
-                return;
-            }
+            // إذا تم حفظ الرقم السري مسبقًا، نقوم بتخطي الطلب
+            if (savedPassword === correctPassword) {
+                console.log("تم التحقق من الرقم السري بنجاح.");
+            } else {
+                // طلب الرقم السري إذا لم يكن محفوظًا
+                let userPassword = prompt("يرجى إدخال الرقم السري:");
 
-            // التحقق من الرقم السري في حال كان خاطئًا
-            while (userPassword !== correctPassword) {
-                alert("الرقم السري غير صحيح.");
-                userPassword = prompt("يرجى إدخال الرقم السري مرة أخرى:");
-                
-                // التحقق من إلغاء العملية مرة أخرى
+                // التحقق من إلغاء العملية
                 if (userPassword === null) {
                     window.close(); // إغلاق الصفحة إذا تم الضغط على إلغاء
                     return;
                 }
+
+                // التحقق من الرقم السري في حال كان خاطئًا
+                while (userPassword !== correctPassword) {
+                    alert("الرقم السري غير صحيح.");
+                    userPassword = prompt("يرجى إدخال الرقم السري مرة أخرى:");
+                    
+                    // التحقق من إلغاء العملية مرة أخرى
+                    if (userPassword === null) {
+                        window.close(); // إغلاق الصفحة إذا تم الضغط على إلغاء
+                        return;
+                    }
+                }
+
+                // إذا كان الرقم السري صحيحًا، نقوم بتخزينه في localStorage
+                localStorage.setItem('savedPassword', correctPassword);
             }
 
             // إذا كان الرقم السري صحيحًا، نسمح بالانتقال
