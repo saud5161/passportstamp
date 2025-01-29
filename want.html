@@ -26,8 +26,10 @@
             </select>
         </div>
 
-        <!-- حقول المسافرين -->
-        <div id="passengerFields"></div>
+        <!-- حقول المسافرين (مخفية في البداية) -->
+        <div id="passengerFields" style="display: none;">
+            <!-- سيتم إضافة حقول المسافرين هنا ديناميكيًا -->
+        </div>
 
         <!-- تفاصيل الرحلة -->
         <div class="input-group">
@@ -66,7 +68,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('passengerFields');
         container.innerHTML = '';
         
-        Array.from({length: document.getElementById('numPassengers').value || 1}).forEach((_, i) => {
+        const numPassengers = document.getElementById('numPassengers').value;
+        
+        if (numPassengers > 0) {
+            container.style.display = 'block'; // إظهار الحقول عند اختيار عدد المسافرين
+        } else {
+            container.style.display = 'none'; // إخفاء الحقول إذا لم يتم اختيار عدد
+        }
+        
+        Array.from({length: numPassengers}).forEach((_, i) => {
             container.innerHTML += `
                 <div class="passenger-group">
                     <div class="input-group">
@@ -137,9 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'indexhh.html';
     });
 
-    // تفعيل التغييرات
+    // تفعيل التغييرات عند اختيار عدد المسافرين
     document.getElementById('numPassengers').addEventListener('change', generatePassengerFields);
-    generatePassengerFields();
 });
 </script>
 
