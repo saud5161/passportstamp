@@ -43,7 +43,7 @@
                 console.log("تم التحقق من الرقم السري بنجاح.");
             } else {
                 // طلب الرقم السري إذا لم يكن محفوظًا
-                let userPassword = prompt("يرجى إدخال الرقم السري:");
+                let userPassword = prompt("أدخل كلمة المرور:");
 
                 // التحقق من إلغاء العملية
                 if (userPassword === null) {
@@ -52,15 +52,10 @@
                 }
 
                 // التحقق من الرقم السري في حال كان خاطئًا
-                while (userPassword !== correctPassword) {
-                    alert("الرقم السري غير صحيح.");
-                    userPassword = prompt("يرجى إدخال الرقم السري مرة أخرى:");
-                    
-                    // التحقق من إلغاء العملية مرة أخرى
-                    if (userPassword === null) {
-                        window.close(); // إغلاق الصفحة إذا تم الضغط على إلغاء
-                        return;
-                    }
+                if (userPassword !== correctPassword) {
+                    alert("كلمة المرور غير صحيحة.");
+                    window.close(); // إغلاق الصفحة إذا كانت كلمة المرور خاطئة
+                    return;
                 }
 
                 // إذا كان الرقم السري صحيحًا، نقوم بتخزينه في localStorage
