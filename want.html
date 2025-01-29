@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إشعار رفض راكب</title>
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+    <p class="info-text">هذه الصفحة للمساعدة في إنشاء خطابات الواتس اب لن يتم حفظ أي معلومات مذكورة</p>
+
+    <h2>إشعار</h2>
+
+    <form id="rejectionForm">
+        <!-- عدد المسافرين -->
+        <div class="input-group">
+            <label for="numPassengers">عدد المسافرين:</label>
+            <select id="numPassengers" required>
+                <option value="">-- اختر --</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+        </div>
+
+        <!-- حقول المسافرين -->
+        <div id="passengerFields"></div>
+
+        <!-- تفاصيل الرحلة -->
+        <div class="input-group">
+            <label for="flightDetails">الرحلة:</label>
+            <input type="text" id="flightDetails" placeholder="مثال: قدوم SV555 / مغادرة XY123" required>
+        </div>
+
+        <!-- سبب الرفض -->
+        <div class="input-group">
+            <label>سبب الرفض:</label>
+            <div class="radio-group-vertical">
+                <label><input type="radio" name="reason" value="فترة طويلة" required> فترة طويلة</label>
+                <label><input type="radio" name="reason" value="قدوم من دول الصراع (اليمن - العراق - سوريا - ليبيا - إيران - لبنان)"> قدوم من دول الصراع (اليمن - العراق - سوريا - ليبيا - إيران - لبنان)</label>
+                <label><input type="radio" name="reason" value="إدراج على القائمة بالاشعار"> إدراج على القائمة بالاشعار</label>
+                <label><input type="radio" name="reason" value="أخرى"> أخرى (حدد)</label>
+            </div>
+            <textarea id="customReason" placeholder="اكتب السبب هنا إذا اخترت 'أخرى'" style="display:none; margin-top:10px;"></textarea>
+        </div>
+
+        <div class="button-group">
+            <button type="button" id="submitButton">
+                إنشاء الإشعار <i class="fab fa-whatsapp"></i>
+            </button>
+            
+            <button type="button" id="backButton" class="back-button">
+                عودة
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // توليد حقول المسافرين
+    const generatePassengerFields = () => {
+        const container = document.getElementById('passengerFields');
+        container.innerHTML = '';
+        
+        Array.from({length: document.getElementById('numPassengers').value || 1}).forEach((_, i) => {
+            container.innerHTML += `
+                <div class="passenger-group">
+                    <div class="input-group">
+                        <label>الاسم الكامل:</label>
+                        <input type="text" id="name${i+1}" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>الجنسية:</label>
+                        <input type="text" id="nationality${i+1}" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>الهوية:</label>
+                        <input type="text" id="id${i+1}" 
+                               placeholder="الحدود، الإقامة، الهوية"
+                               required>
+                    </div>
+                </div>
+            `;
+        });
+    };
+
+    // إظهار/إخفاء حقل السبب الإضافي
+    document.querySelectorAll('input[name="reason"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.getElementById('customReason').style.display = 
+                radio.value === 'أخرى' ? 'block' : 'none';
+        });
+    });
+
+    // إرسال الإشعار
+    document.getElementById('submitButton').addEventListener('click', () => {
+        let message = ["*إشعار*"];
+        
+        // تفاصيل المسافرين
+        Array.from({length: document.getElementById('numPassengers').value}).forEach((_, i) => {
+            message.push(
+                `الاسم: ${document.getElementById(`name${i+1}`).value}`,
+                `الجنسية: ${document.getElementById(`nationality${i+1}`).value}`,
+                `الهوية: ${document.getElementById(`id${i+1}`).value}`
+            );
+        });
+
+        // تفاصيل الرحلة
+        message.push(`الرحلة: ${document.getElementById('flightDetails').value}`);
+
+        // سبب الرفض
+        const selectedReason = document.querySelector('input[name="reason"]:checked');
+        let reasonText = selectedReason.value;
+        
+        if (selectedReason.value === 'أخرى') {
+            reasonText = document.getElementById('customReason').value;
+        }
+
+        message.push(
+            `السبب:`,
+            `- ${reasonText}`
+        );
+
+        // إرسال الواتساب
+        const url = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
+        window.open(url, '_blank');
+    });
+
+    // زر العودة
+    document.getElementById('backButton').addEventListener('click', () => {
+        window.location.href = 'indexhh.html';
+    });
+
+    // تفعيل التغييرات
+    document.getElementById('numPassengers').addEventListener('change', generatePassengerFields);
+    generatePassengerFields();
+});
+</script>
+
+<style>
+    /* تنسيق خيارات السبب لتكون تحت بعضها */
+    .radio-group-vertical {
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* مسافة بين الخيارات */
+    }
+
+    .radio-group-vertical label {
+        display: block;
+    }
+</style>
+
+</body>
+</html>

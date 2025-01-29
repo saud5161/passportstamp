@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الصفحة الرئيسية</title>
+    <title>اختيار نوع الملاحظة</title>
     <link rel="stylesheet" href="style1.css">
 </head>
 <body>
@@ -20,7 +20,7 @@
                     <option value="انتهاء تأشيرة زيارة">انتهاء تأشيرة زيارة</option>
                     <option value="أقل من 6 أشهر">أقل من 6 أشهر</option>
                     <option value="عدم قبول بصمة راكب">عدم قبول بصمة راكب</option>
-
+                    <option value="اشعار">اشعار</option>
                 </select>
             </div>
 
@@ -29,31 +29,61 @@
         </form>
     </div>
 
-    <!-- كود JavaScript مدمج -->
     <script>
-        // عند تحميل الصفحة
+        // الرقم السري المشفر
+        const correctPassword = "123123";
+
+        // طلب الرقم السري عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
+            let userPassword = prompt("يرجى إدخال الرقم السري:");
+
+            // التحقق من إلغاء العملية
+            if (userPassword === null) {
+                window.close(); // إغلاق الصفحة إذا تم الضغط على إلغاء
+                return;
+            }
+
+            // التحقق من الرقم السري في حال كان خاطئًا
+            while (userPassword !== correctPassword) {
+                alert("الرقم السري غير صحيح.");
+                userPassword = prompt("يرجى إدخال الرقم السري مرة أخرى:");
+                
+                // التحقق من إلغاء العملية مرة أخرى
+                if (userPassword === null) {
+                    window.close(); // إغلاق الصفحة إذا تم الضغط على إلغاء
+                    return;
+                }
+            }
+
+            // إذا كان الرقم السري صحيحًا، نسمح بالانتقال
             const nextButton = document.getElementById('nextButton');
             const noteTypeSelect = document.getElementById('noteType');
 
             nextButton.addEventListener('click', () => {
-            const selectedNoteType = noteTypeSelect.value;
+                const selectedNoteType = noteTypeSelect.value;
 
-            if (!selectedNoteType) {
-                alert('يرجى اختيار نوع الملاحظة قبل الانتقال.');
-                return;
-            }
+                if (!selectedNoteType) {
+                    alert('يرجى اختيار نوع الملاحظة قبل الانتقال.');
+                    return;
+                }
 
-            if (selectedNoteType === 'انتهاء تأشيرة زيارة') {
-                window.location.href = 'visa_expiry.html';
-            } else if (selectedNoteType === 'أقل من 6 أشهر') {
-                window.location.href = 'less_than_6_months.html';
-            } else if (selectedNoteType === 'عدم قبول بصمة راكب') {
-                window.location.href = 'noacspt.html';
-            } else {
-                alert('نوع الملاحظة غير معروف.');
-            }
-        });
+                switch (selectedNoteType) {
+                    case 'انتهاء تأشيرة زيارة':
+                        window.location.href = 'visa_expiry.html';
+                        break;
+                    case 'أقل من 6 أشهر':
+                        window.location.href = 'less_than_6_months.html';
+                        break;
+                    case 'اشعار':
+                        window.location.href = 'want.html';
+                        break;
+                    case 'عدم قبول بصمة راكب':
+                        window.location.href = 'noacspt.html';
+                        break;
+                    default:
+                        alert('نوع الملاحظة غير معروف.');
+                }
+            });
         });
     </script>
 
