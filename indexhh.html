@@ -27,6 +27,19 @@
             <!-- زر انتقال -->
             <button type="button" id="nextButton">انتقال</button>
         </form>
+
+        <!-- تعليمات لإنشاء اختصار للموقع على iPhone -->
+        <div class="shortcut-instructions">
+            <p>لإنشاء اختصار للموقع على iPhone، اتبع الخطوات التالية:</p>
+            <ol>
+                <li>اضغط على زر <strong>المشاركة</strong> في Safari.</li>
+                <li>اختر <strong>إضافة إلى الشاشة الرئيسية</strong>.</li>
+                <li>قم بتأكيد الاسم واضغط على <strong>إضافة</strong>.</li>
+            </ol>
+        </div>
+
+        <!-- زر لإخبار المستخدم كيفية إنشاء الاختصار -->
+        <button id="createShortcut">إضافة اختصار للموقع</button>
     </div>
 
     <script>
@@ -90,6 +103,11 @@
                     default:
                         alert('نوع الملاحظة غير معروف.');
                 }
+            });
+
+            // تنبيه لإضافة اختصار للموقع على iPhone
+            document.getElementById('createShortcut').addEventListener('click', function() {
+                alert("لإضافة اختصار لهذا الموقع، اضغط على زر المشاركة في Safari ثم اختر 'إضافة إلى الشاشة الرئيسية'.");
             });
         });
     </script>
