@@ -24,6 +24,8 @@
                     <option value="إجازة عسكري قبل الوقت">إجازة عسكري قبل الوقت </option>     
                    <option value="عسكري الى دولة ممنوعة">عسكري الى دولة ممنوعة </option>
                    <option value="اختلاف اسم عند المغادرة">زيارة اختلاف اسم عند المغادرة </option>
+                   <option value="اختلاف جنسية الراكب">اختلاف جنسية الراكب</option>
+                    <option value="التكميل">التكميل ( تجريبي غير جاهز)</option>
                 </select>
             </div>
 
@@ -111,6 +113,12 @@
                         break;
                         case 'اختلاف اسم عند المغادرة':
                         window.location.href = 'name.html';
+                        break;
+                        case 'اختلاف جنسية الراكب':
+                        window.location.href = 'nationalityd.html';
+                        break;
+                        case 'التكميل':
+                        window.location.href = 'presence.html';
                         break;
                     default:
                         alert('نوع الملاحظة غير معروف.');

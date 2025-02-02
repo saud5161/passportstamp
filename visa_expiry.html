@@ -92,7 +92,6 @@
                     <option value="زيارة مؤقتة">زيارة مؤقتة</option>
                     <option value="زيارة حكومية">زيارة حكومية</option>
                     <option value="زيارة ">زيارة </option>
-
                 </select>
             </div>
 
@@ -122,7 +121,7 @@
             <!-- الملاحظة / -->
             <div class="input-group">
                 <label for="notes">الملاحظة /:</label>
-                <textarea id="notes" name="notes" placeholder="عند الشروع في انهاء إجراءات مغادرته تبين ان المغادرة النهائية لتأشيرته منتهية بتاريخ ..."></textarea>
+                <textarea id="notes" name="notes" placeholder=" ملاحظات اضافية..."></textarea>
                 <span class="optional">غير الزامية</span>
             </div>
 
@@ -132,7 +131,6 @@
                 <div class="date-container">
                     <select id="expiryDay" name="expiryDay" required>
                         <option value="">-- اختر اليوم --</option>
-                        <!-- خيارات من 1 إلى 31 -->
                         <option value="1">1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>
@@ -167,7 +165,6 @@
                     </select>
                     <select id="expiryMonth" name="expiryMonth" required>
                         <option value="">-- اختر الشهر --</option>
-                        <!-- خيارات من 1 إلى 12 -->
                         <option value="1">1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>
@@ -183,7 +180,6 @@
                     </select>
                     <select id="expiryYear" name="expiryYear" required>
                         <option value="">-- اختر السنة --</option>
-                        <!-- خيارات من 1443 إلى 1449 -->
                         <option value="1443">1443</option>
                         <option value="1444">1444</option>
                         <option value="1445">1445</option>
@@ -200,7 +196,6 @@
                 <label for="expiryDays">مدة انتهاء التأشيرة بالأيام:</label>
                 <select id="expiryDays" name="expiryDays" required>
                     <option value="">-- اختر المدة --</option>
-                    <!-- خيارات من 1 إلى 30 -->
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
@@ -322,7 +317,7 @@
             // اسم المسافر
             const nameLabel = document.createElement("label");
             nameLabel.setAttribute("for", `name${index}`);
-            nameLabel.textContent = "اسم المسافر:";
+            nameLabel.textContent = "*اسم المسافر:";
             passengerGroup.appendChild(nameLabel);
 
             const nameInput = document.createElement("input");
@@ -335,7 +330,7 @@
             // رقم الحدود
             const borderLabel = document.createElement("label");
             borderLabel.setAttribute("for", `borderNumber${index}`);
-            borderLabel.textContent = "رقم الحدود:";
+            borderLabel.textContent = "*رقم الحدود:";
             passengerGroup.appendChild(borderLabel);
 
             const borderInput = document.createElement("input");
@@ -350,7 +345,7 @@
             // الجنسية
             const nationalityLabel = document.createElement("label");
             nationalityLabel.setAttribute("for", `nationality${index}`);
-            nationalityLabel.textContent = "الجنسية:";
+            nationalityLabel.textContent = "*الجنسية:";
             passengerGroup.appendChild(nationalityLabel);
 
             const nationalityInput = document.createElement("input");
@@ -407,16 +402,16 @@
                 const travelerBorder = getInputValue(`borderNumber${i}`);
                 let travelerNationality = firstNationality; // استخدام جنسية المسافر الأول
 
-                message.push(`اسم المسافر: ${travelerName}`);
-                message.push(`رقم الحدود: ${travelerBorder}`);
-                message.push(`الجنسية: ${travelerNationality}`);
+                message.push(`*اسم المسافر:* ${travelerName}`);
+                message.push(`*رقم الحدود:* ${travelerBorder}`);
+                message.push(`*الجنسية:* ${travelerNationality}`);
                 message.push(""); // سطر فارغ بين المسافرين
             }
 
             // 2) إضافة نوع التأشيرة
             const visaType = getInputValue("visaType");
             if (visaType) {
-                message.push(`نوع التأشيرة: ${visaType}`);
+                message.push(`*نوع التأشيرة:* ${visaType}`);
             }
 
             // 3) إضافة الملاحظة
@@ -433,10 +428,10 @@
 
             const expiryDays = getInputValue("expiryDays");
             if (expiryDays) {
-                message.push(`تاريخ انتهاء التأشيرة: ${expiryDate}`);
-                message.push(`مدة انتهاء التأشيرة بالأيام: ${expiryDays} أيام`);
+                message.push(`*تاريخ انتهاء التأشيرة:* ${expiryDate}`);
+                message.push(`*مدة انتهاء التأشيرة بالأيام:* ${expiryDays} أيام`);
             } else {
-                message.push(`تاريخ انتهاء التأشيرة: ${expiryDate}`);
+                message.push(`*تاريخ انتهاء التأشيرة:* ${expiryDate}`);
             }
 
             // 5) إضافة خطوط الطيران ورقم الرحلة
@@ -444,8 +439,8 @@
             const flightNumber = getInputValue("flightNumber");
 
             if (airlines && flightNumber) {
-                message.push(`خطوط الطيران: ${airlines}`);
-                message.push(`رقم الرحلة: ${flightNumber}`);
+                message.push(`*خطوط الطيران:* ${airlines}`);
+                message.push(`*رقم الرحلة:* ${flightNumber}`);
             }
 
             // 6) إضافة وقت الإقلاع
@@ -453,19 +448,15 @@
             const departureMinutes = getInputValue("departureMinutes");
 
             if (departureHour && departureMinutes) {
-                message.push(`وقت الإقلاع: ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
+                message.push(`*وقت الإقلاع:* ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
             }
 
             // 7) إضافة نص الملاحظة بناءً على عدد المسافرين
-            if (numPassengers > 1) {
-                message.push(`الملاحظة /: عند الشروع في انهاء إجراءات مغادرتهم تبين ان المغادرة النهائية لتأشيرتهم منتهية بتاريخ ${expiryDate}.`);
-            } else {
-                message.push(`الملاحظة /: عند الشروع في انهاء إجراءات مغادرته تبين ان المغادرة النهائية لتأشيرته منتهية بتاريخ ${expiryDate}.`);
-            }
+            message.push(`*الملاحظة/* التاشيرة منتهية`);
 
             // 8) ختام الرسالة
             message.push("");
-            message.push("بأمل اطلاع سعادتكم والتوجيه");
+            message.push("*بأمل اطلاع سعادتكم والتوجيه*");
 
             // 9) فتح الواتس مباشرة دون تحديد رقم، مما يتيح للمستخدم اختيار المستلم
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
