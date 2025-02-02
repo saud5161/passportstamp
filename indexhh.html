@@ -21,6 +21,9 @@
                     <option value="أقل من 6 أشهر">أقل من 6 أشهر</option>
                     <option value="عدم قبول بصمة راكب">عدم قبول بصمة راكب</option>
                     <option value="اشعار">اشعار</option>
+                    <option value="إجازة عسكري قبل الوقت">إجازة عسكري قبل الوقت </option>     
+                   <option value="عسكري الى دولة ممنوعة">عسكري الى دولة ممنوعة </option>
+                   <option value="اختلاف اسم عند المغادرة">زيارة اختلاف اسم عند المغادرة </option>
                 </select>
             </div>
 
@@ -99,6 +102,15 @@
                         break;
                     case 'عدم قبول بصمة راكب':
                         window.location.href = 'noacspt.html';
+                        break;
+                        case 'إجازة عسكري قبل الوقت':
+                        window.location.href = 'askeryafter.html';
+                        break;
+                        case 'عسكري الى دولة ممنوعة':
+                        window.location.href = 'askrycontery.html';
+                        break;
+                        case 'اختلاف اسم عند المغادرة':
+                        window.location.href = 'name.html';
                         break;
                     default:
                         alert('نوع الملاحظة غير معروف.');
