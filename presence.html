@@ -95,10 +95,17 @@
         }
 
         /* تخصيص مربع النص الخاص باسم الضابط ليكون بنفس حجم مربع "اختار رتبة الضابط" */
-        select, .full-width-select, .officer-name-select {
+        select {
             width: 100%; /* عرض كامل */
             padding: 10px;
             font-size: 16px; /* حجم أكبر */
+        }
+
+        /* تخصيص مربع النص الخاص بـ "اسم الضابط" ليأخذ نفس الحجم مثل "رتبة الضابط" */
+        .full-width-select {
+            width: 100%; /* نفس عرض الحقل مثل "اختار رتبة الضابط" */
+            padding: 10px;
+            font-size: 16px;
             text-align: center;
         }
 
@@ -164,6 +171,9 @@
 
         /* تنسيق لاسم الضابط */
         .officer-name-select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
             text-align: left; /* محاذاة النص إلى اليسار */
         }
     </style>
@@ -213,8 +223,8 @@
                 </select>
             </div>
 
-            <!-- اسم الضابط -->
-            <div class="input-group">
+             <!-- اسم الضابط -->
+             <div class="input-group">
                 <label for="officerName" class="no-bold">اسم الضابط (اختياري):</label>
                 <input list="officerNames" id="officerName" name="officerName" class="officer-name-select">
                 <datalist id="officerNames">
@@ -259,6 +269,7 @@
                 </datalist>
             </div>
 
+            <!-- باقي الحقول تتابع هنا -->
             <!-- القوة -->
             <div class="inline-inputs">
                 <div class="input-group">
@@ -431,51 +442,56 @@
 
         /***** دالة للإرسال للواتس *****/
         function submitForm() {
-            const message = [];
+    const message = [];
 
-            // إضافة البيانات إلى الرسالة
-            message.push(`المناوبة / ${getInputValue("shiftLeader")} سفر ${getInputValue("hallNumber")}`);
-            message.push(`رئيس المناوبة`);
-            message.push(`${getInputValue("officerRank")} / ${getInputValue("officerName")}`);
+    // إضافة البيانات إلى الرسالة
+    message.push(`المناوبة / ${getInputValue("shiftLeader")} سفر ${getInputValue("hallNumber")}`);
+    message.push(`رئيس المناوبة`);
+    
+    // عرض رتبة الضابط واسم الضابط بخط عادي
+    message.push(`${getInputValue("officerRank")} / ${getInputValue("officerName")}`);
+    
+    message.push(`القوة / ${getInputValue("force")}`);
 
-            // إضافة المعطيات الأخرى فقط إذا كانت تحتوي على أرقام
-            const fields = [
-                { label: 'الراحة', value: getInputValue("rest") },
-                { label: 'إجازة', value: getInputValue("leave") },
-                { label: 'إجازة أمومة', value: getInputValue("maternityLeave") },
-                { label: 'تكليف', value: getInputValue("assignment") },
-                { label: 'غياب', value: getInputValue("absence") },
-                { label: 'دورة', value: getInputValue("shift") },
-                { label: 'إجازة وضع', value: getInputValue("childBirthLeave") },
-                { label: 'تأخير', value: getInputValue("delay") },
-                { label: 'توقيف', value: getInputValue("detention") },
-                { label: 'انتداب', value: getInputValue("delegation") },
-                { label: 'استئذان', value: getInputValue("permission") }
-            ];
+    // إضافة المعطيات الأخرى فقط إذا كانت تحتوي على أرقام
+    const fields = [
+        { label: 'الراحة', value: getInputValue("rest") },
+        { label: 'إجازة', value: getInputValue("leave") },
+        { label: 'إجازة أمومة', value: getInputValue("maternityLeave") },
+        { label: 'تكليف', value: getInputValue("assignment") },
+        { label: 'غياب', value: getInputValue("absence") },
+        { label: 'دورة', value: getInputValue("shift") },
+        { label: 'إجازة وضع', value: getInputValue("childBirthLeave") },
+        { label: 'تأخير', value: getInputValue("delay") },
+        { label: 'توقيف', value: getInputValue("detention") },
+        { label: 'انتداب', value: getInputValue("delegation") },
+        { label: 'استئذان', value: getInputValue("permission") }
+    ];
 
-            fields.forEach(field => {
-                if (field.value) message.push(`${field.label} / ${field.value}`);
-            });
+    fields.forEach(field => {
+        if (field.value) message.push(`${field.label} / ${field.value}`);
+    });
 
-            // موجود
-            const موجود = getInputValue("available");
-            const additionalFields = [];
-            if (getInputValue("counter")) additionalFields.push(`${getInputValue("counter")} كاونتر`);
-            if (getInputValue("selfService")) additionalFields.push(`${getInputValue("selfService")} بوابة`);
-            if (getInputValue("administrativeWork")) additionalFields.push(`${getInputValue("administrativeWork")} أعمال إدارية`);
-            if (getInputValue("businessMen")) additionalFields.push(`${getInputValue("businessMen")} رجال أعمال`);
-            if (getInputValue("businessList")) additionalFields.push(`${getInputValue("businessList")} قائمة`);
+    // موجود
+    const موجود = getInputValue("available");
+    const additionalFields = [];
+    if (getInputValue("counter")) additionalFields.push(`${getInputValue("counter")} كاونتر`);
+    if (getInputValue("selfService")) additionalFields.push(`${getInputValue("selfService")} بوابة`);
+    if (getInputValue("administrativeWork")) additionalFields.push(`${getInputValue("administrativeWork")} أعمال إدارية`);
+    if (getInputValue("businessMen")) additionalFields.push(`${getInputValue("businessMen")} رجال أعمال`);
+    if (getInputValue("businessList")) additionalFields.push(`${getInputValue("businessList")} قائمة`);
 
-            if (additionalFields.length > 0) {
-                message.push(`الموجود ${موجود} (${additionalFields.join(' + ')})`);
-            } else {
-                message.push(`الموجود ${موجود}`);
-            }
+    if (additionalFields.length > 0) {
+        message.push(`الموجود ${موجود} (${additionalFields.join(' + ')})`);
+    } else {
+        message.push(`الموجود ${موجود}`);
+    }
 
-            // إرسال الرسالة عبر الواتساب
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
-            window.location.href = whatsappUrl; // Redirect the current window to WhatsApp
-        }
+    // إرسال الرسالة عبر الواتساب
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
+    window.location.href = whatsappUrl; // Redirect the current window to WhatsApp
+}
+
 
         /***** إضافة مستمعي الأحداث *****/
         function addEventListeners() {
