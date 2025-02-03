@@ -145,13 +145,12 @@
             font-weight: normal;
         }
 
-        /* تنسيق مربعات النصوص من القوة الى استئذان بحيث تكون بنفس الحجم */
-        .input-group input {
-            width: 80px; /* نفس حجم مربعات النص */
-            font-size: 14px;
-            padding: 8px;
-            text-align: center;
-        }
+       /* تخصيص الحقول الرقمية فقط */
+.input-group input[type="number"] {
+  width: 80px;
+  /* باقي التنسيقات المناسبة للحقول الرقمية */
+}
+
 
         /* تنسيق الحقول بحيث كل 3 حقول تظهر بجانب بعض */
         .inline-inputs {
@@ -169,13 +168,14 @@
             display: none;
         }
 
-        /* تنسيق لاسم الضابط */
-        .officer-name-select {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            text-align: left; /* محاذاة النص إلى اليسار */
-        }
+        /* لمنح حقل اسم الضابط عرضًا كاملاً ضمن الـinput-group */
+.officer-name-select {
+  width: 100%;        /* احرص على أن يكون العرض 100% من مساحة العنصر الأب */
+  padding: 10px;      /* مساحة داخلية كافية */
+  font-size: 16px;    /* حجم خط مناسب */
+  box-sizing: border-box; /* لضمان أن الحواف تُحسب ضمن الـ width */
+}
+
     </style>
 </head>
 <body>
@@ -352,7 +352,7 @@
                 <input type="number" id="selfService" name="selfService" oninput="calculateAvailable()">
             </div>
 
-            <!-- إضافة حقل أعمال إدارية مرة أخرى -->
+            <!-- إضافة حقل أعمال إدارية -->
             <div class="field-box">
                 <label for="administrativeWork">أعمال إدارية:</label>
                 <input type="number" id="administrativeWork" name="administrativeWork" oninput="calculateAvailable()">
@@ -368,6 +368,13 @@
                 <label for="businessList">قائمة:</label>
                 <input type="number" id="businessList" name="businessList" oninput="calculateAvailable()">
             </div>
+
+            <!-- جديد: إضافة حقل الذاتية بعد قائمة -->
+            <div class="field-box">
+                <label for="selfAutomated">الذاتية:</label> <!-- جديد -->
+                <input type="number" id="selfAutomated" name="selfAutomated" oninput="calculateAvailable()"> <!-- جديد -->
+            </div>
+            <!-- نهاية الجزء الجديد -->
 
             <!-- زر إرسال مع أيقونة الواتساب -->
             <button type="button" id="submitButton">
@@ -421,14 +428,16 @@
             // عرض الموجود في الحقل
             document.getElementById("available").value = available;
 
-            // حساب مجموع الكاونتر والبوابة والذاتية وأعمال إدارية ورجال الأعمال والقائمة
+            // حساب مجموع الكاونتر والبوابة والأعمال الإدارية ورجال الأعمال والقائمة والذاتية
             const counter = parseInt(getInputValue("counter") || 0);
             const selfService = parseInt(getInputValue("selfService") || 0);
             const administrativeWork = parseInt(getInputValue("administrativeWork") || 0);
             const businessMen = parseInt(getInputValue("businessMen") || 0);
             const businessList = parseInt(getInputValue("businessList") || 0);
+            const selfAutomated = parseInt(getInputValue("selfAutomated") || 0); // جديد
 
-            const total = counter + selfService + administrativeWork + businessMen + businessList;
+            // جديد: إضافة الذاتية إلى المجموع
+            const total = counter + selfService + administrativeWork + businessMen + businessList + selfAutomated;
 
             // التحقق من تطابق العدد
             const errorMessage = document.getElementById("error-message");
@@ -442,56 +451,58 @@
 
         /***** دالة للإرسال للواتس *****/
         function submitForm() {
-    const message = [];
+            const message = [];
 
-    // إضافة البيانات إلى الرسالة
-    message.push(`المناوبة / ${getInputValue("shiftLeader")} سفر ${getInputValue("hallNumber")}`);
-    message.push(`رئيس المناوبة`);
-    
-    // عرض رتبة الضابط واسم الضابط بخط عادي
-    message.push(`${getInputValue("officerRank")} / ${getInputValue("officerName")}`);
-    
-    message.push(`القوة / ${getInputValue("force")}`);
+            // إضافة البيانات إلى الرسالة
+            message.push(`المناوبة / ${getInputValue("shiftLeader")} سفر ${getInputValue("hallNumber")}`);
+            message.push(`رئيس المناوبة`);
+            
+            // عرض رتبة الضابط واسم الضابط بخط عادي
+            message.push(`${getInputValue("officerRank")} / ${getInputValue("officerName")}`);
+            
+            message.push(`القوة / ${getInputValue("force")}`);
 
-    // إضافة المعطيات الأخرى فقط إذا كانت تحتوي على أرقام
-    const fields = [
-        { label: 'الراحة', value: getInputValue("rest") },
-        { label: 'إجازة', value: getInputValue("leave") },
-        { label: 'إجازة أمومة', value: getInputValue("maternityLeave") },
-        { label: 'تكليف', value: getInputValue("assignment") },
-        { label: 'غياب', value: getInputValue("absence") },
-        { label: 'دورة', value: getInputValue("shift") },
-        { label: 'إجازة وضع', value: getInputValue("childBirthLeave") },
-        { label: 'تأخير', value: getInputValue("delay") },
-        { label: 'توقيف', value: getInputValue("detention") },
-        { label: 'انتداب', value: getInputValue("delegation") },
-        { label: 'استئذان', value: getInputValue("permission") }
-    ];
+            // إضافة المعطيات الأخرى فقط إذا كانت تحتوي على أرقام
+            const fields = [
+                { label: 'الراحة', value: getInputValue("rest") },
+                { label: 'إجازة', value: getInputValue("leave") },
+                { label: 'إجازة أمومة', value: getInputValue("maternityLeave") },
+                { label: 'تكليف', value: getInputValue("assignment") },
+                { label: 'غياب', value: getInputValue("absence") },
+                { label: 'دورة', value: getInputValue("shift") },
+                { label: 'إجازة وضع', value: getInputValue("childBirthLeave") },
+                { label: 'تأخير', value: getInputValue("delay") },
+                { label: 'توقيف', value: getInputValue("detention") },
+                { label: 'انتداب', value: getInputValue("delegation") },
+                { label: 'استئذان', value: getInputValue("permission") }
+            ];
 
-    fields.forEach(field => {
-        if (field.value) message.push(`${field.label} / ${field.value}`);
-    });
+            fields.forEach(field => {
+                if (field.value) message.push(`${field.label} / ${field.value}`);
+            });
 
-    // موجود
-    const موجود = getInputValue("available");
-    const additionalFields = [];
-    if (getInputValue("counter")) additionalFields.push(`${getInputValue("counter")} كاونتر`);
-    if (getInputValue("selfService")) additionalFields.push(`${getInputValue("selfService")} بوابة`);
-    if (getInputValue("administrativeWork")) additionalFields.push(`${getInputValue("administrativeWork")} أعمال إدارية`);
-    if (getInputValue("businessMen")) additionalFields.push(`${getInputValue("businessMen")} رجال أعمال`);
-    if (getInputValue("businessList")) additionalFields.push(`${getInputValue("businessList")} قائمة`);
+            // موجود
+            const موجود = getInputValue("available");
+            const additionalFields = [];
+            if (getInputValue("counter")) additionalFields.push(`${getInputValue("counter")} كاونتر`);
+            if (getInputValue("selfService")) additionalFields.push(`${getInputValue("selfService")} بوابة`);
+            if (getInputValue("administrativeWork")) additionalFields.push(`${getInputValue("administrativeWork")} أعمال إدارية`);
+            if (getInputValue("businessMen")) additionalFields.push(`${getInputValue("businessMen")} رجال أعمال`);
+            if (getInputValue("businessList")) additionalFields.push(`${getInputValue("businessList")} قائمة`);
+            
+            // جديد: الذاتية
+            if (getInputValue("selfAutomated")) additionalFields.push(`${getInputValue("selfAutomated")} الذاتية`);
 
-    if (additionalFields.length > 0) {
-        message.push(`الموجود ${موجود} (${additionalFields.join(' + ')})`);
-    } else {
-        message.push(`الموجود ${موجود}`);
-    }
+            if (additionalFields.length > 0) {
+                message.push(`الموجود ${موجود} (${additionalFields.join(' + ')})`);
+            } else {
+                message.push(`الموجود ${موجود}`);
+            }
 
-    // إرسال الرسالة عبر الواتساب
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
-    window.location.href = whatsappUrl; // Redirect the current window to WhatsApp
-}
-
+            // إرسال الرسالة عبر الواتساب
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
+            window.location.href = whatsappUrl; // Redirect to WhatsApp
+        }
 
         /***** إضافة مستمعي الأحداث *****/
         function addEventListeners() {
