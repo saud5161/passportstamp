@@ -103,7 +103,7 @@
 
         /* تخصيص مربع النص الخاص بـ "اسم الضابط" ليأخذ نفس الحجم مثل "رتبة الضابط" */
         .full-width-select {
-            width: 100%; /* نفس عرض الحقل مثل "اختار رتبة الضابط" */
+            width: 100%;
             padding: 10px;
             font-size: 16px;
             text-align: center;
@@ -125,7 +125,7 @@
         .inline-inputs {
             display: flex;
             justify-content: space-between;
-            gap: 15px; /* المسافة بين الحقول */
+            gap: 15px;
             flex-wrap: wrap;
         }
 
@@ -137,7 +137,7 @@
         }
 
         .large-input-label {
-            font-size: 18px; /* الحجم الكبير للعناوين */
+            font-size: 18px;
         }
 
         /* إزالة الخط العريض من اسم الضابط و رتبة الضابط */
@@ -145,19 +145,9 @@
             font-weight: normal;
         }
 
-       /* تخصيص الحقول الرقمية فقط */
-.input-group input[type="number"] {
-  width: 80px;
-  /* باقي التنسيقات المناسبة للحقول الرقمية */
-}
-
-
-        /* تنسيق الحقول بحيث كل 3 حقول تظهر بجانب بعض */
-        .inline-inputs {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 20px;
+        /* تخصيص الحقول الرقمية فقط */
+        .input-group input[type="number"] {
+            width: 80px;
         }
 
         /* تنسيق لرسالة التنبيه في حالة عدم تطابق العدد */
@@ -169,12 +159,28 @@
         }
 
         /* لمنح حقل اسم الضابط عرضًا كاملاً ضمن الـinput-group */
-.officer-name-select {
-  width: 100%;        /* احرص على أن يكون العرض 100% من مساحة العنصر الأب */
-  padding: 10px;      /* مساحة داخلية كافية */
-  font-size: 16px;    /* حجم خط مناسب */
-  box-sizing: border-box; /* لضمان أن الحواف تُحسب ضمن الـ width */
-}
+        .officer-name-select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        /* تنسيق للتنبيه الجديد */
+        .alert-green {
+            background-color: #e6ffe6; /* لون خلفية أخضر فاتح */
+            color: #008000;           /* لون النص أخضر غامق */
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .alert-green i {
+            margin-right: 8px; /* مسافة صغيرة بين الأيقونة والنص */
+        }
 
     </style>
 </head>
@@ -269,7 +275,13 @@
                 </datalist>
             </div>
 
-            <!-- باقي الحقول تتابع هنا -->
+            <!-- تنبيه جديد فوق القوة -->
+            <div class="alert-green">
+                <i class="fas fa-exclamation-circle"></i>
+                يرجى تعبئة الخانات المطلوبة، سوف تظهر فقط الخانات التي تحتوي على العدد.
+            </div>
+            <!-- /تنبيه جديد -->
+
             <!-- القوة -->
             <div class="inline-inputs">
                 <div class="input-group">
@@ -283,7 +295,7 @@
                     <input type="number" id="leave" name="leave" oninput="calculateAvailable()">
                 </div>
 
-                <!-- إجازات أخرى -->
+                <!-- إجازة أمومة -->
                 <div class="input-group">
                     <label for="maternityLeave">*إجازة أمومة:</label>
                     <input type="number" id="maternityLeave" name="maternityLeave" oninput="calculateAvailable()">
@@ -369,12 +381,11 @@
                 <input type="number" id="businessList" name="businessList" oninput="calculateAvailable()">
             </div>
 
-            <!-- جديد: إضافة حقل الذاتية بعد قائمة -->
+            <!-- الذاتية -->
             <div class="field-box">
-                <label for="selfAutomated">الذاتية:</label> <!-- جديد -->
-                <input type="number" id="selfAutomated" name="selfAutomated" oninput="calculateAvailable()"> <!-- جديد -->
+                <label for="selfAutomated">الذاتية:</label>
+                <input type="number" id="selfAutomated" name="selfAutomated" oninput="calculateAvailable()">
             </div>
-            <!-- نهاية الجزء الجديد -->
 
             <!-- زر إرسال مع أيقونة الواتساب -->
             <button type="button" id="submitButton">
@@ -434,9 +445,8 @@
             const administrativeWork = parseInt(getInputValue("administrativeWork") || 0);
             const businessMen = parseInt(getInputValue("businessMen") || 0);
             const businessList = parseInt(getInputValue("businessList") || 0);
-            const selfAutomated = parseInt(getInputValue("selfAutomated") || 0); // جديد
+            const selfAutomated = parseInt(getInputValue("selfAutomated") || 0);
 
-            // جديد: إضافة الذاتية إلى المجموع
             const total = counter + selfService + administrativeWork + businessMen + businessList + selfAutomated;
 
             // التحقق من تطابق العدد
@@ -457,7 +467,7 @@
             message.push(`المناوبة / ${getInputValue("shiftLeader")} سفر ${getInputValue("hallNumber")}`);
             message.push(`رئيس المناوبة`);
             
-            // عرض رتبة الضابط واسم الضابط بخط عادي
+            // عرض رتبة الضابط واسم الضابط
             message.push(`${getInputValue("officerRank")} / ${getInputValue("officerName")}`);
             
             message.push(`القوة / ${getInputValue("force")}`);
@@ -489,8 +499,6 @@
             if (getInputValue("administrativeWork")) additionalFields.push(`${getInputValue("administrativeWork")} أعمال إدارية`);
             if (getInputValue("businessMen")) additionalFields.push(`${getInputValue("businessMen")} رجال أعمال`);
             if (getInputValue("businessList")) additionalFields.push(`${getInputValue("businessList")} قائمة`);
-            
-            // جديد: الذاتية
             if (getInputValue("selfAutomated")) additionalFields.push(`${getInputValue("selfAutomated")} الذاتية`);
 
             if (additionalFields.length > 0) {
