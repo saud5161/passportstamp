@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ننقل معلومات</title>
+    <!-- ربط ملف التنسيق الخارجي -->
+    <link rel="stylesheet" href="style1.css">
+    <!-- ربط مكتبة Font Awesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- ربط مكتبة moment.js و moment-hijri.js عبر CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js" integrity="sha512-C7Sd1R1S+RSZLJ1tSCG68oIucNwKMHk3qvtf8ZyxOGgP1G+EHyR4BTaPF8DStV+5AVOHtHKbl95Ez4U4u3+syA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-hijri/2.1.2/moment-hijri.min.js" integrity="sha512-7gWcw6oL4FLHSO7dcxI1gks0YJY0OxTu3HzdYa5l5QnK/eZgWYn6p7HjTmssxKZ1f5vN+Y3uE0PtOMa+b42v1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+
+    <div class="container">
+        <p class="info-text">هذه الصفحة للمساعدة في إنشاء خطابات الواتس اب لن يتم حفظ أي معلومات مذكورة</p>
+        <h2>نقل المعلومات</h2>
+    
+        <form id="updateInformationForm">
+    
+            <div class="input-group">
+                <label for="name">الاسم:</label>
+                <input type="text" id="name" name="name" placeholder="أدخل الاسم" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="nationality">الجنسية:</label>
+                <input type="text" id="nationality" name="nationality" placeholder="أدخل الجنسية" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="newPassportNumber">رقم الجواز الجديد:</label>
+                <input type="text" id="newPassportNumber" name="newPassportNumber" placeholder="أدخل رقم الجواز الجديد" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="oldPassportNumber">رقم الجواز القديم:</label>
+                <input type="text" id="oldPassportNumber" name="oldPassportNumber" placeholder="أدخل رقم الجواز القديم" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="residencyNumber">رقم الإقامة:</label>
+                <input type="text" id="residencyNumber" name="residencyNumber" placeholder="أدخل رقم الإقامة" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="sponsorName">اسم الكفيل:</label>
+                <input type="text" id="sponsorName" name="sponsorName" placeholder="أدخل اسم الكفيل" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="flightNumber">رقم الرحلة:</label>
+                <input type="text" id="flightNumber" name="flightNumber" placeholder="أدخل رقم الرحلة" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="departureHour">وقت الإقلاع:</label>
+                <div id="departureTimeContainer">
+                    <input type="number" id="departureHour" name="departureHour" placeholder="الساعة" min="0" max="23" oninput="enforceEnglishDigits(event)">
+                    <span>:</span>
+                    <input type="number" id="departureMinutes" name="departureMinutes" placeholder="الدقائق" list="minuteOptions" min="0" max="59" oninput="enforceEnglishDigits(event)">
+                    <datalist id="minuteOptions">
+                        <option value="00">
+                        <option value="15">
+                        <option value="30">
+                        <option value="45">
+                    </datalist>
+                </div>
+            </div>
+    
+            <div class="input-group">
+                <label for="note">الملاحظة:</label>
+                <textarea id="note" name="note" required>نقل معلومات وبحوزته الجواز الجديد والقديم</textarea>
+            </div>
+    
+            <button type="button" id="submitButton">
+                إرسال إلى الواتس اب
+                <i class="fab fa-whatsapp"></i>
+            </button>
+    
+            <button type="button" id="backButton" class="back-button">عودة</button>
+        </form>
+    </div>
+    
+    <script>
+        document.getElementById("submitButton").addEventListener("click", () => {
+            const message = [];
+    
+            const name = document.getElementById("name").value.trim();
+            const nationality = document.getElementById("nationality").value.trim();
+            const newPassportNumber = document.getElementById("newPassportNumber").value.trim();
+            const oldPassportNumber = document.getElementById("oldPassportNumber").value.trim();
+            const residencyNumber = document.getElementById("residencyNumber").value.trim();
+            const sponsorName = document.getElementById("sponsorName").value.trim();
+            const flightNumber = document.getElementById("flightNumber").value.trim();
+            const departureHour = document.getElementById("departureHour").value.trim();
+            const departureMinutes = document.getElementById("departureMinutes").value.trim();
+            const note = document.getElementById("note").value.trim();
+    
+            message.push(`*الاسم:* ${name}`);
+            message.push(`*الجنسية:* ${nationality}`);
+            message.push(`*رقم الجواز الجديد:* ${newPassportNumber}`);
+            message.push(`*رقم الجواز القديم:* ${oldPassportNumber}`);
+            message.push(`*رقم الإقامة:* ${residencyNumber}`);
+            message.push(`*اسم الكفيل:* ${sponsorName}`);
+            message.push(`*رقم الرحلة:* ${flightNumber}`);
+            message.push(`*وقت الإقلاع:* ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
+            message.push(`*الملاحظة:* ${note}`);
+    
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
+            window.location.href = whatsappUrl;
+        });
+    
+        document.getElementById("backButton").addEventListener("click", () => {
+            window.location.href = 'indexhh.html';
+        });
+    
+        function enforceEnglishDigits(event) {
+            const input = event.target;
+            input.value = input.value.replace(/[^\d]/g, '');
+        }
+    
+        function padNumber(number) {
+            return number.toString().padStart(2, '0');
+        }
+    </script>
+    
+
+</body>
+</html>
