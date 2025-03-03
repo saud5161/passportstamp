@@ -389,6 +389,10 @@
         const numPassengers = parseInt(getInputValue("numPassengers"), 10) || 1;
         const message = [];
 
+        // 0) إضافة العنوان في بداية الرسالة + سطر فارغ
+        message.push('*تأشيرة زيارة منتهية*');
+        message.push(''); // سطر فارغ
+
         // 1) بيانات المسافرين
         const firstNationality = getInputValue('nationality1');  // جنسية المسافر الأول
         for (let i = 1; i <= numPassengers; i++) {

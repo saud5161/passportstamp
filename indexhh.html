@@ -26,6 +26,9 @@
                    <option value="اختلاف اسم عند المغادرة">زيارة اختلاف اسم عند المغادرة </option>
                    <option value="اختلاف جنسية الراكب">اختلاف جنسية الراكب</option>
                     <option value="التكميل">التكميل ( تجريبي غير جاهز)</option>
+                     <option value="اشعار طيران خاص">اشعار طيران خاص مغادرة</option>
+                        <option value="اشعار طيران">اشعار طيران خاص قدوم</option>
+                     
                 </select>
             </div>
 
@@ -119,6 +122,12 @@
                         break;
                         case 'التكميل':
                         window.location.href = 'presence.html';
+                        break;
+                        case 'اشعار طيران خاص':
+                        window.location.href = 'spashl.html';
+                        break;
+                       case 'اشعار طيران':
+                        window.location.href = 'spaary.html';
                         break;
                     default:
                         alert('نوع الملاحظة غير معروف.');
