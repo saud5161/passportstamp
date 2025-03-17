@@ -124,6 +124,85 @@ function performSearch() {
     });
     
 }
+function fetchLatestRelease() {
+    const notificationContent = document.getElementById('notification-content');
+
+    // إذا كان المربع مرئيًا، قم بإخفائه
+    if (notificationContent.style.display === 'block') {
+        notificationContent.style.display = 'none';
+    } else {
+        // إذا كان المربع مخفيًا، قم بجلب آخر إصدار من GitHub
+        fetch('https://api.github.com/repos/saud5161/Special-document/releases/latest')
+        .then(response => response.json())
+        .then(data => {
+            // تحديث النص بمحتوى آخر إصدار
+            document.getElementById('latest-release-text').textContent = data.body || 'لا يوجد إصدار جديد.';
+            
+            // إظهار مربع النص
+            notificationContent.style.display = 'block';
+
+            // إغلاق المربع تلقائيًا بعد 20 ثانية (20000 مللي ثانية)
+            setTimeout(() => {
+                notificationContent.style.display = 'none';
+            }, 20000); // 20 ثانية
+        })
+        .catch(error => {
+            document.getElementById('latest-release-text').textContent = 'حدث خطأ في جلب البيانات.';
+        });
+    }
+}
+function toggleHeadsetNotification(event) {
+    event.preventDefault(); // لمنع السلوك الافتراضي للرابط
+    const headsetNotificationContent = document.getElementById('headset-notification-content');
+
+    // إذا كان المربع مرئيًا، قم بإخفائه
+    if (headsetNotificationContent.style.display === 'block') {
+        headsetNotificationContent.style.display = 'none';
+    } else {
+        // إظهار مربع النص
+        headsetNotificationContent.style.display = 'block';
+
+        // إغلاق المربع تلقائيًا بعد 20 ثانية
+        setTimeout(() => {
+            headsetNotificationContent.style.display = 'none';
+        }, 20000); // 20 ثانية
+    }
+}
+const { exec } = require('child_process');
+const path = require('path');
+
+function openFolder() {
+    // تحديد مسار المجلد داخل مجلد التطبيق
+    const folderPath = path.join(__dirname, 'dic', 'font');
+
+    // فتح المجلد باستخدام مستكشف الملفات
+    exec(`start "" "${folderPath}"`, (error) => {
+        if (error) {
+            console.error(`Error opening folder: ${error.message}`);
+        } else {
+            console.log('Folder opened successfully');
+        }
+    });
+}
+// دالة الطباعة
+function printFile(filePath) {
+    var iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    iframe.src = filePath;
+    document.body.appendChild(iframe);
+
+    iframe.onload = function() {
+        iframe.contentWindow.print();
+    };
+}
+
+
+
+
+
 
 
 
