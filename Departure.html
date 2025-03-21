@@ -25,7 +25,10 @@
                 <div>
                     <div>المملكة العربية السعودية</div>
                     <div>وزارة الداخلية - المديرية العامة للجوازات</div>
-                   <div class="fas fa-plane-departure">  نماذج الجوازات مغادرة</div>
+                    <div>جوازات مطار الملك خالد الدولي</div>
+
+                   <div class="fas fa-plane-departure">  نماذج مغادرة </div>
+                   
                 </div>
             </div>
         </div>
@@ -122,7 +125,7 @@
                         اضغط هنا
                     </a></li>
                     <li>يُرجى إغلاق جميع الصفحات المفتوحه في حال عدم ظهور مربع النصوص او توقفه</li>
-                    <li>الحد الاقصى لفتح نفس الخطاب 3 خطابات في نفس الوقت يرجى اغلاق الخطابات فور الانتهاء منها لتوفير مساحة </li>
+                    <li>الحد الاقصى لفتح نفس الخطاب 4 خطابات في نفس الوقت يرجى اغلاق الخطابات فور الانتهاء منها لتوفير مساحة </li>
                   <!-- تثبيت الخطوط عبر Google Fonts (المسارات فارغة حاليًا) -->
 <link href="مسار_الخط_1" rel="stylesheet">
 <link href="مسار_الخط_2" rel="stylesheet">
@@ -136,19 +139,11 @@
 </span>
 
 <!-- الخط الأول والخط الثاني مع الأزرار -->
+<a href="#" onclick="openFolder()">
+    <i class="fas fa-folder-open"></i> لتثبيت الخطوط اضغط هنا 
+</a>
 <div style="margin-top: 10px; font-family: 'Arial', sans-serif;">
-    <a href="dic/AL-Mateen.ttf" 
-       style="background-color: #4aa32f; color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; margin-right: 10px;" 
-       target="_blank">
-        <i style="margin-right: 8px; font-size: 16px; color: white;" class="fa fa-check-circle"></i> 
-        تثبيت الخط الأول
-    </a>
-    <a href="dic/AL-Mohanad Bold.ttf" 
-       style="background-color: #4aa32f; color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center;" 
-       target="_blank">
-        <i style="margin-right: 8px; font-size: 16px; color: white;" class="fa fa-check-circle"></i> 
-        تثبيت الخط الثاني
-    </a>
+   
 </div>
 
 <!-- تفعيل أيقونات Font Awesome -->
@@ -179,32 +174,30 @@
             
           <div id="content-attendance" class="content-section">
 
-    <a href="#" onclick="openFolder()">
-        <i class="fas fa-folder-open"></i> لتعديل اضغط هنا 
-    </a>
+   
 
     <div class="left-top-con">  
-        <H3 class="top-text">صالة رقم (2)</H3>
+        <H3 class="top-text">صالة رقم (1)</H3>
     </div>
     <div class="button-grid">
         <div class="button">
             <div class="icon-container">
                 <div class="description">
                     <h3>مناوبة (أ)</h3>
-                    <p>كشف حضور وانصراف مناوبة (أ) </p><span style="color: rgb(148, 68, 16);">غير محدث يرجى ارسال الكشف<i class="fas fa-times-circle"></i></span>
+                    <p>كشف حضور وانصراف مناوبة (أ) </p><span style="color: red;">الكشف قديم <i class="fas fa-times-circle"></i></span>
                 </div>
             </div>
             <div class="button-container">
-                <a href="dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبة ا.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
+                <a href="dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبة ا.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
                     <i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض
                 </a>
 
-                <a href="dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبةا.docm" target="_top">
+                <a href="dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبةا.docm" target="_top">
                     <i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعبئة تلقائية
                 </a>
 
                 <!-- زر الطباعة مع الأيقونة -->
-                <a href="javascript:void(0);" onclick="printFile('dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبة ا.pdf');">
+                <a href="javascript:void(0);" onclick="printFile('dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبة ا.pdf');">
                     <i class="fa-solid fa-print" style="color: #0eb917;"></i> طباعة
                 </a>
             </div>
@@ -214,18 +207,18 @@
             <div class="icon-container">
                 <div class="description">
                     <h3>مناوبة (ب)</h3>
-                    <p>كشف حضور وانصراف مناوبة (ب) </p><span style="color: blue;">الكشف محدث <i class="fas fa-check-circle"></i></span>
+                    <p>كشف حضور وانصراف مناوبة (ب) </p><span style="color: red;">الكشف قديم <i class="fas fa-times-circle"></i></span>
                 </div>
             </div>
             <div class="button-container">
-                <a href="dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبة ب.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
+                <a href="dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبة ب.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
                     <i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض
                 </a>
-                <a href="dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبةب.docm" target="_top">
+                <a href="dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبةب.docm" target="_top">
                     <i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعبئة تلقائية
                 </a>
 
-                <a href="javascript:void(0);" onclick="printFile('dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبة ب.pdf');">
+                <a href="javascript:void(0);" onclick="printFile('dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبة ب.pdf');">
                     <i class="fa-solid fa-print" style="color:#0eb917 ;"></i> طباعة
                 </a>
             </div>
@@ -239,14 +232,14 @@
                 </div>
             </div>
             <div class="button-container">
-                <a href="dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبة ج.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
+                <a href="dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبة ج.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
                     <i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض
                 </a>
-                <a href="dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبةج.docm" target="_top">
+                <a href="dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبةج.docm" target="_top">
                     <i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعبئة تلقائية
                 </a>
 
-                <a href="javascript:void(0);" onclick="printFile('dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبة ج.pdf');">
+                <a href="javascript:void(0);" onclick="printFile('dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبة ج.pdf');">
                     <i class="fa-solid fa-print" style="color: #0eb917;"></i> طباعة
                 </a>
             </div>
@@ -256,18 +249,18 @@
             <div class="icon-container">
                 <div class="description">
                     <h3>مناوبة (د)</h3>
-                    <p>كشف حضور وانصراف مناوبة (د) </p><span style="color: blue;">الكشف محدث <i class="fas fa-check-circle"></i></span>
+                    <p>كشف حضور وانصراف مناوبة (د) </p><span style="color: red;">الكشف قديم <i class="fas fa-times-circle"></i></span>
                 </div>
             </div>
             <div class="button-container">
-                <a href="dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبة د.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
+                <a href="dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبة د.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
                     <i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض
                 </a>
-                <a href="dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبةد.docm" target="_top">
+                <a href="dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبةد.docm" target="_top">
                     <i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعبئة تلقائية
                 </a>
 
-                <a href="javascript:void(0);" onclick="printFile('dic/الحضور والانصراف/صالة2/حضور وانصراف مناوبة د.pdf');">
+                <a href="javascript:void(0);" onclick="printFile('dic/الحضور والانصراف/صالة1/حضور وانصراف مناوبة د.pdf');">
                     <i class="fa-solid fa-print" style="color: #0eb917;"></i> طباعة
                 </a>
             </div>
@@ -476,6 +469,19 @@
                     <div class="button">
                         <div class="icon-container">
                             <div class="description">
+                                <h3>احصائية البوابات الذاتية </h3>
+                                <p> احصائي عن المسافرين من الخدمة الذاتية</p>
+                            </div>
+                        </div>
+                        <div class="button-container">
+                            <a href="dic/نــماذج  اليومية/نموذج احصائية البوابات الإلكترونية.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
+                            <a href="dic/نــماذج  اليومية/احصائية البوابات .docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
+
+                        </div>
+                    </div>
+                    <div class="button">
+                        <div class="icon-container">
+                            <div class="description">
                                 <h3>استعلام بصمة</h3>
                                 <p>استعلام عن بصمة للمسافر</p>
                             </div>
@@ -590,7 +596,7 @@
                         </div>
                         <div class="button-container">
                             <a href="dic/نــماذج  اليومية/مواليد المملكة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/نــماذج  اليومية/مواليد .docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
+                            <a href="dic/نــماذج  اليومية/مواليد.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
                         </div>
                     </div>
                     <div class="button">
@@ -777,20 +783,21 @@
             </div>
         </div>
 
+        
         <div class="button">
             <div class="icon-container">
                 <div class="description">
-                    <h3>افادة</h3>
-                    <p>افادة غياب للمجندات </p>
+                    <h3>افادة غيــاب للافراد</h3>
+                    <p>افادة غياب افراد </p>
                 </div>
             </div>
             <div class="button-container">
-                <a href="dic/نماذج الافراد/افادة غياب.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
+                <a href="dic/نماذج الافراد/افادة غياب افراد.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
                     <i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض
                 </a>
                 
                 <!-- زر الطباعة -->
-                <a href="javascript:void(0);" onclick="printFile('dic/نماذج الافراد/افادة غياب.pdf');">
+                <a href="javascript:void(0);" onclick="printFile('dic/نماذج الافراد/افادة غياب افراد.pdf');">
                     <i class="fa-solid fa-print" style="color: #0eb917;"></i> طباعة
                 </a>
             </div>
@@ -942,7 +949,29 @@
                         <div class="button-container">
                             <a href="dic/خطابات جاهزة لتعديل/تخلف على الرحلة فقط_1.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
                             <a href="dic/خطابات جاهزة لتعديل/تخلف على الرحلة فقط.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                            <a href="page/last-pass/index.html" target="_blank"><i class="fa-brands fa-edge-legacy" style="color: #0eb917;" ></i> صفحة</a>
+                        </div>
+                    </div>
+                    <div class="button">
+                        <div class="icon-container">
+                            <div class="description">
+                                <h3>راكب لم يسدد خروجه داخل الطائرة طفل</h3>
+                                <p>راكب لم يسدد خروجه وبرفقة عائلته طفل </p>
+                            </div>
+                        </div>
+                        <div class="button-container">
+                            <a href="dic/خطابات جاهزة لتعديل/راكب لم يتم تسديد خروجه .docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
+                        </div>
+                    </div>
+                    <div class="button">
+                        <div class="icon-container">
+                            <div class="description">
+                                <h3>فقدان وثيقة السفر ( زائر)</h3>
+                                <p>راكب فقد جواز سفره داخل المملكة ولديه بلاغ شرطة</p>
+                            </div>
+                        </div>
+                        <div class="button-container">
+                            <a href="dic/خطابات جاهزة لتعديل/فقدان جواز السفر لزائر.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
+                            <a href="dic\خطابات جاهزة لتعديل\فقدان جواز السفر لزائر.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
                         </div>
                     </div>
                     <div class="button">
@@ -1052,7 +1081,7 @@
                         </div>
                         <div class="button-container">
                             <a href="dic/خطابات جاهزة لتعديل/عدم قبول الخصائص الحيوية (1).pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/خطابات جاهزة لتعديل/عدم قبول الخصائص الحيوية.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
+                            <a href="dic/خطابات جاهزة لتعديل/عدم قبول الخصائص الحيوية.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
                         </div>
                     </div>
                     <div class="button">
@@ -1063,8 +1092,8 @@
                             </div>
                         </div>
                         <div class="button-container">
-                            <a href="dic/السعودين/تعهد لحالة داخل المملكة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
+                            <a href="dic/خطابات جاهزة لتعديل/‎⁨ تعهد لحالة خارج المملكة⁩.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
+                            <a href="dic/خطابات جاهزة لتعديل/‎⁨ تعهد لحالة خارج المملكة⁩.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
                         </div>
                     </div>
                     <div class="button">
@@ -1142,7 +1171,7 @@
                         </div>
                         <div class="button-container">
                             <a href="dic/نماذج الممنوعين/ايقاف خدمات_1.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/نماذج الممنوعين/مطلوبين ايقاف خدمات 1.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
+                            <a href="dic/نماذج الممنوعين/ايقاف خدمات جديد.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
                         </div>
                     </div>
                     <div class="button">
@@ -1275,7 +1304,7 @@
                         </div>
                         <div class="button-container">
                             <a href="dic/السعودين/سعودي الى تركيا او دولة ممنوعة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/السعودين/سعودي الى تركيا او دولة ممنوعة معدل.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
+                            <a href="dic\السعودين\سعودين مغادرين الى دول ممنوعه.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
                         </div>
                     </div>
                     <div class="button">
@@ -1286,7 +1315,7 @@
                             </div>
                         </div>
                         <div class="button-container">
-                            <a href="dic/السعودين/‏‏سعودي الى تركيا او دولة ممنوعة معدل مجموعه.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
+                            <a href="dic/السعودين/سعودين مغادرين الى دول ممنوعه.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
                         </div>
                     </div>
 
@@ -1299,13 +1328,13 @@
                         </div>
                         <div class="button-container">
                             <a href="dic/السعودين/خطاب_اقل_من_٦_شهور[1].pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/السعودين/خطاب اقل من ٦ شهور.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
+                            <a href="dic/السعودين/خطاب اقل من ٦ شهور.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
                         </div>
                     </div>
                 </div>
             </div>
             
-
+ 
             <DIV class="TOPCONT"><h2>الخطوط الناقلة</h2></DIV>
             <div class="content-section" id="content-carrier-lines">
                 <div class="button-grid">
@@ -1339,7 +1368,10 @@
                             <a href="dic/خطوط/ملاحظة على المنفست.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;">
                                 <i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض
                             </a>
-                            <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
+
+                            <a href="dic/خطوط/ملاحظة على المنفست.docm" target="_top">
+                                <i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل
+                            </a>
                             <!-- زر الطباعة -->
                             <a href="javascript:void(0);" onclick="printFile('dic/خطوط/ملاحظة على المنفست.pdf');">
                                 <i class="fa-solid fa-print" style="color: #0eb917;"></i> طباعة
