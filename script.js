@@ -173,7 +173,7 @@ const path = require('path');
 
 function openFolder() {
     // تحديد مسار المجلد داخل مجلد التطبيق
-    const folderPath = path.join(__dirname, 'dic', 'font');
+    const folderPath = path.join(__dirname, 'executive', 'font');
 
     // فتح المجلد باستخدام مستكشف الملفات
     exec(`start "" "${folderPath}"`, (error) => {
