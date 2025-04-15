@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>نماذج الجوازات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="img/icon-g.png" type="image/x-icon">
     <link rel="stylesheet" href="css/all.min.css">
     <link rel="stylesheet" href="css/all.css">
-   
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="img/icon-g.png" type="image/x-icon">
+    <link rel="stylesheet" href="dic/AL-Mateen.ttf">
+    <link rel="stylesheet" href="dic/AL-Mohanad Bold.ttf">
+    
+ 
     <style>
         body {
             font-family: 'Cairo', Arial, sans-serif;
@@ -223,7 +228,7 @@ https.get(githubApiUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
             showUpdateAvailableMessage(latestVersion, assetUrl);
         } else {
             console.log('أنت تستخدم أحدث إصدار.');
-            showLatestVersionMessage();
+            showLatestVersionMessage(latestVersion, assetUrl);
         }
     });
 }).on('error', (err) => {
@@ -286,7 +291,8 @@ function showUpdateAvailableMessage(latestVersion, downloadUrl) {
     document.body.appendChild(messageContainer);
 }
 
-function showLatestVersionMessage() {
+// دالة لعرض رسالة "أنت تستخدم آخر إصدار" مع رابط إعادة التحديث
+function showLatestVersionMessage(latestVersion, downloadUrl) {
     const messageContainer = document.createElement("div");
     messageContainer.style.backgroundColor = "#007bff"; // اللون الأزرق
     messageContainer.style.color = "#ffffff";
@@ -295,7 +301,7 @@ function showLatestVersionMessage() {
     messageContainer.style.position = "fixed";
     messageContainer.style.bottom = "10px"; // مسافة صغيرة من الأسفل
     messageContainer.style.right = "10px"; // مسافة صغيرة من اليمين
-    messageContainer.style.width = "200px"; // عرض صغير
+    messageContainer.style.width = "250px"; // عرض أكبر قليلاً
     messageContainer.style.zIndex = "1000";
     messageContainer.style.borderRadius = "5px"; // لتنعيم الحواف
     messageContainer.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)"; // إضافة ظل
@@ -310,11 +316,64 @@ function showLatestVersionMessage() {
     const text = document.createElement("span");
     text.textContent = "أنت تستخدم آخر إصدار";
 
+    const updateLink = document.createElement("a");
+    updateLink.href = downloadUrl;
+    updateLink.textContent = "إعادة التحديث، اضغط هنا";
+    updateLink.style.color = "#ffffff";
+    updateLink.style.fontWeight = "bold";
+    updateLink.style.textDecoration = "underline";
+    updateLink.style.marginTop = "5px"; // مسافة بين النص ورابط التحديث
+    updateLink.style.display = "block"; // تحويل الرابط إلى عنصر كتلة ليكون في سطر منفصل
+    updateLink.addEventListener("click", function(event) {
+        event.preventDefault();
+        // تحميل التحديث عند النقر
+        downloadUpdate(downloadUrl);
+    });
+
     messageContainer.appendChild(icon);
     messageContainer.appendChild(text);
+    messageContainer.appendChild(updateLink);
 
     document.body.appendChild(messageContainer);
 }
+
+// دالة لتحميل التحديث عند النقر على الرابط
+function downloadUpdate(downloadUrl) {
+    // عرض رسالة "جاري التثبيت الآن... إغلاق التطبيق"
+    const installingMessageContainer = document.createElement("div");
+    installingMessageContainer.style.backgroundColor = "red"; // اللون الأحمر
+    installingMessageContainer.style.color = "#ffffff";
+    installingMessageContainer.style.padding = "10px";
+    installingMessageContainer.style.textAlign = "center";
+    installingMessageContainer.style.position = "fixed";
+    installingMessageContainer.style.bottom = "10px";
+    installingMessageContainer.style.right = "10px";
+    installingMessageContainer.style.width = "250px";
+    installingMessageContainer.style.zIndex = "1000";
+    installingMessageContainer.style.borderRadius = "5px";
+    installingMessageContainer.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
+    installingMessageContainer.style.fontSize = "12px";
+    installingMessageContainer.style.lineHeight = "1.5";
+
+    const installText = document.createElement("span");
+    installText.textContent = "جاري التثبيت الآن... إغلاق التطبيق عند بدء التثبيت";
+    installingMessageContainer.appendChild(installText);
+
+    document.body.appendChild(installingMessageContainer);
+
+    // عملية تحميل التحديث
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = ""; // تحديد أن الرابط يجب أن يقوم بتنزيل الملف
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // إغلاق التطبيق بعد تحميل التحديث
+    const { ipcRenderer } = require('electron');
+    ipcRenderer.send('close-app');  // إرسال طلب لإغلاق التطبيق
+}
+
 
  
         function checkPassword(action) {
@@ -373,12 +432,32 @@ function showLatestVersionMessage() {
             });
         });
  
-       
 
+ function openFolder() {
+        const fs = require('fs');
+        const path = require('path');
+        const exec = require('child_process').exec;
 
+        // تحديد مسار المجلد داخل مجلد التطبيق
+        const folderPath = path.join(__dirname, 'dic');
 
- 
- 
+        // فتح المجلد باستخدام مستكشف الملفات
+        exec(`start "" "${folderPath}"`, (error) => {
+            if (error) {
+                console.error(`Error opening folder: ${error.message}`);
+            } else {
+                console.log('Folder opened successfully');
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelector(".open-folder").addEventListener("click", function(event) {
+            event.preventDefault();
+            openFolder();
+        });
+    });
+
 
 
         
@@ -408,7 +487,12 @@ function showLatestVersionMessage() {
     <div class="buttons-container">
         <a href="Arrival.html" ><i class="fas fa-plane-arrival"></i> <span>القدوم</span></a>
         <a href="Departure.html" ><i class="fas fa-plane-departure"></i> <span>مغادرة</span></a>
-        <a href="#" onclick="checkPassword('developer')"><i class="fas fa-cogs"></i> <span>إعدادات المطور</span></a>
+        <a href="#" class="open-folder">
+            <i class="fas fa-folder-open"></i> <span>تعديل الملفات</span>
+        </a>
+        
+        
+        
 
     </div>
     <div id="password-container" class="password-container">
