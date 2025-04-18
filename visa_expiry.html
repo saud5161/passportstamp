@@ -90,6 +90,10 @@
                 <option value="زيارة مؤقتة">زيارة مؤقتة</option>
                 <option value="زيارة حكومية">زيارة حكومية</option>
                 <option value="زيارة ">زيارة </option>
+                <option value="عمل مؤقت ">عمل مؤقت </option>
+                <option value="زياره مرافق  ">زياره مرافق </option>
+                <option value="زيارة شخصية">زيارة شخصية</option>
+                <option value="عمره ">عمره </option>
             </select>
         </div>
 
@@ -389,8 +393,7 @@
         const numPassengers = parseInt(getInputValue("numPassengers"), 10) || 1;
         const message = [];
 
-        // 0) إضافة العنوان في بداية الرسالة + سطر فارغ
-        message.push('*تأشيرة زيارة منتهية*');
+     
         message.push(''); // سطر فارغ
 
         // 1) بيانات المسافرين
@@ -402,7 +405,7 @@
             message.push(`*اسم المسافر:* ${travelerName}`);
             message.push(`*رقم الحدود:* ${travelerBorder}`);
             message.push(`*الجنسية:* ${firstNationality}`);
-            message.push(""); // سطر فارغ بين كل مسافر
+            
         }
 
         // 2) نوع التأشيرة
@@ -422,7 +425,7 @@
         const expiryMonth = getInputValue("expiryMonth");
         const expiryYear = getInputValue("expiryYear");
         const expiryDate = `${padNumber(expiryDay)}-${padNumber(expiryMonth)}-${expiryYear}`;
-        message.push(`*تاريخ انتهاء التأشيرة:* ${expiryDate}`);
+        message.push(`*المغادرة النهائية:* ${expiryDate}`);
 
         // 5) حقل مدة انتهاء التأشيرة بالأيام (لن يظهر في الرسالة الأساسية)
         //    سنستخدمه في الملاحظة فقط

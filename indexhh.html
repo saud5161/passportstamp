@@ -5,45 +5,181 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>اختيار نوع الملاحظة</title>
     <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* تنسيق المربعات */
+        .note-box {
+            display: inline-block;
+            width: 120px;
+            margin: 10px;
+            padding: 15px;
+            background-color: #f4f4f4;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .note-box:hover {
+            background-color: #e1e1e1;
+        }
+
+        .note-box.selected {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .note-box p {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* تنسيق الأيقونات */
+        .note-box i {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        /* تنسيق النص تحت اختيار الملاحظة */
+        .instruction {
+            color: #28a745;
+            font-size: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .instruction i {
+            font-size: 18px;
+            margin-right: 10px;
+        }
+
+        /* تنسيق المربعات في الشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .note-box {
+                width: 45%;
+                padding: 12px;
+                font-size: 12px;
+            }
+        }
+
+        /* تنسيق المربعات في الشاشات الصغيرة جدًا (الجوال) */
+        @media (max-width: 480px) {
+            .note-box {
+                width: 30%;
+                padding: 12px;
+                font-size: 12px;
+                text-align: center;
+            }
+            .note-box p {
+                font-size: 12px;
+            }
+
+            #noteTypeContainer {
+                text-align: center;
+                width: 100%;
+            }
+        }
+
+        /* تنسيق الصورة */
+        .shortcut-image {
+            display: block;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 400px; /* لضبط حجم الصورة بشكل مناسب */
+        }
+    </style>
 </head>
 <body>
 
     <div class="container">
         <h2>اختيار نوع الملاحظة</h2>
 
-        <form id="mainForm">
-            <!-- نوع الملاحظة -->
-            <div class="input-group">
-                <label for="noteType">نوع الملاحظة:</label>
-                <select id="noteType" required>
-                    <option value="">-- اختر نوع الملاحظة --</option>
-                    <option value="انتهاء تأشيرة زيارة">انتهاء تأشيرة زيارة</option>
-                       <option value="التكميل">التكميل </option>
-                    <option value="أقل من 6 أشهر">أقل من 6 أشهر</option>
-                    <option value="عدم قبول بصمة راكب">عدم قبول بصمة راكب</option>
-                    <option value="اشعار">اشعار</option>
-                    <option value="إجازة عسكري قبل الوقت">إجازة عسكري قبل الوقت </option>     
-                   <option value="عسكري الى دولة ممنوعة">عسكري الى دولة ممنوعة </option>
-                   <option value="اختلاف اسم عند المغادرة">زيارة اختلاف اسم عند المغادرة </option>
-                   <option value="اختلاف جنسية الراكب">اختلاف جنسية الراكب</option>
-                  <option value="نقل معلومات">نقل معلومات</option>
-                    <option value="اشعار طيران خاص مغادرة">اشعار طيران خاص مغادرة</option>
-                    <option value="اشعار طيران خاص قدوم">اشعار طيران خاص قدوم</option>
-                </select>
+        <!-- تعليمات لاختيار الملاحظة -->
+        <div class="instruction">
+            <i class="fas fa-hand-pointer"></i> الرجاء اختيار الملاحظة بالنقر عليها
+        </div>
+
+        <div id="noteTypeContainer">
+            <!-- مربعات الاختيارات مع أيقونات لكل ملاحظة -->
+            <div class="note-box" data-note="انتهاء تأشيرة زيارة">
+                <i class="fas fa-calendar-times"></i>
+                <p>انتهاء تأشيرة زيارة</p>
             </div>
+            <div class="note-box" data-note="التكميل">
+                <i class="fas fa-check-circle"></i>
+                <p>التكميل</p>
+            </div>
+            <div class="note-box" data-note="أقل من 6 أشهر">
+                <i class="fas fa-clock"></i>
+                <p>أقل من 6 أشهر</p>
+            </div>
+            <div class="note-box" data-note="عدم قبول بصمة راكب">
+                <i class="fas fa-fingerprint"></i>
+                <p>عدم قبول بصمة راكب</p>
+            </div>
+            <div class="note-box" data-note="اشعار">
+                <i class="fas fa-bell"></i>
+                <p>اشعار</p>
+            </div>
+            <div class="note-box" data-note="إجازة عسكري قبل الوقت">
+                <i class="fas fa-user-shield"></i>
+                <p>إجازة عسكري قبل الوقت</p>
+            </div>
+            <div class="note-box" data-note="عسكري الى دولة ممنوعة">
+                <i class="fas fa-ban"></i>
+                <p>عسكري الى دولة ممنوعة</p>
+            </div>
+            <div class="note-box" data-note="اختلاف اسم عند المغادرة">
+                <i class="fas fa-id-card"></i>
+                <p>اختلاف اسم عند المغادرة</p>
+            </div>
+            <div class="note-box" data-note="اختلاف جنسية الراكب">
+                <i class="fas fa-globe"></i>
+                <p>اختلاف جنسية الراكب</p>
+            </div>
+            <div class="note-box" data-note="نقل معلومات">
+                <i class="fas fa-exchange-alt"></i>
+                <p>نقل معلومات</p>
+            </div>
+            <div class="note-box" data-note="تاريخ انتهاء الجواز يختلف بنظام">
+                <i class="fas fa-calendar-alt"></i>
+                <p>تاريخ انتهاء الجواز يختلف بنظام</p>
+            </div>
+            <div class="note-box" data-note="جواز سفر منتهي">
+                <i class="fas fa-passport"></i>
+                <p>جواز سفر منتهي</p>
+            </div>
+            <div class="note-box" data-note="راكب يحمل تذكرة مرور">
+                <i class="fas fa-ticket-alt"></i>
+                <p>راكب يحمل تذكرة مرور</p>
+            </div>
+            <div class="note-box" data-note="اشعار طيران خاص مغادرة">
+                <i class="fas fa-plane-departure"></i>
+                <p>اشعار طيران خاص مغادرة</p>
+            </div>
+            <div class="note-box" data-note="اشعار طيران خاص قدوم">
+                <i class="fas fa-plane-arrival"></i>
+                <p>اشعار طيران خاص قدوم</p>
+            </div>
+        </div>
 
-            <!-- زر انتقال -->
-            <button type="button" id="nextButton">انتقال</button>
-        </form>
-
+        
         <!-- تعليمات لإنشاء اختصار للموقع على iPhone -->
         <div class="shortcut-instructions">
-            <p>لإنشاء اختصار للموقع على iPhone، اتبع الخطوات التالية:</p>
+            <p>لإضافة اختصار لهذا الموقع، اتبع الخطوات التالية:</p>
             <ol>
                 <li>اضغط على زر <strong>المشاركة</strong> في Safari.</li>
                 <li>اختر <strong>إضافة إلى الشاشة الرئيسية</strong>.</li>
                 <li>قم بتأكيد الاسم واضغط على <strong>إضافة</strong>.</li>
             </ol>
+            <!-- صورة لتوضيح إنشاء اختصار الموقع -->
+        <img src="https://www.actualidadiphone.com/wp-content/uploads/2015/04/acceso-directo-web-iphone-2.jpeg.webp" alt="اختصار الموقع" class="shortcut-image">
+
         </div>
 
         <!-- زر لإخبار المستخدم كيفية إنشاء الاختصار -->
@@ -51,90 +187,70 @@
     </div>
 
     <script>
-        // الرقم السري المشفر
-        const correctPassword = "123123";
-
         // عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
-            // التحقق من وجود الرقم السري في localStorage
-            const savedPassword = localStorage.getItem('savedPassword');
+            const noteBoxes = document.querySelectorAll('.note-box');
+            
+            // إضافة مستمعي الأحداث لكل مربع
+            noteBoxes.forEach(box => {
+                box.addEventListener('click', () => {
+                    // إلغاء التحديد عن جميع المربعات
+                    noteBoxes.forEach(b => b.classList.remove('selected'));
+                    // تحديد المربع الذي تم النقر عليه
+                    box.classList.add('selected');
+                    const selectedNote = box.getAttribute('data-note');
 
-            // إذا تم حفظ الرقم السري مسبقًا، نقوم بتخطي الطلب
-            if (savedPassword === correctPassword) {
-                console.log("تم التحقق من الرقم السري بنجاح.");
-            } else {
-                // طلب الرقم السري إذا لم يكن محفوظًا
-                let userPassword = prompt("أدخل كلمة المرور:");
-
-                // التحقق من إلغاء العملية
-                if (userPassword === null) {
-                    window.close(); // إغلاق الصفحة إذا تم الضغط على إلغاء
-                    return;
-                }
-
-                // التحقق من الرقم السري في حال كان خاطئًا
-                if (userPassword !== correctPassword) {
-                    alert("كلمة المرور غير صحيحة.");
-                    window.close(); // إغلاق الصفحة إذا كانت كلمة المرور خاطئة
-                    return;
-                }
-
-                // إذا كان الرقم السري صحيحًا، نقوم بتخزينه في localStorage
-                localStorage.setItem('savedPassword', correctPassword);
-            }
-
-            // إذا كان الرقم السري صحيحًا، نسمح بالانتقال
-            const nextButton = document.getElementById('nextButton');
-            const noteTypeSelect = document.getElementById('noteType');
-
-            nextButton.addEventListener('click', () => {
-                const selectedNoteType = noteTypeSelect.value;
-
-                if (!selectedNoteType) {
-                    alert('يرجى اختيار نوع الملاحظة قبل الانتقال.');
-                    return;
-                }
-
-                switch (selectedNoteType) {
-                    case 'انتهاء تأشيرة زيارة':
-                        window.location.href = 'visa_expiry.html';
-                        break;
-                    case 'أقل من 6 أشهر':
-                        window.location.href = 'less_than_6_months.html';
-                        break;
-                    case 'اشعار':
-                        window.location.href = 'want.html';
-                        break;
-                    case 'عدم قبول بصمة راكب':
-                        window.location.href = 'noacspt.html';
-                        break;
+                    // الانتقال مباشرة إلى الصفحة المطلوبة
+                    switch (selectedNote) {
+                        case 'انتهاء تأشيرة زيارة':
+                            window.location.href = 'visa_expiry.html';
+                            break;
+                        case 'أقل من 6 أشهر':
+                            window.location.href = 'less_than_6_months.html';
+                            break;
+                        case 'اشعار':
+                            window.location.href = 'want.html';
+                            break;
+                        case 'عدم قبول بصمة راكب':
+                            window.location.href = 'noacspt.html';
+                            break;
                         case 'إجازة عسكري قبل الوقت':
-                        window.location.href = 'askeryafter.html';
-                        break;
+                            window.location.href = 'askeryafter.html';
+                            break;
                         case 'عسكري الى دولة ممنوعة':
-                        window.location.href = 'askrycontery.html';
-                        break;
+                            window.location.href = 'askrycontery.html';
+                            break;
                         case 'اختلاف اسم عند المغادرة':
-                        window.location.href = 'name.html';
-                        break;
+                            window.location.href = 'name.html';
+                            break;
                         case 'اختلاف جنسية الراكب':
-                        window.location.href = 'nationalityd.html';
-                        break;
+                            window.location.href = 'nationalityd.html';
+                            break;
                         case 'التكميل':
-                        window.location.href = 'presence.html';
-                        break;
+                            window.location.href = 'presence.html';
+                            break;
                         case 'اشعار طيران خاص مغادرة':
-                        window.location.href = 'spashl.html';
-                        break;
-                         case 'اشعار طيران خاص قدوم':
-                        window.location.href = 'spaary.html';
-                        break;
+                            window.location.href = 'spashl.html';
+                            break;
+                        case 'اشعار طيران خاص قدوم':
+                            window.location.href = 'spaary.html';
+                            break;
                         case 'نقل معلومات':
-                        window.location.href = 'updut.html';
-                        break;
-                    default:
-                        alert('نوع الملاحظة غير معروف.');
-                }
+                            window.location.href = 'updut.html';
+                            break;
+                        case 'تاريخ انتهاء الجواز يختلف بنظام':
+                            window.location.href = 'Different-ending.html';
+                            break;
+                        case 'جواز سفر منتهي':
+                            window.location.href = 'passport-exp.html';
+                            break;
+                        case 'راكب يحمل تذكرة مرور':
+                            window.location.href = 'outpass.html';
+                            break;
+                        default:
+                            alert('نوع الملاحظة غير معروف.');
+                    }
+                });
             });
 
             // تنبيه لإضافة اختصار للموقع على iPhone

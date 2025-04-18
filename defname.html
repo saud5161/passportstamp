@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختلاف اسم عند المغادرة</title>
+    <!-- ربط ملف التنسيق الخارجي -->
+    <link rel="stylesheet" href="style1.css">
+    <!-- ربط مكتبة Font Awesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- ربط مكتبة moment.js و moment-hijri.js عبر CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js" integrity="sha512-C7Sd1R1S+RSZLJ1tSCG68oIucNwKMHk3qvtf8ZyxOGgP1G+EHyR4BTaPF8DStV+5AVOHtHKbl95Ez4U4u3+syA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-hijri/2.1.2/moment-hijri.min.js" integrity="sha512-7gWcw6oL4FLHSO7dcxI1gks0YJY0OxTu3HzdYa5l5QnK/eZgWYn6p7HjTmssxKZ1f5vN+Y3uE0PtOMa+b42v1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+
+    <div class="container">
+        <!-- نص باللون الأخضر في الأعلى -->
+        <p class="info-text">هذه الصفحة للمساعدة في إنشاء خطابات الواتس اب لن يتم حفظ أي معلومات مذكورة</p>
+
+        <h2>اختلاف اسم عند المغادرة</h2>
+
+        <form id="nameMismatchForm">
+            <!-- نوع الملاحظة مُحدد مسبقًا -->
+            <input type="hidden" id="noteType" value="اختلاف اسم عند المغادرة">
+
+            <!-- حقول المسافر -->
+            <div id="passengerFields">
+                <div class="input-group">
+                    <label for="name">الاسم:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="nationality">الجنسية:</label>
+                    <input type="text" id="nationality" name="nationality" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="passportNumber">رقم الجواز:</label>
+                    <input type="text" id="passportNumber" name="passportNumber" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="departurePlace">جهة المغادرة:</label>
+                    <input type="text" id="departurePlace" name="departurePlace" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="flightNumber">رقم الرحلة:</label>
+                    <input type="text" id="flightNumber" name="flightNumber" required>
+                </div>
+            </div>
+
+            <!-- الملاحظة القابلة للتعديل -->
+            <div class="input-group">
+                <label for="customNote">الملاحظة:</label>
+                <textarea id="customNote" name="customNote" rows="5">وعند تسديد مغادرنه تبين بأن الاسم (الاول - الثاني - الثالث - العائلة ) المسجل في نظام المسافرين ()يختلف عن الوثيقة، وكان دخوله للمرة الاولى عن طريق ( اسم المنفذ ) وتم الاستعلام بنظام المطلوبين والممنوعين برقم الحدود والاسم من واقع جواز السفر ولايوجد لديه ملاحظات امنية.
+
+*بإمل اطلاع سعادتكم والتوجيه*</textarea>
+            </div>
+
+            <!-- زر إرسال مع أيقونة الواتساب -->
+            <button type="button" id="submitButton">
+                إرسال إلى الواتس اب
+                <i class="fab fa-whatsapp"></i>
+            </button>
+
+            <!-- زر العودة للصفحة الرئيسية -->
+            <button type="button" id="backButton" class="back-button">عودة</button>
+        </form>
+    </div>
+
+    <!-- كود JavaScript مدمج -->
+    <script>
+        // عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            addEventListeners();
+        });
+
+        /***** زر العودة للصفحة الرئيسية *****/
+        document.getElementById('backButton').addEventListener('click', () => {
+            window.location.href = 'indexhh.html';
+        });
+
+        /***** الدالة الأساسية للإرسال للواتس *****/
+        function submitForm() {
+            const message = [];
+
+            // 1) نسرد بيانات المسافر
+            const travelerName = getInputValue("name");
+            const travelerNationality = getInputValue("nationality");
+            const passportNumber = getInputValue("passportNumber");
+            const departurePlace = getInputValue("departurePlace");
+            const flightNumber = getInputValue("flightNumber");
+            const customNote = getInputValue("customNote");
+
+            message.push(`*الاسم:* ${travelerName}`);
+            message.push(`*الجنسية:* ${travelerNationality}`);
+            message.push(`*رقم الجواز:* ${passportNumber}`);
+            message.push(`*جهة المغادرة:* ${departurePlace}`);
+            message.push(`*رقم الرحلة:* ${flightNumber}`);
+            message.push(`*الملاحظة:* ${customNote}`);
+
+            // 2) فتح الواتس
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message.join('\n'))}`;
+            window.location.href = whatsappUrl; // إعادة توجيه النافذة الحالية إلى WhatsApp
+        }
+
+        /***** دالة للحصول على قيمة الحقل *****/
+        function getInputValue(id) {
+            const element = document.getElementById(id);
+            return element ? element.value.trim() : '';
+        }
+
+        /***** إضافة مستمعي الأحداث *****/
+        function addEventListeners() {
+            const submitButton = document.getElementById("submitButton");
+            if (submitButton) {
+                submitButton.addEventListener('click', submitForm);
+            }
+        }
+    </script>
+
+</body>
+</html>
