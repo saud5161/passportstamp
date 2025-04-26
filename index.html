@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link href="https://fonts.googleapis.com/css2?family=Al-Mohanad&display=swap" rel="stylesheet">
+
     <title>صفحة البحث</title>
     <style>
         body {
@@ -12,11 +14,13 @@
             background-color: #f4f4f4;
             margin: 0;
             padding: 20px;
+            font-family: 'Al-Mohanad', sans-serif;
+             font-weight: bold;
         }
         .container {
             max-width: 600px;
             margin: auto;
-            background: #fff;
+            background: #f7f5f5;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -79,8 +83,8 @@
             height: 100px; /* Kept height to make it rectangular */
             margin: 2px 5px;
             padding: 8px;
-            background-color: #f4f4f4;
-            border: 1px solid #ddd;
+            background-color: #ffffff;
+            border: 1px solid #858282;
             border-radius: 5px;
             text-align: center;
             cursor: pointer;
@@ -106,7 +110,7 @@
         .country-option span.en, .country-option span.dates {
             display: block;
             font-size: 12px;
-            color: #666;
+            color: #666666;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -146,7 +150,7 @@
         <div class="form-group">
             <label for="date">أدخل البيانات بتاريخ الميلادي فقط :</label>
             <div class="date-group">
-                <input type="number" id="day" placeholder="dd" onblur="formatInput(this)" onkeydown="focusNext(event, 'month')" disabled>
+                <input type="number" id="day" placeholder="اليوم" onblur="formatInput(this)" onkeydown="focusNext(event, 'month')" disabled>
                 <select id="month" onkeydown="focusNext(event, 'year')" disabled>
                     <option value="01">1 Jan January</option>
                     <option value="02">2 Feb February</option>
@@ -161,7 +165,7 @@
                     <option value="11">11 Nov November</option>
                     <option value="12">12 Dec December</option>
                 </select>
-                <input type="number" id="year" placeholder="yyyy" onkeydown="focusNext(event, 'check')" disabled>
+                <input type="number" id="year" placeholder="السنه" onkeydown="focusNext(event, 'check')" disabled>
             </div>
             <div id="error-message" class="error-message">الرجاء اختيار الدولة</div>
         </div>
@@ -179,14 +183,14 @@
     "إثيوبيا": {start: "2021-07-03", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/et-flag.gif", en: "Ethiopia"},
     "باكستان": {start: "2023-04-04", end: null, flag: "https://www.worldometers.info/img/flags/pk-flag.gif", en: "Pakistan"},
     "العراق": {start: "2013-04-01", end: null, flag: "https://www.worldometers.info/img/flags/iz-flag.gif", en: "Iraq"},
-    "سوريا": {start: "2015-04-07", end: null, flag: "https://www.worldometers.info/img/flags/sy-flag.gif", en: "Syria"},
+    "سوريا": {start: "2015-04-07", end: null, flag: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiDW_dfYsAc8UAmc-0_LNddQ-4u2wJ5h563vXAe0PjmQx_EXvCnQnfi_gQ8EtDEO5ZPgzIl9VV7wx7FjBjOW5b1d2Fwlw_8OVxQT13weGLm8uKUz5iwWFga-0jfljsi7XQqsJ9ZHZ2ygMzxOYwqMPlu-C2HBfjvuhlJ9X9BabyAPbImRommuDV1NW3pGas/s1600/New_flag_of_Syria.gif", en: "Syria"},
     "اليمن": {start: "2015-04-22", end: null, flag: "https://www.worldometers.info/img/flags/ym-flag.gif", en: "Yemen"},
     "إيران": {start: "2016-01-04", end: null, flag: "https://www.worldometers.info/img/flags/ir-flag.gif", en: "Iran"},
     "ليبيا": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/ly-flag.gif", en: "Libya"},
     "أفغانستان": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/af-flag.gif", en: "Afghanistan"},
     "الصومال": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/so-flag.gif", en: "Somalia"},
     "لبنان": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/le-flag.gif", en: "Lebanon"},
-    "أوكرانيا": {start: "2022-11-17", end: null, flag: "https://www.worldometers.info/img/flags/up-flag.gif", en: "Ukraine"},
+    "أوكرانيا": {start: "2022-11-17", end: null, flag: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0Cy4GT34CCTZKl_MOxzGwarwulMALBm4EvisB7Kj2XfUnbTDoM6ChpCnUaFC6vo3iqkYpBGEpewqHerK1VH8n1dBFTbxEa8oCjExYXVStYPAXaBeSWd33_KmAY2XoobYUT43Q5GnSFtM/s0/Flag_of_Ukraine.gif", en: "Ukraine"},
     "إقليم بلوشستان": {start: "2018-07-29", end: null, flag: "https://www.worldometers.info/img/flags/pk-flag.gif", en: "Balochistan"},
     "إسرائيل": {start: "1948-01-01", end: null, flag: "https://www.worldometers.info/img/flags/is-flag.gif", en: "Israel"},
     "أرمينيا": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/am-flag.gif", en: "Armenia"},
@@ -200,7 +204,7 @@
     "إندونيسيا": {start: "2021-07-18", end: "2022-06-08", flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Indonesia"},
     "السودان": {start: "2023-05-30", end: null, flag: "https://www.worldometers.info/img/flags/su-flag.gif", en: "Sudan"},
     "جمهورية هايتي": {start: "2023-06-01", end: null, flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Haiti"},
-    "الكونغو": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/cg-flag.gif", en: "Democratic Republic of the Congo"}
+    "الكونغو": {start: "2021-05-17", end: null, flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Nuvola_Democratic_Republic_of_the_Congo_flag.svg/2048px-Nuvola_Democratic_Republic_of_the_Congo_flag.svg.png", en: "Democratic Republic of the Congo"}
 };
 
 
@@ -321,7 +325,7 @@ countryDiv.innerHTML = `<img src="${data.flag}" alt="${country}"> ${country}<spa
 
             setTimeout(() => {
                 clearSelection();
-            }, 16000);
+            }, 25000);
         }
 
         function clearSelection() {
