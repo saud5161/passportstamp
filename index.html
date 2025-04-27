@@ -148,7 +148,7 @@
     <div class="container">
         <h1>التحقق من تواريخ المنع</h1>
         <div class="form-group">
-            <label for="date">أدخل البيانات بتاريخ الميلادي فقط :</label>
+            <label for="date" style="color: blue;">أدخل البيانات بتاريخ الميلادي فقط والارقام بالانجليزية فقط :</label>
             <div class="date-group">
                 <input type="number" id="day" placeholder="اليوم" onblur="formatInput(this)" onkeydown="focusNext(event, 'month')" disabled>
                 <select id="month" onkeydown="focusNext(event, 'year')" disabled>
@@ -192,7 +192,7 @@
     "لبنان": {start: "2021-05-17", end: null, flag: "https://www.worldometers.info/img/flags/le-flag.gif", en: "Lebanon"},
     "أوكرانيا": {start: "2022-11-17", end: null, flag: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0Cy4GT34CCTZKl_MOxzGwarwulMALBm4EvisB7Kj2XfUnbTDoM6ChpCnUaFC6vo3iqkYpBGEpewqHerK1VH8n1dBFTbxEa8oCjExYXVStYPAXaBeSWd33_KmAY2XoobYUT43Q5GnSFtM/s0/Flag_of_Ukraine.gif", en: "Ukraine"},
     "إقليم بلوشستان": {start: "2018-07-29", end: null, flag: "https://www.worldometers.info/img/flags/pk-flag.gif", en: "Balochistan"},
-    "إسرائيل": {start: "1948-01-01", end: null, flag: "https://www.worldometers.info/img/flags/is-flag.gif", en: "Israel"},
+    "إسرائيل": {start: "1948-01-01", end: null, flag: "https://cdn-icons-png.flaticon.com/256/16083/16083479.png", en: "Israel"},
     "أرمينيا": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/am-flag.gif", en: "Armenia"},
     "روسيا البيضاء": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/bo-flag.gif", en: "Belarus"},
     "فنزويلا": {start: "2021-05-17", end: "2022-07-24", flag: "https://www.worldometers.info/img/flags/ve-flag.gif", en: "Venezuela"},
@@ -203,7 +203,7 @@
     "فيتنام": {start: "2021-07-03", end: "2022-06-21", flag: "https://www.worldometers.info/img/flags/vm-flag.gif", en: "Vietnam"},
     "إندونيسيا": {start: "2021-07-18", end: "2022-06-08", flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Indonesia"},
     "السودان": {start: "2023-05-30", end: null, flag: "https://www.worldometers.info/img/flags/su-flag.gif", en: "Sudan"},
-    "جمهورية هايتي": {start: "2023-06-01", end: null, flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Haiti"},
+    " هايتي": {start: "2023-06-01", end: null, flag: "https://www.worldometers.info/img/flags/ha-flag.gif", en: "Haiti"},
     "الكونغو": {start: "2021-05-17", end: null, flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Nuvola_Democratic_Republic_of_the_Congo_flag.svg/2048px-Nuvola_Democratic_Republic_of_the_Congo_flag.svg.png", en: "Democratic Republic of the Congo"}
 };
 
@@ -217,7 +217,7 @@
                 "الأفريقية": ["إثيوبيا", "الصومال", "الكونغو"],
                 "الآسيوية": ["تركيا", "باكستان", "إيران", "أفغانستان", "إقليم بلوشستان", "الهند", "تايلاند", "فيتنام", "إندونيسيا"],
                 "الأوروبية": ["أرمينيا", "روسيا البيضاء", "أوكرانيا"],
-                "الأمريكية": ["فنزويلا", "جمهورية هايتي"],
+                "الأمريكية": ["فنزويلا", " هايتي"],
                 "أخرى": ["إسرائيل"]
             };
 
@@ -291,7 +291,7 @@ countryDiv.innerHTML = `<img src="${data.flag}" alt="${country}"> ${country}<spa
             }
 
             if (!day || !month || !year) {
-                message.textContent = "يرجى ملء جميع الحقول.";
+                message.textContent = "يرجى ملء جميع الحقول.وكتابة الارقام بالانجليزية فقط";
                 message.className = "message error";
                 message.style.display = "block";
                 return;
