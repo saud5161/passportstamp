@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>إشعار إلغاء رحلة</title>
+  <link rel="stylesheet" href="style1.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body>
+  <div class="container">
+    <p class="info-text">هذه الصفحة للمساعدة في إنشاء خطابات الواتس اب ولن يتم حفظ أي معلومات.</p>
+
+    <h2>إشعار بإلغاء الرحلة</h2>
+
+    <form id="flightCancellationForm">
+      <div class="input-group">
+        <label for="flightNumber">رقم الرحلة:</label>
+        <input type="text" id="flightNumber" placeholder="أدخل رقم الرحلة" oninput="updatePreview()" />
+      </div>
+
+      <div class="input-group">
+        <label for="airline">الخطوط الناقلة:</label>
+        <input type="text" id="airline" placeholder="أدخل اسم الخطوط" oninput="updatePreview()" />
+      </div>
+
+      <div class="input-group">
+        <label for="passengerCount">عدد الركاب:</label>
+        <input type="number" id="passengerCount" placeholder="عدد الركاب" oninput="updatePreview()" />
+      </div>
+
+      <div class="input-group">
+        <label for="departureTime">وقت المغادرة المسجل بالنظام:</label>
+        <input type="text" id="departureTime" placeholder="مثال: 14:30 مساءً" oninput="updatePreview()" />
+      </div>
+
+      <div class="input-group">
+        <label for="note">سبب الإلغاء (يُدرج داخل الرسالة):</label>
+        <textarea id="note" placeholder="مثال: سيتم إلغاء الرحلة بسبب عطل فني" oninput="updatePreview()"></textarea>
+      </div>
+
+      <div class="input-group">
+        <label>معاينة الرسالة:</label>
+        <textarea id="messagePreview" readonly style="width: 100%; height: 200px; font-weight: bold;"></textarea>
+      </div>
+
+      <button type="button" id="submitButton">
+        إرسال إلى الواتساب <i class="fab fa-whatsapp"></i>
+      </button>
+
+      <button type="button" id="backButton" class="back-button">عودة</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("backButton").addEventListener("click", () => {
+      window.location.href = "indexhh.html";
+    });
+
+    function getInputValue(id) {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : "";
+    }
+
+    function updatePreview() {
+      const flightNumber = getInputValue("flightNumber");
+      const airline = getInputValue("airline");
+      const passengerCount = getInputValue("passengerCount");
+      const departureTime = getInputValue("departureTime");
+      const note = getInputValue("note");
+
+      const message = [
+        `مشرف العمليات`,
+        `السلام عليكم ورحمة الله وبركاته`,
+        ``,
+        `رقم الرحلة/ ${flightNumber}`,
+        `الخطوط الناقلة/ ${airline}`,
+        `عدد الركاب/ ${passengerCount}`,
+        `وقت المغادرة المسجل بالنظام/ ${departureTime}`,
+        ``,
+        `نفيدكم بأنه بلغنا من موظف الخطوط الناقلة بأنه ${note} وسيتم انزال الركاب الى المنطقة المعقمة وتجدون بطي الرسالة تقارير الرحلة قبل الالغاء.`,
+        ``,
+        `عليكم الاطلاع واتخاذ اللازم ودمتم`
+      ];
+
+      document.getElementById("messagePreview").value = message.join("\n");
+    }
+
+    function submitForm() {
+      const message = document.getElementById("messagePreview").value;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.location.href = whatsappUrl;
+    }
+
+    document.getElementById("submitButton").addEventListener("click", submitForm);
+
+    // تحديث أولي
+    document.addEventListener("DOMContentLoaded", updatePreview);
+  </script>
+</body>
+</html>
