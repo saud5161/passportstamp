@@ -114,6 +114,10 @@
                 <i class="fas fa-check-circle"></i>
                 <p>التكميل</p>
             </div>
+             <div class="note-box" data-note="انشاء">
+                <i class="fas fa-check-circle"></i>
+                <p>نموذج جاهز</p>
+            </div>
             <div class="note-box" data-note="أقل من 6 أشهر">
                 <i class="fas fa-clock"></i>
                 <p>أقل من 6 أشهر</p>
@@ -133,6 +137,10 @@
             <div class="note-box" data-note="عسكري الى دولة ممنوعة">
                 <i class="fas fa-ban"></i>
                 <p>عسكري الى دولة ممنوعة</p>
+            </div>
+            <div class="note-box" data-note="اختلاف">
+                <i class="fas fa-ban"></i>
+                <p>عسكري اختلاف وجهه</p>
             </div>
             <div class="note-box" data-note="اختلاف اسم عند المغادرة">
                 <i class="fas fa-id-card"></i>
@@ -162,10 +170,7 @@
                 <i class="fas fa-plane-departure"></i>
                 <p>اشعار طيران خاص مغادرة</p>
             </div>
-            <div class="note-box" data-note="اشعار طيران خاص قدوم">
-                <i class="fas fa-plane-arrival"></i>
-                <p>اشعار طيران خاص قدوم</p>
-            </div>
+          
         </div>
         
         
@@ -205,6 +210,9 @@
                         case 'انتهاء تأشيرة زيارة':
                             window.location.href = 'visa_expiry.html';
                             break;
+                             case 'انشاء':
+                            window.location.href = 'passang.html';
+                            break;
                         case 'أقل من 6 أشهر':
                             window.location.href = 'less_than_6_months.html';
                             break;
@@ -219,6 +227,9 @@
                             break;
                         case 'عسكري الى دولة ممنوعة':
                             window.location.href = 'askrycontery.html';
+                            break;
+                              case 'اختلاف':
+                            window.location.href = 'askryd.html';
                             break;
                         case 'اختلاف اسم عند المغادرة':
                             window.location.href = 'name.html';

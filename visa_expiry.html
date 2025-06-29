@@ -245,6 +245,15 @@
                 </datalist>
             </div>
         </div>
+<!-- موعد فتح البوابة -->
+<div class="input-group">
+    <label for="gateOpenHour">موعد فتح البوابة:</label>
+    <div id="gateOpenTimeContainer">
+        <input type="number" id="gateOpenHour" name="gateOpenHour" placeholder="الساعة" min="0" max="23" oninput="enforceEnglishDigits(event)">
+        <span>:</span>
+        <input type="number" id="gateOpenMinutes" name="gateOpenMinutes" placeholder="الدقائق" list="minuteOptions" min="0" max="59" oninput="enforceEnglishDigits(event)">
+    </div>
+</div>
 
         <!-- خطوط الطيران ورقم الرحلة -->
         <div class="input-group">
@@ -445,6 +454,11 @@
         if (departureHour && departureMinutes) {
             message.push(`*وقت الإقلاع:* ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
         }
+const gateOpenHour = getInputValue("gateOpenHour");
+const gateOpenMinutes = getInputValue("gateOpenMinutes");
+if (gateOpenHour || gateOpenMinutes) {
+    message.push(`*موعد فتح البوابة:* ${padNumber(gateOpenHour)}:${padNumber(gateOpenMinutes)}`);
+}
 
         // 8) الملاحظة المطلوبة: "التاشيرة منتهية (X) يوم" حيث X = مدة انتهاء التأشيرة بالأيام
         //    مع إخفاء الظهور السابق لـمدة انتهاء التأشيرة بالأيام في نص الرسالة الأساسي

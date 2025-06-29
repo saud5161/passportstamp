@@ -63,6 +63,15 @@
                     </datalist>
                 </div>
             </div>
+<!-- موعد فتح البوابة -->
+<div class="input-group">
+    <label for="gateOpenHour">موعد فتح البوابة:</label>
+    <div id="gateOpenTimeContainer">
+        <input type="number" id="gateOpenHour" name="gateOpenHour" placeholder="الساعة" min="0" max="23" oninput="enforceEnglishDigits(event)">
+        <span>:</span>
+        <input type="number" id="gateOpenMinutes" name="gateOpenMinutes" placeholder="الدقائق" list="minuteOptions" min="0" max="59" oninput="enforceEnglishDigits(event)">
+    </div>
+</div>
 
             <!-- رقم الرحلة -->
             <div class="input-group">
@@ -109,6 +118,9 @@
             const departureLocation = getInputValue("departureLocation");
             const departureHour = getInputValue("departureHour");
             const departureMinutes = getInputValue("departureMinutes");
+            const gateOpenHour = getInputValue("gateOpenHour");
+const gateOpenMinutes = getInputValue("gateOpenMinutes");
+
             const flightNumber = getInputValue("flightNumber");
             const notesVal = getInputValue("notes");
 
@@ -123,6 +135,10 @@
             message.push(`*رقم الجواز:* ${passportNumber}`);
             message.push(`*جهة المغادرة:* ${departureLocation}`);
             message.push(`*وقت الإقلاع:* ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
+            if (gateOpenHour || gateOpenMinutes) {
+    message.push(`*موعد فتح البوابة:* ${padNumber(gateOpenHour)}:${padNumber(gateOpenMinutes)}`);
+}
+
             message.push(`*رقم الرحلة:* ${flightNumber}`);
 
             // إضافة الملاحظات

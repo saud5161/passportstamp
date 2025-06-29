@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عدم قبول بصمة راكب</title>
+    <title>وثيقة سفر اقل من 6 شهور</title>
     <!-- ربط ملف التنسيق الخارجي -->
     <link rel="stylesheet" href="style1.css">
     <!-- ربط مكتبة Font Awesome للأيقونات -->
@@ -18,7 +18,7 @@
         <!-- نص باللون الأخضر في الأعلى -->
         <p class="info-text">هذه الصفحة للمساعدة في إنشاء خطابات الواتس اب لن يتم حفظ أي معلومات مذكورة</p>
 
-        <h2>عدم قبول بصمة راكب</h2>
+        <h2>وثيقة سفر اقل من 6 شهور </h2>
 
         <form id="lessThanSixMonthsForm">
             <!-- نوع الملاحظة مُحدد مسبقًا -->
@@ -60,6 +60,15 @@
                     </datalist>
                 </div>
             </div>
+<!-- موعد فتح البوابة -->
+<div class="input-group">
+    <label for="gateOpenHour">موعد فتح البوابة:</label>
+    <div id="gateOpenTimeContainer">
+        <input type="number" id="gateOpenHour" name="gateOpenHour" placeholder="الساعة" min="0" max="23" oninput="enforceEnglishDigits(event)">
+        <span>:</span>
+        <input type="number" id="gateOpenMinutes" name="gateOpenMinutes" placeholder="الدقائق" list="minuteOptions" min="0" max="59" oninput="enforceEnglishDigits(event)">
+    </div>
+</div>
 
             <!-- وجه السفر -->
             <div class="input-group">
@@ -160,7 +169,7 @@
             // تاريخ انتهاء الجواز (هجري)
             const expiryLabel = document.createElement("label");
             expiryLabel.setAttribute("for", `passportExpiry${index}`);
-            expiryLabel.textContent = "تاريخ انتهاء الجواز (هجري):";
+            expiryLabel.textContent = "تاريخ انتهاء الجواز :";
             passengerGroup.appendChild(expiryLabel);
 
             const expiryContainer = document.createElement("div");
@@ -285,12 +294,14 @@
                 const departureHour = getInputValue("departureHour");
                 const departureMinutes = getInputValue("departureMinutes");
                 const destinationVal = getInputValue("destination"); // تغيير من airlines إلى destination
+                const gateOpenHour = getInputValue("gateOpenHour");
+const gateOpenMinutes = getInputValue("gateOpenMinutes");
 
                 message.push(`*اسم المسافر:* ${travelerName}`);
                 message.push(`*رقم الجواز:* ${travelerPassport}`);
                 message.push(`*الجنسية:* ${travelerNationality}`);
                 // تغيير تنسيق تاريخ الانتهاء إلى yyyy/mm/dd
-                message.push(`*تاريخ انتهاء الجواز (هجري):* ${travelerExpiryYear}/${padNumber(travelerExpiryMonth)}/${padNumber(travelerExpiryDay)}`);
+                message.push(`*تاريخ انتهاء الجواز :* ${travelerExpiryYear}/${padNumber(travelerExpiryMonth)}/${padNumber(travelerExpiryDay)}`);
                 message.push(`*المدة المتبقية:* ${remainingMonths} شهر و ${remainingDays} يوم`);
                 message.push(`*سبب السفر:* ${travelReason}`);
 
@@ -303,6 +314,9 @@
                 if (destinationVal) {
                     message.push(`*وجه السفر:* ${destinationVal}`);
                 }
+if (gateOpenHour || gateOpenMinutes) {
+    message.push(`*موعد فتح البوابة:* ${padNumber(gateOpenHour)}:${padNumber(gateOpenMinutes)}`);
+}
 
                 // إضافة الملاحظة بعد وجه السفر
                 message.push(`*الملاحظة / وثيقة السفر أقل من المدة النظامية:* ${documentNotes}`);
