@@ -30,14 +30,15 @@
  <p style="color: green; font-weight: bold;">حساب تاريخ انتهاء الجواز ( اختياري)</p>
 <label style="display: block; margin-bottom: 5px;">تاريخ انتهاء الجواز بالهجري:</label>
 <div>
-  <label>اليوم: <input style="width: 60px;" type="number" id="hDay" min="1" max="30"></label>
-  <label>الشهر: <input style="width: 60px;" type="number" id="hMonth" min="1" max="12"></label>
+  <label>اليوم: <input style="width: 50px;" type="number" id="hDay" min="1" max="30"></label>
+  <label>الشهر: <input style="width: 50px;" type="number" id="hMonth" min="1" max="12"></label>
   <label>السنة: <input style="width: 80px;" type="number" id="hYear" min="1300" max="1600"></label>
 </div>
 
   <button onclick="calculateHijriDifference()">احسب الفرق</button>
+  <div id="result" style="color: blue; font-size: 1.4em; font-weight: bold;"></div>
 
-  <div id="result"></div>
+<div style="margin-top: 50px;"></div>
 
             <!-- عدد المسافرين -->
             <div id="numPassengersContainer" class="input-group">
