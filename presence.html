@@ -386,6 +386,11 @@
                 <label for="selfAutomated">الذاتية:</label>
                 <input type="number" id="selfAutomated" name="selfAutomated" oninput="calculateAvailable()">
             </div>
+            <!-- إرشاد -->
+<div class="field-box">
+    <label for="guidance">إرشاد:</label>
+    <input type="number" id="guidance" name="guidance" oninput="calculateAvailable()">
+</div>
 
             <!-- زر إرسال مع أيقونة الواتساب -->
             <button type="button" id="submitButton">
@@ -431,6 +436,7 @@
             const assignment = parseInt(getInputValue("assignment") || 0);
             const delegation = parseInt(getInputValue("delegation") || 0);
             const permission = parseInt(getInputValue("permission") || 0);
+            const guidance = parseInt(getInputValue("guidance") || 0);   // جديد
 
             // حساب الموجود
             const totalLeave = leave + maternityLeave + childBirthLeave + absence + delay + rest + shift + detention + assignment + delegation + permission;
@@ -447,7 +453,8 @@
             const businessList = parseInt(getInputValue("businessList") || 0);
             const selfAutomated = parseInt(getInputValue("selfAutomated") || 0);
 
-            const total = counter + selfService + administrativeWork + businessMen + businessList + selfAutomated;
+            const total = counter + selfService + administrativeWork + businessMen
+            + businessList + selfAutomated + guidance;        // أضف guidance
 
             // التحقق من تطابق العدد
             const errorMessage = document.getElementById("error-message");
@@ -487,9 +494,18 @@
                 { label: 'استئذان', value: getInputValue("permission") }
             ];
 
-            fields.forEach(field => {
-                if (field.value) message.push(`${field.label} / ${field.value}`);
-            });
+          fields.forEach(field => {
+    if (field.value) {
+        // أضف السطر المعتاد
+        message.push(`${field.label} / ${field.value}`);
+
+        // إن كان الحقل غياب، أضف سطرًا فارغًا بعده
+        if (field.label === 'غياب') {
+            message.push('');   // ← يُنشئ سطرًا فارغًا في الرسالة
+        }
+    }
+});
+
 
             // موجود
             const موجود = getInputValue("available");
@@ -500,6 +516,7 @@
             if (getInputValue("businessMen")) additionalFields.push(`${getInputValue("businessMen")} رجال أعمال`);
             if (getInputValue("businessList")) additionalFields.push(`${getInputValue("businessList")} قائمة`);
             if (getInputValue("selfAutomated")) additionalFields.push(`${getInputValue("selfAutomated")} الذاتية`);
+            if (getInputValue("guidance")) additionalFields.push(`${getInputValue("guidance")} إرشاد`);
 
             if (additionalFields.length > 0) {
                 message.push(`الموجود ${موجود} (${additionalFields.join(' + ')})`);
