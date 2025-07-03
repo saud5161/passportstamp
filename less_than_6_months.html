@@ -12,13 +12,46 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js" integrity="sha512-C7Sd1R1S+RSZLJ1tSCG68oIucNwKMHk3qvtf8ZyxOGgP1G+EHyR4BTaPF8DStV+5AVOHtHKbl95Ez4U4u3+syA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-hijri/2.1.2/moment-hijri.min.js" integrity="sha512-7gWcw6oL4FLHSO7dcxI1gks0YJY0OxTu3HzdYa5l5QnK/eZgWYn6p7HjTmssxKZ1f5vN+Y3uE0PtOMa+b42v1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
+<STYle>
+   .doc-buttons-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.doc-button {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.doc-button:hover {
+    background-color: #464747;
+}
+
+.doc-button i {
+    font-size: 16px;
+}
+.doc-button.active {
+    background-color: #002002; /* أخضر داكن */
+}
+
+</STYle>
 <body>
 
     <div class="container">
         <!-- نص باللون الأخضر في الأعلى -->
         <p class="info-text">هذه الصفحة للمساعدة في إنشاء خطابات الواتس اب لن يتم حفظ أي معلومات مذكورة</p>
 
-        <h2>وثيقة سفر اقل من 6 شهور </h2>
+        <h2>وثيقة سفر اقل من 6/3 اشهر</h2>
 
         <form id="lessThanSixMonthsForm">
             <!-- نوع الملاحظة مُحدد مسبقًا -->
@@ -27,8 +60,8 @@
   <h2>تاريخ اليوم الهجري: <span id="todayHijri"></span></h2>
 
   <div>
- <p style="color: green; font-weight: bold;">حساب تاريخ انتهاء الجواز ( اختياري)</p>
-<label style="display: block; margin-bottom: 5px;">تاريخ انتهاء الجواز بالهجري:</label>
+ <p style="color: green; font-weight: bold;">حساب تاريخ انتهاء الجواز/الهوية ( اختياري)</p>
+<label style="display: block; margin-bottom: 5px;">تاريخ انتهاء الجواز/الهوية بالهجري:</label>
 <div>
   <label>اليوم: <input style="width: 50px;" type="number" id="hDay" min="1" max="30"></label>
   <label>الشهر: <input style="width: 50px;" type="number" id="hMonth" min="1" max="12"></label>
@@ -39,6 +72,15 @@
   <div id="result" style="color: blue; font-size: 1.4em; font-weight: bold;"></div>
 
 <div style="margin-top: 50px;"></div>
+<h3>اختر نوع الوثيقة:</h3>
+<div class="doc-buttons-container">
+    <button type="button" id="passportButton" class="doc-button">
+        <i class="fas fa-passport"></i> جواز السفر
+    </button>
+    <button type="button" id="idButton" class="doc-button">
+        <i class="fas fa-id-card"></i> الهوية
+    </button>
+</div>
 
             <!-- عدد المسافرين -->
             <div id="numPassengersContainer" class="input-group">
@@ -88,8 +130,8 @@
 
             <!-- وجه السفر -->
             <div class="input-group">
-                <label for="destination">وجه السفر:</label>
-                <input type="text" id="destination" name="destination" placeholder="أدخل وجه السفر">
+                <label for="destination">وجهة المغادرة:</label>
+                <input type="text" id="destination" name="destination" placeholder="أدخل جهة المغادرة">
             </div>
 
             <!-- زر إرسال مع أيقونة الواتساب -->
@@ -178,7 +220,7 @@
             nationalityInput.type = "text";
             nationalityInput.id = `nationality${index}`;
             nationalityInput.name = `nationality${index}`;
-            nationalityInput.placeholder = "سعودي";
+            nationalityInput.value = "سعودي";
             nationalityInput.required = true;
             passengerGroup.appendChild(nationalityInput);
 
@@ -270,13 +312,13 @@
             // وثيقة السفر أقل من المدة النظامية
             const documentLabel = document.createElement("label");
             documentLabel.setAttribute("for", `documentNotes${index}`);
-            documentLabel.textContent = "وثيقة السفر أقل من المدة النظامية:";
+            documentLabel.textContent = "وثيقة السفر أقل من المدة النظامية";
             passengerGroup.appendChild(documentLabel);
 
             const documentTextarea = document.createElement("textarea");
             documentTextarea.id = `documentNotes${index}`;
             documentTextarea.name = `documentNotes${index}`;
-            documentTextarea.placeholder = "في حال وجود ملاحظات اضافية اكتب هنا...";
+            documentTextarea.placeholder = " في حال وجود ملاحظات اضافية اكتب هنا مثل وبرفقة عائلته";
             documentTextarea.required = true;
             passengerGroup.appendChild(documentTextarea);
 
@@ -314,10 +356,12 @@
 const gateOpenMinutes = getInputValue("gateOpenMinutes");
 
                 message.push(`*اسم المسافر:* ${travelerName}`);
-                message.push(`*رقم الجواز:* ${travelerPassport}`);
+const docNumberLabel = documentType === 'passport' ? 'رقم الجواز' : 'رقم الهوية';
+message.push(`*${docNumberLabel}:* ${travelerPassport}`);
                 message.push(`*الجنسية:* ${travelerNationality}`);
                 // تغيير تنسيق تاريخ الانتهاء إلى yyyy/mm/dd
-                message.push(`*تاريخ انتهاء الجواز :* ${travelerExpiryYear}/${padNumber(travelerExpiryMonth)}/${padNumber(travelerExpiryDay)}`);
+const expiryLabel = documentType === 'passport' ? 'تاريخ انتهاء الجواز' : 'تاريخ انتهاء الهوية';
+message.push(`*${expiryLabel}:* ${travelerExpiryYear}/${padNumber(travelerExpiryMonth)}/${padNumber(travelerExpiryDay)}`);
                 message.push(`*المدة المتبقية:* ${remainingMonths} شهر و ${remainingDays} يوم`);
                 message.push(`*سبب السفر:* ${travelReason}`);
 
@@ -328,7 +372,7 @@ const gateOpenMinutes = getInputValue("gateOpenMinutes");
 
                 // إضافة وجه السفر بعد وقت الإقلاع
                 if (destinationVal) {
-                    message.push(`*وجه السفر:* ${destinationVal}`);
+                    message.push(`*وجهة المغادرة:* ${destinationVal}`);
                 }
 if (gateOpenHour || gateOpenMinutes) {
     message.push(`*موعد فتح البوابة:* ${padNumber(gateOpenHour)}:${padNumber(gateOpenMinutes)}`);
@@ -466,6 +510,58 @@ function calculateHijriDifference() {
         expYear.value = inputYear;
     }
 }
+/***** دالة لتبديل النصوص حسب نوع الوثيقة *****/
+let documentType = 'passport'; // الافتراضي
+
+function changeDocumentType(type) {
+    documentType = type; // حفظ نوع الوثيقة
+
+    const numPassengersSelect = document.getElementById("numPassengers");
+    const numPassengers = parseInt(numPassengersSelect.value, 10) || 1;
+
+    for (let i = 1; i <= numPassengers; i++) {
+        const expiryLabel = document.querySelector(`label[for="passportExpiry${i}"]`);
+        const passportInput = document.getElementById(`passportNumber${i}`);
+        const passportLabel = document.querySelector(`label[for="passportNumber${i}"]`);
+
+        if (expiryLabel && passportInput && passportLabel) {
+            if (type === "passport") {
+                expiryLabel.textContent = "تاريخ انتهاء الجواز :";
+                passportLabel.textContent = "رقم الجواز:";
+                passportInput.placeholder = "أدخل رقم الجواز";
+            } else if (type === "id") {
+                expiryLabel.textContent = "تاريخ انتهاء الهوية :";
+                passportLabel.textContent = "رقم الهوية:";
+                passportInput.placeholder = "أدخل رقم الهوية";
+            }
+        }
+    }
+}
+
+// مستمعي الأزرار
+document.getElementById("passportButton").addEventListener("click", () => {
+    changeDocumentType("passport");
+    setActiveButton("passport");
+});
+
+document.getElementById("idButton").addEventListener("click", () => {
+    changeDocumentType("id");
+    setActiveButton("id");
+});
+
+function setActiveButton(type) {
+    const passportButton = document.getElementById("passportButton");
+    const idButton = document.getElementById("idButton");
+
+    if (type === "passport") {
+        passportButton.classList.add("active");
+        idButton.classList.remove("active");
+    } else {
+        idButton.classList.add("active");
+        passportButton.classList.remove("active");
+    }
+}
+
     </script>
 
 </body>
