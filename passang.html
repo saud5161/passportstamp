@@ -11,6 +11,8 @@
     <!-- ربط مكتبة moment.js و moment-hijri.js عبر CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js" integrity="sha512-C7Sd1R1S+RSZLJ1tSCG68oIucNwKMHk3qvtf8ZyxOGgP1G+EHyR4BTaPF8DStV+5AVOHtHKbl95Ez4U4u3+syA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-hijri/2.1.2/moment-hijri.min.js" integrity="sha512-7gWcw6oL4FLHSO7dcxI1gks0YJY0OxTu3HzdYa5l5QnK/eZgWYn6p7HjTmssxKZ1f5vN+Y3uE0PtOMa+b42v1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+
 </head>
 <body>
 
@@ -262,6 +264,108 @@ if (gateOpenHour || gateOpenMinutes) {
                 submitButton.addEventListener('click', submitForm);
             }
         }
+        function addMrzScanner(index) {
+    if (index === 1) {
+        const passengerGroup = document.querySelector('.passenger-group');
+
+        // زر تشغيل الكاميرا
+        const scanButton = document.createElement('button');
+        scanButton.type = 'button';
+        scanButton.textContent = 'قراءة رمز الجواز (MRZ)';
+        scanButton.style.marginTop = '10px';
+        scanButton.addEventListener('click', openMrzScanner);
+        passengerGroup.appendChild(scanButton);
+
+        // عنصر الفيديو والكاميرا
+        const video = document.createElement('video');
+        video.id = 'mrzVideo';
+        video.autoplay = true;
+        video.playsInline = true;
+        video.style.maxWidth = '100%';
+        passengerGroup.appendChild(video);
+
+        const captureButton = document.createElement('button');
+        captureButton.type = 'button';
+        captureButton.textContent = 'التقاط رمز MRZ';
+        captureButton.addEventListener('click', captureMrzImage);
+        passengerGroup.appendChild(captureButton);
+
+        const canvas = document.createElement('canvas');
+        canvas.id = 'mrzCanvas';
+        canvas.style.display = 'none';
+        passengerGroup.appendChild(canvas);
+
+        const result = document.createElement('pre');
+        result.id = 'mrzResult';
+        result.textContent = 'لم يتم التقاط الصورة بعد.';
+        passengerGroup.appendChild(result);
+    }
+}
+
+function openMrzScanner() {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+            document.getElementById('mrzVideo').srcObject = stream;
+        })
+        .catch(err => {
+            alert('فشل فتح الكاميرا: ' + err);
+        });
+}
+
+function captureMrzImage() {
+    const video = document.getElementById('mrzVideo');
+    const canvas = document.getElementById('mrzCanvas');
+    const context = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    document.getElementById('mrzResult').textContent = 'جارٍ قراءة النص...';
+
+    Tesseract.recognize(
+        canvas,
+        'eng',
+        { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ<0123456789' }
+    ).then(({ data: { text } }) => {
+        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        if (lines.length >= 2) {
+            const line1 = lines[0];
+            const line2 = lines[1];
+            const passportNumber = line2.substring(0, 9).replace(/</g, '');
+            const nationality = line2.substring(10, 13);
+            const nameRaw = line1.substring(5).split('<<');
+            const lastName = nameRaw[0].replace(/</g, ' ');
+            const firstName = (nameRaw[1] || '').replace(/</g, ' ');
+
+            document.getElementById('name1').value = firstName + ' ' + lastName;
+            document.getElementById('passportNumber1').value = passportNumber;
+            document.getElementById('nationality1').value = nationality;
+
+            document.getElementById('mrzResult').textContent = `تم استخراج البيانات:\nاسم: ${firstName} ${lastName}\nرقم الجواز: ${passportNumber}\nالجنسية: ${nationality}`;
+        } else {
+            document.getElementById('mrzResult').textContent = 'تعذر قراءة رمز MRZ بوضوح.';
+        }
+    }).catch(err => {
+        document.getElementById('mrzResult').textContent = 'فشل في تحليل الصورة: ' + err;
+    });
+}
+
+// تعديل دالة updatePassengerFields لاستدعاء ماسح MRZ للمسافر الاول فقط
+function updatePassengerFields() {
+    const numPassengersSelect = document.getElementById("numPassengers");
+    const numPassengers = parseInt(numPassengersSelect.value, 10) || 1;
+    const passengerFieldsContainer = document.getElementById("passengerFields");
+    passengerFieldsContainer.innerHTML = "";
+
+    for (let i = 1; i <= numPassengers; i++) {
+        const passengerGroup = createPassengerGroup(i);
+        passengerFieldsContainer.appendChild(passengerGroup);
+        if (i === 1) {
+            addMrzScanner(i);
+        }
+    }
+}
+
     </script>
 
 </body>
