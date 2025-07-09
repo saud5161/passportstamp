@@ -11,6 +11,8 @@
     <!-- ربط مكتبة moment.js و moment-hijri.js عبر CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js" integrity="sha512-C7Sd1R1S+RSZLJ1tSCG68oIucNwKMHk3qvtf8ZyxOGgP1G+EHyR4BTaPF8DStV+5AVOHtHKbl95Ez4U4u3+syA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-hijri/2.1.2/moment-hijri.min.js" integrity="sha512-7gWcw6oL4FLHSO7dcxI1gks0YJY0OxTu3HzdYa5l5QnK/eZgWYn6p7HjTmssxKZ1f5vN+Y3uE0PtOMa+b42v1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
 </head>
 <body>
 
@@ -44,6 +46,12 @@
 
             <!-- حقول المسافرين -->
             <div id="passengerFields"></div>
+            <!-- زر فتح الكاميرا -->
+<button type="button" onclick="scanPassport()">قراءة رمز الجواز للمسافر 1</button>
+
+<!-- مكان عرض الكاميرا -->
+<div id="reader" style="width: 300px;"></div>
+
 <!-- وقت الإقلاع -->
 <div class="input-group">
     <label for="departureHour">وقت الإقلاع:</label>
@@ -174,6 +182,23 @@
             passengerGroup.appendChild(nationalityInput);
 
             return passengerGroup;
+            if (index === 1) {
+    // زر قراءة رمز الجواز
+    const scanButton = document.createElement("button");
+    scanButton.type = "button";
+    scanButton.textContent = "قراءة رمز الجواز للمسافر 1";
+    scanButton.style.marginTop = "10px";
+    scanButton.addEventListener("click", scanPassport);
+    passengerGroup.appendChild(scanButton);
+
+    // مكان عرض الكاميرا
+    const readerDiv = document.createElement("div");
+    readerDiv.id = "reader";
+    readerDiv.style.width = "300px";
+    readerDiv.style.marginTop = "10px";
+    passengerGroup.appendChild(readerDiv);
+}
+
         }
 
         /***** دالة لإجبار المستخدم على كتابة الأرقام بالإنجليزي فقط *****/
@@ -263,6 +288,38 @@ if (gateOpenHour || gateOpenMinutes) {
             }
         }
     </script>
+<!-- مكتبة html5-qrcode -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+function scanPassport() {
+    const html5QrCode = new Html5Qrcode("reader");
+    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+        html5QrCode.stop(); // إيقاف الكاميرا بعد القراءة
+
+        // نفترض أن الرمز يحتوي على: الاسم|رقم الجواز|الجنسية
+        const parts = decodedText.split('|');
+        if (parts.length >= 3) {
+            document.getElementById('name1').value = parts[0];
+            document.getElementById('passportNumber1').value = parts[1];
+            document.getElementById('nationality1').value = parts[2];
+            alert("تم قراءة بيانات الجواز بنجاح!");
+        } else {
+            alert("البيانات غير مكتملة في الرمز!");
+        }
+    };
+
+    const config = { fps: 10, qrbox: 250 };
+    html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        qrCodeSuccessCallback
+    ).catch(err => {
+        console.error("فشل تشغيل الكاميرا:", err);
+        alert("لم يتم تشغيل الكاميرا، تحقق من الأذونات أو المتصفح.");
+    });
+}
+</script>
 
 </body>
 </html>
