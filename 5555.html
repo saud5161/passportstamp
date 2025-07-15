@@ -1,175 +1,138 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>التقاط وصنع PDF للجواز وبوردنق</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>توليد مستند A4</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
   <style>
-    body { direction: rtl; font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-    .container { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h2 { text-align: center; margin-bottom: 20px; }
-    .input-group { margin-bottom: 20px; }
-    label { display: block; font-weight: bold; margin-bottom: 8px; }
-    input[type="text"] { width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
-    .camera-container { position: relative; width: 100%; padding-top: 56.25%; /* 16:9 */ background: #000; overflow: hidden; border-radius: 4px; }
-    video { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; }
-    .overlay-box { position: absolute; border: 2px dashed #0f0; box-sizing: border-box; }
-    canvas { display: none; width: 100%; margin-top: 10px; border: 1px solid #ccc; border-radius: 4px; }
-    .btn { display: inline-block; margin-top: 10px; padding: 8px 16px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-    .btn:hover { background: #0056b3; }
-    #pdfViewer { display: none; width: 100%; height: 600px; border: 1px solid #ccc; border-radius: 4px; margin-top: 20px; }
-    .signature-container { position: relative; }
-    #signatureCanvas { width: 100%; height: 100px; border: 1px solid #ccc; border-radius: 4px; touch-action: none; }
-    .actions { text-align: center; margin-top: 20px; }
+    body { margin:0; padding:20px; direction:rtl; font-family:Arial,sans-serif; background:#f5f5f5; }
+    .container { max-width:800px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+    h2 { text-align:center; margin-bottom:20px; }
+    .input-group { margin-bottom:20px; }
+    label { display:block; font-weight:bold; margin-bottom:8px; }
+    input[type=text] { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:4px; }
+    input[type=file] { display:block; margin-bottom:10px; }
+    .img-preview { max-width:100%; height:auto; border:1px solid #ccc; border-radius:4px; }
+    #cvSign { display:block; width:100%; height:100px; border:1px solid #ccc; border-radius:4px; touch-action:none; margin-bottom:10px; }
+    .actions { text-align:center; }
+    button { padding:10px 16px; font-size:16px; border:none; background:#007bff; color:#fff; border-radius:4px; cursor:pointer; margin:5px; }
+    button:hover { background:#0056b3; }
   </style>
 </head>
 <body>
 <div class="container">
-  <h2>التقاط وصنع مستند PDF</h2>
+  <h2>توليد مستند A4</h2>
 
   <div class="input-group">
     <label for="iqama">رقم الإقامة:</label>
-    <input id="iqama" type="text" placeholder="أدخل رقم الإقامة" />
+    <input type="text" id="iqama" placeholder="أدخل رقم الإقامة">
   </div>
-
   <div class="input-group">
     <label for="fullname">اسم الفرد:</label>
-    <input id="fullname" type="text" placeholder="أدخل الاسم الكامل" />
+    <input type="text" id="fullname" placeholder="أدخل الاسم الكامل">
   </div>
 
-  <!-- كاميرا الجواز -->
+  <!-- Passport cropper -->
   <div class="input-group">
-    <label>التقاط صورة الجواز:</label>
-    <div class="camera-container" id="passportCameraContainer">
-      <video id="videoPassport" autoplay playsinline></video>
-      <div id="overlayPassport" class="overlay-box"></div>
+    <label>جواز السفر:</label>
+    <input type="file" id="passportInput" accept="image/*" capture="environment">
+    <img id="passportImg" class="img-preview" style="display:none;"/>
+    <div class="actions">
+      <button id="cropPassportBtn" style="display:none;">قص الجواز</button>
     </div>
-    <button class="btn" id="capturePassportBtn">التقاط الجواز</button>
-    <canvas id="canvasPassport"></canvas>
   </div>
 
-  <!-- كاميرا البوردنق -->
+  <!-- Boarding cropper -->
   <div class="input-group">
-    <label>التقاط صورة بطاقة الصعود:</label>
-    <div class="camera-container" id="boardingCameraContainer">
-      <video id="videoBoarding" autoplay playsinline></video>
-      <div id="overlayBoarding" class="overlay-box"></div>
+    <label>بطاقة الصعود:</label>
+    <input type="file" id="boardingInput" accept="image/*" capture="environment">
+    <img id="boardingImg" class="img-preview" style="display:none;"/>
+    <div class="actions">
+      <button id="cropBoardingBtn" style="display:none;">قص البوردنق</button>
     </div>
-    <button class="btn" id="captureBoardingBtn">التقاط البوردنق</button>
-    <canvas id="canvasBoarding"></canvas>
   </div>
 
-  <!-- التوقيع -->
-  <div class="input-group signature-container">
+  <!-- Signature -->
+  <div class="input-group">
     <label>التوقيع:</label>
-    <canvas id="signatureCanvas"></canvas>
-    <button class="btn" onclick="clearSignature()">مسح التوقيع</button>
+    <canvas id="cvSign"></canvas>
+    <button onclick="clearSign()">مسح التوقيع</button>
   </div>
 
   <div class="actions">
-    <button class="btn" onclick="generatePDF()">توليد وعرض المستند</button>
+    <button onclick="generateDoc()">توليد المستند A4</button>
   </div>
-
-  <iframe id="pdfViewer"></iframe>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script>
-  // إعداد الكاميرات
-  let stream;
-  async function initCameras() {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-    document.getElementById('videoPassport').srcObject = stream;
-    document.getElementById('videoBoarding').srcObject = stream;
-    // ضبط صندوق الاقتصاص
-    setOverlay(document.getElementById('videoPassport'), document.getElementById('overlayPassport'));
-    setOverlay(document.getElementById('videoBoarding'), document.getElementById('overlayBoarding'));
-  }
-  function setOverlay(videoEl, overlayEl) {
-    videoEl.addEventListener('loadedmetadata', () => {
-      const vw = videoEl.clientWidth, vh = videoEl.clientHeight;
-      const ow = vw * 0.6, oh = vh * 0.6;
-      overlayEl.style.width = ow + 'px'; overlayEl.style.height = oh + 'px';
-      overlayEl.style.left = ((vw - ow)/2) + 'px'; overlayEl.style.top = ((vh - oh)/2) + 'px';
-    });
-  }
-  initCameras().catch(console.error);
-
-  function captureImage(videoId, canvasId, overlayId) {
-    const video = document.getElementById(videoId);
-    const overlay = document.getElementById(overlayId);
-    const canvas = document.getElementById(canvasId);
-    const ctx = canvas.getContext('2d');
-    // أبعاد اقتصاص الفيديو
-    const vw = video.videoWidth, vh = video.videoHeight;
-    const dvw = video.clientWidth, dvh = video.clientHeight;
-    const scaleX = vw / dvw, scaleY = vh / dvh;
-    const ox = parseFloat(overlay.style.left), oy = parseFloat(overlay.style.top);
-    const ow = parseFloat(overlay.style.width), oh = parseFloat(overlay.style.height);
-    const sx = ox * scaleX, sy = oy * scaleY, sw = ow * scaleX, sh = oh * scaleY;
-    canvas.width = sw; canvas.height = sh;
-    // تطبيق فلتر
-    ctx.filter = 'contrast(1.2) brightness(1.1)';
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
-    canvas.style.display = 'block';
-  }
-
-  document.getElementById('capturePassportBtn').onclick = () => captureImage('videoPassport','canvasPassport','overlayPassport');
-  document.getElementById('captureBoardingBtn').onclick = () => captureImage('videoBoarding','canvasBoarding','overlayBoarding');
-
-  // توقيع
-  const sigCanvas = document.getElementById('signatureCanvas');
-  const sigCtx = sigCanvas.getContext('2d');
-  let signing = false;
-  function getPos(e, c) {
-    const rect = c.getBoundingClientRect();
-    return {
-      x: (e.touches ? e.touches[0].clientX : e.clientX) - rect.left,
-      y: (e.touches ? e.touches[0].clientY : e.clientY) - rect.top
+  let passportCropper, boardingCropper;
+  const passportInput = document.getElementById('passportInput');
+  const passportImg = document.getElementById('passportImg');
+  const cropPassportBtn = document.getElementById('cropPassportBtn');
+  passportInput.addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const url = URL.createObjectURL(file);
+    passportImg.src = url; passportImg.style.display = 'block';
+    passportImg.onload = () => {
+      if (passportCropper) passportCropper.destroy();
+      passportCropper = new Cropper(passportImg, { viewMode:1, autoCropArea:0.9, movable:false, zoomable:false });
+      cropPassportBtn.style.display = 'inline-block';
     };
-  }
-  ['mousedown','touchstart'].forEach(evt => sigCanvas.addEventListener(evt, e => {
-    signing = true; const p=getPos(e,sigCanvas); sigCtx.beginPath(); sigCtx.moveTo(p.x,p.y);
-  }));
-  ['mousemove','touchmove'].forEach(evt => sigCanvas.addEventListener(evt, e => {
-    if(!signing) return; const p=getPos(e,sigCanvas); sigCtx.lineTo(p.x,p.y); sigCtx.stroke();
-  }));
-  ['mouseup','mouseleave','touchend'].forEach(evt => sigCanvas.addEventListener(evt, () => signing=false));
-  function clearSignature() { sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height); }
+  });
+  cropPassportBtn.addEventListener('click', () => {
+    const canvas = passportCropper.getCroppedCanvas({ imageSmoothingQuality:'high' });
+    passportCropper.destroy(); passportCropper = null;
+    passportImg.src = canvas.toDataURL('image/jpeg',0.9);
+    cropPassportBtn.style.display = 'none';
+  });
 
-  // توليد PDF وعرض
-  function generatePDF() {
+  const boardingInput = document.getElementById('boardingInput');
+  const boardingImg = document.getElementById('boardingImg');
+  const cropBoardingBtn = document.getElementById('cropBoardingBtn');
+  boardingInput.addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const url = URL.createObjectURL(file);
+    boardingImg.src = url; boardingImg.style.display = 'block';
+    boardingImg.onload = () => {
+      if (boardingCropper) boardingCropper.destroy();
+      boardingCropper = new Cropper(boardingImg, { viewMode:1, autoCropArea:0.9, movable:false, zoomable:false });
+      cropBoardingBtn.style.display = 'inline-block';
+    };
+  });
+  cropBoardingBtn.addEventListener('click', () => {
+    const canvas = boardingCropper.getCroppedCanvas({ imageSmoothingQuality:'high' });
+    boardingCropper.destroy(); boardingCropper = null;
+    boardingImg.src = canvas.toDataURL('image/jpeg',0.9);
+    cropBoardingBtn.style.display = 'none';
+  });
+
+  // Signature
+  const signCanvas = document.getElementById('cvSign'); const signCtx = signCanvas.getContext('2d'); let drawing=false;
+  function getPos(e) { const r=signCanvas.getBoundingClientRect(); return { x:(e.touches?e.touches[0].clientX:e.clientX)-r.left, y:(e.touches?e.touches[0].clientY:e.clientY)-r.top }; }
+  ['mousedown','touchstart'].forEach(ev=>signCanvas.addEventListener(ev,e=>{ drawing=true; const p=getPos(e); signCtx.beginPath(); signCtx.moveTo(p.x,p.y);}));
+  ['mousemove','touchmove'].forEach(ev=>signCanvas.addEventListener(ev,e=>{ if(!drawing)return; const p=getPos(e); signCtx.lineTo(p.x,p.y); signCtx.stroke(); }));
+  ['mouseup','mouseleave','touchend'].forEach(ev=>signCanvas.addEventListener(ev,()=>drawing=false));
+  function clearSign(){ signCtx.clearRect(0,0,signCanvas.width,signCanvas.height); }
+
+  function generateDoc() {
     const iq = document.getElementById('iqama').value.trim();
     const name = document.getElementById('fullname').value.trim();
-    const cp = document.getElementById('canvasPassport');
-    const cb = document.getElementById('canvasBoarding');
-    if(!iq||!name||cp.style.display==='none'||cb.style.display==='none') {
-      return alert('يرجى إدخال البيانات والتقاط الصورتين أولاً');
-    }
-    const imgP = cp.toDataURL('image/jpeg',0.9);
-    const imgB = cb.toDataURL('image/jpeg',0.9);
-    const sig = sigCanvas.toDataURL('image/png');
-
-    const docDefinition = {
-      pageSize: 'A4', content: [
-        { text: 'جواز السفر', style:'hdr' },
-        { image: imgP, width: 400, alignment:'center', margin:[0,5,0,15] },
-        { text: 'بطاقة الصعود', style:'hdr' },
-        { image: imgB, width: 400, alignment:'center', margin:[0,5,0,15] },
-        { text: `رقم الإقامة: ${iq}`, style:'txt' },
-        { text: `اسم الفرد: ${name}`, style:'txt', margin:[0,0,0,15] },
-        { text: 'التوقيع', style:'hdr' },
-        { image: sig, width: 150, alignment:'left', margin:[0,5,0,0] }
-      ],
-      styles: { hdr:{fontSize:16, bold:true, alignment:'right', margin:[0,10,0,5]}, txt:{fontSize:14, alignment:'right'} },
-      defaultStyle:{ font:'Roboto' }
-    };
-    pdfMake.createPdf(docDefinition).getBlob(blob=>{
-      const url = URL.createObjectURL(blob);
-      const iframe = document.getElementById('pdfViewer');
-      iframe.src = url; iframe.style.display = 'block';
-    });
+    if(!iq||!name||!passportImg.src||!boardingImg.src) return alert('يرجى إدخال البيانات وقص الصور');
+    const imgP = passportImg.src;
+    const imgB = boardingImg.src;
+    const sig = signCanvas.toDataURL('image/png');
+    const html = '<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><title>'+iq+'</title>'+
+      '<style>@page{size:A4;margin:10mm}body{margin:0;padding:10mm;direction:rtl;font-family:Arial,sans-serif}.page{width:210mm;height:297mm;box-sizing:border-box}img{display:block;margin:8px auto;max-width:100%;height:auto}h3,p{text-align:right;margin:4px 0;font-size:14pt}</style>'+
+      '</head><body><div class="page">'+
+      '<h3>جواز السفر</h3><img src="'+imgP+'">'+
+      '<h3>بطاقة الصعود</h3><img src="'+imgB+'">'+
+      '<p><strong>رقم الإقامة:</strong> '+iq+'</p>'+ 
+      '<p><strong>اسم الفرد:</strong> '+name+'</p>'+ 
+      '<h3>التوقيع</h3><img src="'+sig+'" style="max-width:50mm;border:1px solid #ccc;border-radius:4px">'+
+      '</div></body></html>';
+    const newWin = window.open(); newWin.document.open(); newWin.document.write(html); newWin.document.close();
   }
 </script>
 </body>
