@@ -346,6 +346,11 @@
                     <input type="number" id="permission" name="permission" oninput="calculateAvailable()">
                 </div>
             </div>
+  <!-- أسماء أفراد الغياب -->
+        <div class="field-box" id="absenceNamesContainer" style="display:none;">
+    <label class="bold-text">اسم أفراد الغياب:</label>
+    <div id="absenceInputs"></div>
+        </div>
 
             <!-- موجود -->
             <div class="available-container">
@@ -353,7 +358,7 @@
                 <input type="text" id="available" name="available" readonly class="highlight-box">
                 <div id="error-message" class="error-message">تأكد من العدد! العدد غير مطابق للعدد في الأسفل.</div>
             </div>
-
+          
             <!-- الكاونتر والحالات الأخرى -->
             <div class="field-box">
                 <label for="counter">كاونتر:</label>
@@ -409,6 +414,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             addEventListeners();
         });
+        // تحديث حقول أسماء الغياب عند تغيير عدد الغياب
+document.getElementById("absence").addEventListener("input", handleAbsenceInputs);
 
         /***** زر العودة للصفحة الرئيسية *****/
         document.getElementById('backButton').addEventListener('click', () => {
@@ -465,7 +472,30 @@
                 errorMessage.style.display = "none";
             }
         }
+        function handleAbsenceInputs() {
+    const absenceCount = parseInt(getInputValue("absence") || 0);
+    const absenceInputsContainer = document.getElementById("absenceInputs");
+    const absenceNamesSection = document.getElementById("absenceNamesContainer");
 
+    // إعادة تعيين الحقول
+    absenceInputsContainer.innerHTML = '';
+
+    if (absenceCount > 0) {
+        absenceNamesSection.style.display = "block";
+
+        for (let i = 0; i < absenceCount; i++) {
+            const input = document.createElement("input");
+            input.type = "text";
+            input.name = `absenceName_${i}`;
+            input.placeholder = `رتبة / اسم الفرد ${i + 1}`;
+            input.style.marginBottom = "8px";
+            input.classList.add("officer-name-select");
+            absenceInputsContainer.appendChild(input);
+        }
+    } else {
+        absenceNamesSection.style.display = "none";
+    }
+}
         /***** دالة للإرسال للواتس *****/
         function submitForm() {
             const message = [];
@@ -494,17 +524,23 @@
                 { label: 'استئذان', value: getInputValue("permission") }
             ];
 
-          fields.forEach(field => {
+ fields.forEach(field => {
     if (field.value) {
-        // أضف السطر المعتاد
         message.push(`${field.label} / ${field.value}`);
 
-        // إن كان الحقل غياب، أضف سطرًا فارغًا بعده
+        // إضافة أسماء أفراد الغياب مباشرة بعد خانة غياب
         if (field.label === 'غياب') {
-            message.push('');   // ← يُنشئ سطرًا فارغًا في الرسالة
+            const absenceInputs = document.querySelectorAll('[name^="absenceName_"]');
+            absenceInputs.forEach(input => {
+                const name = input.value.trim();
+                if (name) {
+                    message.push(name);
+                }
+            });
         }
     }
 });
+
 
 
             // موجود
