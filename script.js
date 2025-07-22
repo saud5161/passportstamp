@@ -5,7 +5,51 @@ function toggleSidebar() {
     sidebar.classList.toggle("hidden");
     // إذا كانت هناك أي إجراءات أخرى عند إظهار أو إخفاء الشريط الجانبي، يمكن إضافتها هنا
 }
+window.addEventListener("load", function () {
+    document.querySelectorAll('.quick-links a').forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
 
+            const text = this.textContent.trim();
+            const searchInput = document.getElementById("search-input");
+            searchInput.value = text;
+
+            performSearch();
+        });
+    });
+});
+document.addEventListener("DOMContentLoaded", () => {
+  const name = document.getElementById("officer-name");
+  const rank = document.getElementById("officer-rank");
+  const shift = document.getElementById("shift-number");
+  const hall = document.getElementById("hall-number");
+  const button = document.getElementById("send-officer-info");
+autoFillOfficerDetails();
+
+  if (!button) {
+    console.error("❌ الزر لم يتم العثور عليه!");
+    return;
+  }
+
+  button.addEventListener("click", () => {
+    console.log("📥 تم الضغط على زر الإرسال");
+
+    if (!name.value || !rank.value || !shift.value || !hall.value) {
+      alert("❗ يرجى تعبئة جميع الحقول");
+      return;
+    }
+
+    const fullData = `ComboBox1=${shift.value}\nComboBox2=${hall.value}\nComboBox5=${rank.value}\nComboBox6=${name.value}`;
+
+    if (window.electronAPI && window.electronAPI.saveShift) {
+      window.electronAPI.saveShift(fullData);
+      alert("✅ تم الحفظ بنجاح وادراج المعلومات في كل الخطابات");
+    } else {
+      console.error("⚠️ لم يتم تحميل electronAPI");
+      alert("⚠️ فشل الاتصال بـ Electron لحفظ البيانات.");
+    }
+  });
+});
 // دالة لتعيين العنصر النشط في الشريط الجانبي
 function setActive(element) {
     var items = document.querySelectorAll(".sidebar li");
@@ -36,6 +80,21 @@ function changeFile(event, viewLinkId) {
         reader.readAsDataURL(file);
     }
 }
+//تفريغ الخانات
+document.addEventListener('DOMContentLoaded', () => {
+  const clearBtn = document.getElementById('clear-officer-info');
+  const form = document.querySelector('.shift-form');
+
+  if (clearBtn && form) {
+    clearBtn.addEventListener('click', () => {
+      form.querySelectorAll('input').forEach(input => {
+        input.value = '';
+      });
+    });
+  }
+
+  clearShiftFormAtSpecificTimes(); // ← يستمر عمل التفريغ التلقائي أيضًا
+});
 
 // دالة لإعداد التاريخ الحالي وعرضه في العنصر الذي يحتوي على المعرف "date"
 document.addEventListener("DOMContentLoaded", function() {
@@ -60,7 +119,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
  });
-
 
 
 document.getElementById("print-button").addEventListener("click", function() {
@@ -104,26 +162,27 @@ document.getElementById("search-input").addEventListener("keypress", function(ev
 
 function performSearch() {
     var searchTerm = document.getElementById("search-input").value.toLowerCase();
-    var headings = document.querySelectorAll(".description h3"); // البحث في عناوين h3 فقط
+    // نبحث الآن في عناوين H3 داخل card-content
+    var headings = document.querySelectorAll(".card-content h3");
     var found = false;
 
     headings.forEach(function(heading) {
-        heading.style.backgroundColor = ""; // إعادة اللون الطبيعي للنص
+        heading.style.backgroundColor = ""; // إعادة اللون الافتراضي
 
         if (heading.textContent.toLowerCase().includes(searchTerm)) {
             if (!found) {
                 heading.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 found = true;
             }
-            heading.style.backgroundColor = "#003366"; // لون الهاي لايت أزرق غامق
+            heading.style.backgroundColor = "#badf19ff";
             setTimeout(function() {
-                heading.style.backgroundColor = ""; // إعادة اللون الطبيعي بعد 7 ثوانٍ
-                document.getElementById("search-input").value = ""; // مسح سجل البحث بعد 7 ثواني
+                heading.style.backgroundColor = "";
+                document.getElementById("search-input").value = "";
             }, 7000);
         }
     });
-    
 }
+
 function fetchLatestRelease() {
     const notificationContent = document.getElementById('notification-content');
 
@@ -170,10 +229,12 @@ function toggleHeadsetNotification(event) {
 }
 const { exec } = require('child_process');
 const path = require('path');
+const fs = require('fs');
+
 
 function openFolder() {
     // تحديد مسار المجلد داخل مجلد التطبيق
-    const folderPath = path.join(__dirname, 'executive', 'font');
+    const folderPath = path.join(__dirname, 'dic', 'font');
 
     // فتح المجلد باستخدام مستكشف الملفات
     exec(`start "" "${folderPath}"`, (error) => {
@@ -199,23 +260,158 @@ function printFile(filePath) {
     };
 }
 
+function toggleInstructions() {
+  var content = document.getElementById("instruction-content");
+  var icon = document.getElementById("arrow-icon").firstElementChild;
+
+  if (content.style.display === "none") {
+    content.style.display = "block";
+    icon.classList.remove("fa-chevron-down");
+    icon.classList.add("fa-chevron-up");
+  } else {
+    content.style.display = "none";
+    icon.classList.remove("fa-chevron-up");
+    icon.classList.add("fa-chevron-down");
+  }
+}
+
+// ======================== تحديث الملفات ===========================
+// رابط المستودع الأساسي على GitHub
+const repoBase = "https://raw.githubusercontent.com/saud5161/Special-document/main/";
+const filesJsonUrl = repoBase + "files.json";
+
+// ملف الكاش المحلي (للتوافق فقط — لم نعد نستخدمه فعليًا)
+const localFilesJsonPath = path.join(__dirname, "files_local_cache.json");
+
+// التحديث الكامل لجميع الملفات عند النقر
+async function updateDocuments() {
+    if (!navigator.onLine) {
+        showMessage("⚠️ لا يوجد اتصال بالإنترنت", true);
+        return;
+    }
+
+    showMessage("🔄 جاري التحديث...");
+
+    try {
+        // تحميل قائمة الملفات
+        const res = await fetch(filesJsonUrl);
+        if (!res.ok) throw new Error(`تعذر تحميل files.json: الحالة ${res.status}`);
+
+        const remoteFiles = await res.json();
+        const filePaths = Object.keys(remoteFiles);
+
+        for (let filePath of filePaths) {
+            const fileName = path.basename(filePath);
+
+            // تجاهل ملفات النظام
+            if (fileName.startsWith('~$') || fileName.toLowerCase() === 'desktop.ini') {
+                console.log(`⏭️ تم تجاهل الملف: ${filePath}`);
+                continue;
+            }
+
+            const localPath = path.join(__dirname, filePath);
+            await downloadAndReplaceFile(repoBase + encodeURIComponent(filePath), localPath);
+        }
+
+        // حفظ نسخة الكاش الجديدة
+        fs.writeFileSync(localFilesJsonPath, JSON.stringify(remoteFiles, null, 2));
+
+        showMessage(`✅ تم تحديث ${filePaths.length} ملف${filePaths.length > 1 ? 'ات' : ''}`);
+    } catch (error) {
+        console.error("❌ خطأ أثناء التحديث:", error);
+        showMessage("❌ حدث خطأ أثناء التحديث، الرجاء المحاولة لاحقًا", true);
+    }
+}
+
+// تحميل ملف وتخزينه
+async function downloadAndReplaceFile(fileUrl, localPath) {
+    const res = await fetch(fileUrl);
+    if (!res.ok) throw new Error(`تعذر تحميل الملف: ${fileUrl}`);
+
+    const buffer = await res.arrayBuffer();
+    fs.mkdirSync(path.dirname(localPath), { recursive: true });
+    fs.writeFileSync(localPath, Buffer.from(buffer));
+}
+
+// عرض الرسائل على الواجهة
+function showMessage(message, isError = false) {
+    const el = document.getElementById("messageBox");
+    if (el) {
+        el.textContent = message;
+        el.style.color = isError ? "red" : "blue";
+    } else {
+        console.log(message);
+    }
+}
 
 
 
 
+async function downloadAndReplaceFile(fileUrl, localPath) {
+    const res = await fetch(fileUrl);
+    if (!res.ok) throw new Error(`تعذر تحميل الملف: ${fileUrl}`);
+
+    const buffer = await res.arrayBuffer();
+    fs.mkdirSync(path.dirname(localPath), { recursive: true });
+    fs.writeFileSync(localPath, Buffer.from(buffer));
+}
+
+function showMessage(message, isError = false) {
+    const el = document.getElementById("messageBox");
+    if (el) {
+        el.textContent = message;
+        el.style.color = isError ? "red" : "blue";
+    } else {
+        console.log(message);
+    }
+}
+
+setInterval(() => {
+    updateDocuments(true);
+}, 24 * 60 * 60 * 1000); // ← كل 24 ساعة = 86,400,000 مللي ثانية
 
 
+document.addEventListener("DOMContentLoaded", () => {
+    updateDocuments();
+});
+//معطيات الرتبة
+function autoFillOfficerDetails() {
+  const officerMap = {
+    "ماجد عبدالعزيز السحيم": {
+      rank: "نقيب",
+      shift: "ج",
+      hall: "4"
+    },
+    "فيصل عبدالإله الهرف": {
+      rank: "ملازم أول",
+      shift: "أ",
+      hall: "4"
+    }
+  };
 
+  const officerInput = document.getElementById('officer-name');
+  const rankInput = document.getElementById('officer-rank');
+  const shiftInput = document.getElementById('shift-number');
+  const hallInput = document.getElementById('hall-number');
 
+  if (officerInput) {
+    officerInput.addEventListener('change', () => {
+      const selectedName = officerInput.value.trim();
+      const data = officerMap[selectedName];
 
-
-
-
-
-
-  
-
-
+      if (data) {
+        rankInput.value = data.rank;
+        shiftInput.value = data.shift;
+        hallInput.value = data.hall;
+      } else {
+        // إذا لم يكن الاسم موجودًا، فرّغ الحقول
+        rankInput.value = '';
+        shiftInput.value = '';
+        hallInput.value = '';
+      }
+    });
+  }
+}
 
 
 
