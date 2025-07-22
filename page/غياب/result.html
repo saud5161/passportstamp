@@ -55,7 +55,7 @@
             top: -19px; /* رفع الصورة لتكون خارج الإطار */
         }
         .container {
-            border: 2px solid #024928; /* إضافة حدود سوداء للإطار */
+            border: 1.2px solid #068d4e; /* إضافة حدود سوداء للإطار */
             padding: 8px; /* حواف داخلية للإطار */
             margin-top: -30px; /* رفع الإطار ليكون قريبًا من الصورة */
             background-color: #f9f9f9; /* خلفية الإطار */
@@ -69,7 +69,8 @@
         h2 {
             text-align: center; /* محاذاة عنوان "محضر غياب" في المنتصف */
             text-decoration: none; /* إزالة الخط تحت العنوان */
-            
+            color: red;
+
         }
         table {
             width: 100%; /* عرض الجدول يكون بنسبة 100% */
@@ -82,11 +83,11 @@
             border: 1px solid #000; /* حدود الخلايا في الجدول */
         }
         th, td {
-            padding: 10px;
+            padding: 5px;
             text-align: center; /* محاذاة النص في الخلايا في المنتصف */
         }
         th {
-            background-color: #d3d3d3; /* خلفية رمادية للخلايا الرأسية */
+            background-color: #32333836; /* خلفية رمادية للخلايا الرأسية */
         }
         .bold-text {
             font-weight: bold;
@@ -111,7 +112,7 @@
         .signature {
     text-align: left;
     font-size: 28px;
-    font-weight: bold;
+    
     font-family: 'PT Bold Heading', Arial, sans-serif;
     padding: 1px;
    
@@ -122,7 +123,7 @@
     margin-left: 5px;
     font-size: 28px;
     font-family: 'PT Bold Heading', Arial, sans-serif;
-    font-weight: bold;
+    
     padding: 0;
     
 }
@@ -145,6 +146,7 @@
         }
         #officerName{
             margin-left: 50px;
+            margin-top: -20PX;
         }
         .footer {
             margin-top: 2px; /* إضافة مساحة فوق التذييل */
@@ -221,6 +223,13 @@
     font-weight: bold;
     font-size: 27px; /* حجم الخط */
 }
+@media print {
+  th {
+    -webkit-print-color-adjust: exact; /* Chrome و Safari */
+    print-color-adjust: exact;         /* Firefox */
+    background-color: #32333836 !important;
+  }
+}
 
 
         
@@ -258,7 +267,7 @@
             </table>
             <!-- نص الرسالة -->
             <div class="mangar-top" contenteditable="true">
-                <p style="font-family: 'AL-Mateen', sans-serif;" class="bold-heading inline">
+                <p style="font-family: 'AL-Mateen', sans-serif;" class="heading inline">
                     سعادة مدير جوازات مطار الملك خالد الدولي&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;الموقر
                 </p>
                 
@@ -333,6 +342,7 @@
                                                               .replace("بياناتها", "بياناته")
                                                               .replace("تغيبت", "تغيب");
     }
+    
 </script>
 
 </body>

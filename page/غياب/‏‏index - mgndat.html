@@ -102,7 +102,7 @@
 
     <!-- إضافة حقل اختيار عدد المحضر -->
     <div class="section">
-        <label for="recordCount">عدد المحضر:</label>
+        <label for="recordCount">عدد محضر الغياب:</label>
         <select id="recordCount" name="recordCount" required>
             <option value="">اختر عدد المحاضر</option>
             <option value="1">1</option>
@@ -155,55 +155,57 @@
         <input type="text" id="officerName" name="officerName" required list="officerNameList" disabled>
         <datalist id="officerNameList">
             <!-- قائمة أسماء الضباط -->
-            <option value="فيصل منصور السعيد">
-            <option value="عبد الرحمن راشد البنية">
-            <option value="معاذ ظفر ال دريس">
-            <option value="عادل بنيدر المطيري">
-            <option value="ماجد عبدالعزيز السحيم">
-            <option value="فيصل عبد الاله الهرف">
-            <option value="احمد علي العمري">
-            <option value="الريان عبدالله الهويمل">
-            <option value="تركي سعد المطيري">
-            <option value="صالح ابراهيم السالم">
-            <option value="عبدالله سعد المطيري">
-            <option value="سعد عبدالعزيز الخشلان">
-            <option value="حسن عايض القحطاني">
-            <option value="جابر فتنان الحربي">
-            <option value="عبدالعزيز سعيد القحطاني">
-            <option value="عبدالله محمد البقمي">
-            <option value="عبدالله عويض الحارثي">
-            <option value="فايز سعيد الشهراني">
-            <option value="رامي عوض الله السلمي">
-            <option value="اسامه راشد المشوح">
-            <option value="سامي عاشور الزهراني">
-            <option value="مترك مهدي السبيعي">
-            <option value="خالد عبدالله الحسين">
-            <option value="سعود فراج السهلي">
-            <option value="عبد الرحمن محمد العوشن">
-            <option value="سعود محمد ال جبل">
-            <option value="حمود علي الباهلي">
-            <option value="فيصل موسى المطيري">
-            <option value="فيصل سعد الضفيان">
-            <option value="عبدالاله ضيف الله بن عميض">
-            <option value="مالك احمد العنقري">
-            <option value="عبدالله عوض المالكي">
-            <option value="مهند فهد ال جلده">
-            <option value="تركي عبدالله الزهراني">
-            <option value="عبدالعزيز عبدالله الحارثي">
-            <option value="عبدالعزيز عبدالله ال مطلق">
-            <option value="صالح محمد الحميدان">
+            <option value="أحمد عادل الزهراني">
+    <option value="أحمد علي العمري">
+    <option value="عبدالله سعد المطيري">
+    <option value="عبدالله محمد البقمي">
+    <option value="عبدالله مازن المطيري">
+    <option value="عبدالعزيز عبدالله آل مطلق">
+    <option value="عبدالعزيز عبدالله الحارثي">
+    <option value="عبدالرحمن راشد البنيه">
+    <option value="عبدالمجيد دحيم العتيبي">
+    <option value="عادل بنيدر المطيري">
+    <option value="عمر سعد المطيري">
+    <option value="فايز سعيد الشهراني">
+    <option value="فهد علي المالكي">
+    <option value="فهد حامد القحطاني">
+    <option value="فيصل عبدالإله الهرف">
+    <option value="فيصل عبدالله الكريديس">
+    <option value="فيصل سعد الضفيان">
+    <option value="فيصل موسى المطيري">
+    <option value="فيصل منصور السعيد">
+    <option value="فواز عبدالعزيز الخليفة">
+    <option value="خالد عبدالله الحسين">
+    <option value="حمود علي الباهلي">
+    <option value="يزيد مشعل العتيبي">
+    <option value="سعود فراج السهلي">
+    <option value="سعود محمد ال جبل">
+    <option value="سعد عبدالعزيز الخشلان">
+    <option value="صالح إبراهيم السالم">
+    <option value="صالح محمد الحميدان">
+    <option value="نايف سلمان المطيري">
+    <option value="محمد عبدالله الرفاع">
+    <option value="مالك أحمد العنقري">
+    <option value="ماجد عبدالعزيز السحيم">
+    <option value="معاذ ظفر آل دريس">
+    <option value="مهند فهد ال جلده">
+    <option value="ناصر دغش السبيعي">
+    <option value="تركي عبدالله الزهراني">
+    <option value="تركي عبدالله الشبيلي">
+    <option value="عادل بنيدر المطيري">
+    <option value="عبدالله سعد المطيري">  
         </datalist>
-        <label for="officerRank">رتبة ضابط الصالة:</label>
-        <input type="text" id="officerRank" name="officerRank" required list="officerRankList" disabled>
-        <datalist id="officerRankList">
-            <option value="ملازم">
-            <option value="ملازم اول">
-            <option value="نقيب">
-            <option value="رائد">
-            <option value="مقدم">
-            <option value="عقيد">
-        </datalist>
-    </div>
+      <label for="officerRank">رتبة ضابط الصالة:</label>
+<select id="officerRank" name="officerRank" required disabled>
+    <option value="">اختر الرتبة</option>
+    <option value="ملازم/">ملازم/</option>
+    <option value="ملازم اول/">ملازم اول/</option>
+    <option value="نقيب/">نقيب/</option>
+    <option value="رائد/">رائد/</option>
+    <option value="مقدم/">مقدم/</option>
+    <option value="عقيد/">عقيد/</option>
+</select>
+
 
     <button type="button" id="submitButton" onclick="submitForm()" disabled>تنفيذ</button>
     <div class="skip-container">
@@ -251,15 +253,15 @@
         "مطر سميح محمد النفيعي", "علي خيران الشهري", "نواف أحمد محمد كاملي"
     ];
     const namesA3 = [
-        "سعد سعود سعد العصيمي", "ناهض مبارك عبدالله الدوسري", "ارجوان زيد أبو ذياب", "سارة راشد العجمي",
-        "محمد شاكر مطني الشمري", "نورة محمد البيشي", "تماضر محمد المطيري", "الهنوف محمد الهذيلي",
-        "مريم إسماعيل الصيني", "فهد عبدالله عسير المطيري", "حاتم رحيم فارس العتيبي", "ريان دخيل حمود الدخيل",
-        "نورة علي القحطاني", "راكان بداح سلطان الشهراني", "نورة محمد معشي", "سميرة أحمد معيني",
-        "عائض العتيبيسحر", "بيان عبدالرحمن العمري", "رشا منير العتيبي", "حاتم سليمان المطيري",
-        "دخيل عوض دخيل المطيري", "حمود عبدالله حمود الحربي", "حصه مساعد المطيري", "بسمه عليان العتيبي",
-        "هاجد عوض هاجد المطيري", "امل حسن علي الشامي", "عائشة مريف العديساني", "سارة إبراهيم الطشلان",
-        "ثامر منسي عقيل العنزي"
-    ];
+    "سعد سعود سعد العصيمي", "حصه مساعد المطيري", "ايمان سعيد العلياني", "امل حسن علي الشامي", 
+    "سميرة أحمد معيني", "سارة إبراهيم الطشلان", "تماضر محمد المطيري", "ناصر مفرح العتيبي", 
+    "حاتم رحيم فارس العتيبي", "دخيل عوض دخيل المطيري", "بسمه عليان العتيبي", "هاجد عوض هاجد المطيري", 
+    "عائشة مريف العديساني", "بيان عبدالرحمن العمري", "نورة محمد البيشي", "حاتم سليمان المطيري", 
+    "يوسف محمد صالح العمري", "ناهض مبارك عبدالله الدوسري", "حمود عبدالله حمود الحربي", "نورة علي القحطاني", 
+    "سارة راشد العجمي", "هديل سلمان الشمري", "عفاف ظافر الغامدي", "عبدالرحمن يحيى علي ابوصلام", 
+    "رشا منير العتيبي", "ناصر مذكر ناصر السبيعي"
+];
+
     const namesB3 = [
         "محمد سند العتيبي", "عليثه جروان عليثه الروقي", "محمود علي غرمان العمري", "فيصل دخيل القحطاني",
         "شيماء محمد ربيدي", "يزيد مصلح الحربي", "فايز عائض عبدالله الغامدي", "فهد مسفر حسن ال فهاد",
@@ -269,16 +271,10 @@
         "تهاني سعد البيشي", "ابرار مزعل الدهمشي", "أريج جمعان العصيمي", "فاطمة جابر محمد عبدلي",
         "محسن ذيب شليل العتيبي", "تركي مشعان نايض العتيبي", "عبدالرحمن أحمد الغامدي", "يحيى عسران موسى فقيهي"
     ];
-    const namesC3 = [
-        "محمد سفر عبدالله القحطاني", "مشاري سعود عواض المطيري", "محمد حمود دباشي العلياني",
-        "نايف سعد محمد القحطاني", "خالد عبدالله محمد العتيبي", "عبدالعزيز فهد غازي العتيبي", "خلود حارث العمري",
-        "شوق ناصر الشهراني", "عايشة جوعان العنزي", "سفره ظافر الشهراني", "محمد ابراهيم عبدالله منيف",
-        "عبدالله محمد عبدالله الشمراني", "عبدالعزيز عبدالله الغامدي", "ريم هادي الصيعري", "نورة علي القرني",
-        "باشه منصور الدوسري", "مي محمد عبيد", "سلمان عشوي سمر الرويلي", "عبدالله فيحان مضحي العتيبي",
-        "رزان سالم القحطاني", "نوف فيصل الشمري", "شاديه حسن احمد", "ريم علي الشهري", "امل عبدالله سهلي",
-        "لوله عبدالله الزهراني", "عبدالعزيز حميد باتل الرشيدي", "ماجد عشق بركة العتيبي", "عيسى عزوز محسن الحربي",
-        "صالح خلف الرشيدي", "ناصر مذكر ناصر السبيعي"
-    ];
+  const namesC3 = ["عبدالعزيز حميد باتل الرشيدي", "ماجد عشق بركة العتيبي", "مشاري سعود عواض المطيري", "عبدالعزيز فهد غازي العتيبي", "محمد حمود دباشي العلياني", "نايف سعد محمد القحطاني", "عايشة جوعان العنزي", "ريم هادي الصيعري", "شوق ناصر الشهراني", "سفره ظافر الشهراني", "ريمه عارف ال محمد", "حسن محمد أبو طالب", "عبدالله محمد عبدالله الشمراني", "عبدالله فيحان مضحي العتيبي", "سلمان عشوي سمر الرويلي", "تهاني سعود العتيبي", "شاديه حسن احمد", "نوف فيصل الشمري", "مي محمد عبيد", "امل عبدالله سهلي", "ريم علي الشهري", "رزان سالم القحطاني", "أحمد يحي حماد المالكي", "شايع عبدالرحمن محمد العتيق", "سعود محمد سعود الحجي", "خالد عبدالرحمن الشهري"];
+
+
+
     const namesD3 = [
         "سلمان محمد ثويمر المطيري", "أحمد نايف صالح المطيري", "محمد مناحي عبدالله القحطاني", "فهد فلاح مرزوق السبيعي",
         "وليد عواض محمد الحربي", "أحمد سلمان الرشيدي", "فهد محمد العتيبي", "أنجود منور المطيري", "سجى علي الوهيبي",
@@ -314,17 +310,14 @@
         "محمد عواض سارح القرني", "عبدالكريم صالح المطيري", "بدور سعيد الزهراني"
     ];
     const namesC4 = [
-        "تركي سعد المطيري", "عبدالعزيز عبيد طامي الحربي", "محمد علي جراد الشهري",
-        "عيد محمد عيد القرني", "ظافر عايض سالم العمري", "ممدوح عائض العتيبي",
-        "نايف ابراهيم نائف الدوسري", "سميه منصور العتيبي", "محسن مسعود مهدي علي",
-        "عبدالله يحي عبدان الزهراني", "عبدالرحمن سند عتيق الشراري", "سلطان وهق علي السهلي",
-        "منى محمد الرشيدي", "نوف سعد الرويس", "وعد فهد العنزي", "مسفر مترك مسفر الدوسري",
-        "عبدالعزيز أحمد علي الشهراني", "عبدالعزيز طريخم خمخم العنزي", "رندا سالم الحربي",
-        "سهام دخيل الحربي", "إيمان مهياء العنزي", "سفره نوار العصيمي", "خلود عبدالله الشهراني",
-        "سماهر سعد الصاعدي", "ريم احمد عبدالرحمن", "حلا عبدالله الحويطي",
-        "الهنوف محمد الهويمل", "مناحي هتاش منير المرشدي", "فهد مبارك حضرم الدوسري",
-        "طلال عايد عيد المطيري", "سعود محمد سعود الحجي"
-    ];
+    "ممدوح عائض العتيبي", "عبد الله يحي عيدان الزهراني", "محسن مسعود مهدي علي", "عبد العزيز طريخم خمخم العنزي",
+    "سهام دخيل الحربي", "ريم احمد عبدالرحمن", "الهنوف محمد الهويمل", "فهد مبارك حضرم الدوسري",
+    "حسين علي منصور ال عتيق", "عيد محمد عيد القرني", "عبد الرحمن سند عتيق الشراري", "نوف سعد الرويس",
+    "عبد العزيز أحمد علي الشهراني", "مسفر مترك مسفر الدوسري", "خلود عبد الله الشهراني", "سفره نوار العصيمي",
+    "عبد العزيز عبيد طامي الحربي", "ظافر عايض سالم العمري", "سميه منصور العتيبي", "منى محمد الرشيدي",
+    "سلطان وهق علي السهلي", "رندا سالم الحربي", "سماهر سعد الصاعدي", "مناحي هتاش منير المرشدي",
+    "عيسى عزوز الحربي", "عبدالعزيز مصلح ال عيد"
+];
     const namesD4 = [
         "عبدالرحمن تركي الشيباني", "رامي شقير المطيري", "محمد تميم مضحي الدوسري",
         "محمد ضاوي المطيري", "سعود عبدالله تركي السبيعي", "غنيه ظافر سهلي",
@@ -441,13 +434,75 @@
             nameLabel.setAttribute("for", `name${i}`);
             nameLabel.textContent = `الاسم ${i}:`;
             recordDiv.appendChild(nameLabel);
-
+            
             const nameSelect = document.createElement("select");
             nameSelect.id = `name${i}`;
             nameSelect.name = `name${i}`;
             nameSelect.required = true;
             nameSelect.disabled = true; // سيتم تمكينه عند اختيار المناوبة والصالة
             recordDiv.appendChild(nameSelect);
+            // ربط الحدث بعد إضافة العناصر كاملة إلى DOM
+nameSelect.addEventListener("change", function () {
+    const selectedName = nameSelect.value.trim();
+    if (personInfo[selectedName]) {
+        rankSelect.value = personInfo[selectedName].rank;
+        absenceSelect.value = personInfo[selectedName].absenceType;
+    } else {
+        rankSelect.value = "";
+        absenceSelect.value = "";
+    }
+});
+
+            // زر لإدخال الاسم يدويًا
+const manualButton = document.createElement("button");
+manualButton.type = "button";
+manualButton.textContent = "في حال كان الاسم غير موجود اضغط هنا";
+manualButton.style.margin = "5px 0";
+manualButton.style.padding = "2px 5px"; // الزر نفسه صغير الحجم
+manualButton.style.fontSize = "12px"; // حجم خط صغير
+manualButton.style.backgroundColor = "#eee"; // خلفية فاتحة للزر
+manualButton.style.border = "1px solid #ccc";
+manualButton.style.borderRadius = "4px";
+manualButton.style.cursor = "pointer";
+manualButton.style.color = "black"; // لون الخط أسود
+manualButton.style.fontWeight = "bold"; // الخط عريض
+recordDiv.appendChild(manualButton);
+
+// حقل إدخال يدوي مخفي مبدئيًا
+const manualInput = document.createElement("input");
+manualInput.type = "text";
+manualInput.placeholder = "ادخل الاسم هنا";
+manualInput.style.display = "none";
+manualInput.style.marginBottom = "10px";
+recordDiv.appendChild(manualInput);
+
+// تفعيل الإدخال اليدوي عند الضغط على الزر
+manualButton.addEventListener("click", function() {
+    manualInput.style.display = "block";
+    nameSelect.disabled = true;
+    manualInput.focus();
+});
+
+// عند فقدان التركيز من الحقل اليدوي، إذا أدخل الاسم يُستخدم، وإذا تركه فارغ يرجع للوضع الطبيعي
+manualInput.addEventListener("blur", function() {
+    const enteredName = manualInput.value.trim();
+    if (enteredName !== "") {
+        const newOption = document.createElement("option");
+        newOption.value = enteredName;
+        newOption.textContent = enteredName;
+        nameSelect.appendChild(newOption);
+        nameSelect.value = enteredName; // تحديد الاسم الجديد تلقائيًا
+
+        manualInput.style.display = "none";
+        nameSelect.disabled = false;
+        manualInput.value = ""; // مسح الحقل بعد الاستخدام (اختياري)
+    } else {
+        manualInput.style.display = "none";
+        nameSelect.disabled = false;
+    }
+});
+
+
 
             // رتبة
             const rankLabel = document.createElement("label");
@@ -466,14 +521,14 @@
             defaultOption.textContent = "اختر الرتبة";
             rankSelect.appendChild(defaultOption);
 
-            const ranks = ["جندي", "جندي اول", "عريف", "وكيل رقيب", "رقيب", "رقيب اول", "رئيس رقباء"];
+            const ranks = ["جندي", "جندي أول", "عريف", "وكيل رقيب", "رقيب", "رقيب اول", "رئيس رقباء"];
             ranks.forEach(rank => {
                 const option = document.createElement("option");
                 option.value = rank;
                 option.textContent = rank;
                 rankSelect.appendChild(option);
             });
-
+            
             recordDiv.appendChild(rankSelect);
 
             // نوع المحضر
@@ -587,8 +642,8 @@
         const errorMessage = document.getElementById('errorMessage');
         const skipValidation = document.getElementById('skipValidation').checked;
 
-        submitButton.disabled = !allFilled && !skipValidation;
-        errorMessage.style.display = allFilled || skipValidation ? 'none' : 'block';
+         submitButton.disabled = false;
+        errorMessage.style.display = 'none';
     }
 
     function submitForm() {
@@ -602,7 +657,13 @@
         const recordCount = parseInt(document.getElementById("recordCount").value) || 1;
 
         for (let i = 1; i <= recordCount; i++) {
-            const name = document.getElementById(`name${i}`).value;
+            const nameSelect = document.getElementById(`name${i}`);
+const recordDiv = nameSelect.closest('.record');
+const manualInput = recordDiv.querySelector("input[type='text']");
+
+const name = (manualInput && manualInput.style.display === "block" && manualInput.value.trim() !== "")
+    ? manualInput.value.trim()
+    : nameSelect.value;
             const rank = document.getElementById(`rank${i}`).value;
             const absenceType = document.getElementById(`absenceType${i}`).value;
             const outgoingNumber = document.getElementById(`outgoingNumber${i}`).value;
@@ -648,14 +709,97 @@
         }
     }
 
-    // استماع لأحداث الإدخال لتحويل الأرقام إلى العربية
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll('input[type="text"]').forEach(input => {
-            input.addEventListener('input', function() {
-                this.value = toArabicNumbers(this.value);
-            });
-        });
+
+const officerRanks = {
+    "فواز عبدالعزيز الخليفة": "ملازم اول/",
+    "جابر فتنان الحربي": "ملازم اول/",
+    "فيصل عبدالإله الهرف": "ملازم اول/",
+    "فهد حامد القحطاني": "ملازم اول/",
+    "فيصل منصور السعيد": "ملازم اول/",
+    "عبدالعزيز عبدالله آل مطلق": "ملازم اول/",
+    "مالك أحمد العنقري": "ملازم اول/",
+    "عبدالرحمن راشد البنيه": "ملازم اول/",
+    "يزيد مشعل العتيبي": "ملازم اول/",
+    "عبدالإله ضيف الله بن غميض": "ملازم اول/",
+    "فيصل سعد الضفيان": "ملازم اول/",
+    "اسامه راشد المشوح": "ملازم اول/",
+    "فهد علي المالكي": "ملازم اول/",
+    "سعد عبدالعزيز الخشلان": "ملازم اول/",
+    "مهند فهد ال جلده": "ملازم اول/",
+    "عبدالعزيز عبدالله الحارثي": "ملازم اول/",
+    "تركي عبدالله الزهراني": "ملازم اول/",
+    "الريان عبدالله الهويمل": "ملازم اول/",
+    "عادل بنيدر": "ملازم اول/",
+    "معاذ ظفر آل دريس": "ملازم اول/",
+    "صالح إبراهيم السالم": "ملازم اول/",
+    "خالد عبدالله الحسين": "ملازم اول/",
+    "عبدالله مازن المطيري": "ملازم اول/",
+
+    "سعود محمد ال جبل": "نقيب/",
+    "فيصل موسى المطيري": "نقيب/",
+    "ماجد عبدالعزيز السحيم": "نقيب/",
+    "عبدالله سعد المطيري": "نقيب/",
+    "سعود فراج السهلي": "نقيب/",
+    "أحمد علي العمري": "نقيب/",
+
+    "حمود علي الباهلي": "ملازم اول/",
+    "فيصل عبدالله الكريديس": "ملازم اول/",
+    "أحمد عادل الزهراني": "ملازم اول/",
+    "صالح محمد الحميدان": "ملازم اول/",
+    "عبدالمجيد دحيم العتيبي": "ملازم اول/",
+    "تركي عبدالله الشبيلي": "ملازم اول/",
+    "عبدالله محمد البقمي": "ملازم اول/",
+    "محمد عبدالله الرفاع": "ملازم اول/",
+    "نايف سلمان المطيري": "ملازم اول/",
+    "فايز سعيد الشهراني": "ملازم اول/",
+    "عمر سعد المطيري": "ملازم اول/",
+    "ناصر دغش السبيعي": "ملازم اول/"
+};
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const officerNameInput = document.getElementById("officerName");
+    const officerRankInput = document.getElementById("officerRank");
+
+    officerNameInput.addEventListener("change", function () {
+        const selectedName = officerNameInput.value.trim();
+        if (officerRanks[selectedName]) {
+            officerRankInput.value = officerRanks[selectedName]; // يضع الرتبة كاملة مثل "ملازم أول/"
+        } else {
+            officerRankInput.value = ""; // مسح الحقل إذا الاسم غير معروف
+        }
     });
+});
+const personInfo = {
+    "عبدالعزيز حميد باتل الرشيدي": { rank: "رئيس رقباء", absenceType: "أفراد" },
+    "ماجد عشق بركة العتيبي": { rank: "وكيل رقيب", absenceType: "أفراد" },
+    "مشاري سعود عواض المطيري": { rank: "وكيل رقيب", absenceType: "أفراد" },
+    "عبدالعزيز فهد غازي العتيبي": { rank: "وكيل رقيب", absenceType: "أفراد" },
+    "محمد حمود دباشي العلياني": { rank: "عريف", absenceType: "أفراد" },
+    "نايف سعد محمد القحطاني": { rank: "عريف", absenceType: "أفراد" },
+    "عايشة جوعان العنزي": { rank: "عريف", absenceType: "مجندات" },
+    "ريم هادي الصيعري": { rank: "عريف", absenceType: "مجندات" },
+    "شوق ناصر الشهراني": { rank: "عريف", absenceType: "مجندات" },
+    "سفره ظافر الشهراني": { rank: "عريف", absenceType: "مجندات" },
+    "ريمه عارف ال محمد": { rank: "عريف", absenceType: "مجندات" },
+    "حسن محمد أبو طالب": { rank: "جندي أول", absenceType: "أفراد" },
+    "عبدالله محمد عبدالله الشمراني": { rank: "جندي أول", absenceType: "أفراد" },
+    "عبدالله فيحان مضحي العتيبي": { rank: "جندي أول", absenceType: "أفراد" },
+    "سلمان عشوي سمر الرويلي": { rank: "جندي أول", absenceType: "أفراد" },
+    "تهاني سعود العتيبي": { rank: "جندي أول", absenceType: "مجندات" },
+    "شاديه حسن احمد": { rank: "جندي أول", absenceType: "مجندات" },
+    "نوف فيصل الشمري": { rank: "جندي أول", absenceType: "مجندات" },
+    "مي محمد عبيد": { rank: "جندي أول", absenceType: "مجندات" },
+    "امل عبدالله سهلي": { rank: "جندي أول", absenceType: "مجندات" },
+    "ريم علي الشهري": { rank: "جندي أول", absenceType: "مجندات" },
+    "رزان سالم القحطاني": { rank: "جندي أول", absenceType: "مجندات" },
+    "أحمد يحي حماد المالكي": { rank: "جندي", absenceType: "أفراد" },
+    "شايع عبدالرحمن محمد العتيق": { rank: "رقيب", absenceType: "أفراد" },
+    "سعود محمد سعود الحجي": { rank: "وكيل رقيب", absenceType: "أفراد" },
+    "خالد عبدالرحمن الشهري": { rank: "عريف", absenceType: "أفراد" }
+};
+
+
 </script>
 
 </body>
