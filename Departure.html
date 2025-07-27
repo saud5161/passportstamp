@@ -16,7 +16,26 @@
     
 </head>
 <body>
-  
+  <div id="password-container" style="
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+">
+  <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 300px; width: 90%;">
+    <h3 style="margin-bottom: 15px;">الرجاء إدخال الرقم السري </h3>
+    <input type="password" id="page-password" style="padding: 10px; width: 100%;" placeholder="••••••" />
+    <div style="margin-top: 15px;">
+      <button onclick="checkPassword()" style="padding: 10px 20px;">دخول</button>
+      <button onclick="redirectToExit()" style="padding: 10px 20px; background-color: #d9534f; color: white; border: none; margin-right: 10px;">إغلاق</button>
+    </div>
+    <p id="error-msg" style="color: red; margin-top: 10px; display: none;"></p>
+  </div>
+</div>
+
    <div class="page-background-logo"></div>
 
     <div class="top-bar">

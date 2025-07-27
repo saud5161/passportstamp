@@ -1,3 +1,29 @@
+ const correctPassword = "123123";
+
+  // تحقق من وجود إذن مسبق
+  window.addEventListener("DOMContentLoaded", () => {
+    if (localStorage.getItem("departureAccess") === "granted") {
+      document.getElementById("password-container").style.display = "none";
+    }
+  });
+
+  function checkPassword() {
+    const password = document.getElementById("page-password").value;
+    const errorMsg = document.getElementById("error-msg");
+
+    if (password === correctPassword) {
+      localStorage.setItem("departureAccess", "granted");
+      document.getElementById("password-container").style.display = "none";
+    } else {
+      errorMsg.textContent = "الرقم السري غير صحيح، في حال عدم توفر الرقم السري التواصل معي";
+      errorMsg.style.display = "block";
+      document.getElementById("page-password").value = ""; // تفريغ الحقل
+    }
+  }
+
+  function redirectToExit() {
+    window.location.href = "passport-d.html";
+  }
 // دالة لإظهار أو إخفاء الشريط الجانبي
 function toggleSidebar() {
     var sidebar = document.getElementById("sidebar");
