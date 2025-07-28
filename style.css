@@ -589,14 +589,13 @@ a.tooltip:hover::after {
     }
 
     .sidebar {
-        width: 80px;
         max-width: none;
         height: auto;
         display: block;
         position: fixed;
-        top: 50px;
+        top: 180px;
         right: 0;
-        padding: 10px;
+        padding: 20px;
         background-color: #3d775f;
     }
 
@@ -1226,15 +1225,19 @@ h3 {
 }
 @media (max-width: 768px) {
   .quick-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 8px;
-    justify-content: center;
-    background-color: #eef7f1;
-    border-radius: 8px;
-    margin: 10px;
+    position: fixed;
+    top: 110px; /* تحت الشريط العلوي والبحث */
+    right: 0;
+    left: 0;
+    background-color: #f0f0f0;
+    z-index: 999;
+    padding: 8px 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    border-bottom: 1px solid #ccc;
+    
   }
+  
 
   .quick-links span {
     display: block;
@@ -1254,42 +1257,7 @@ h3 {
     white-space: nowrap;
   }
 }
-@media (max-width: 768px) {
-  .card-actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 4px;
-    padding: 0;
-    margin-top: 8px;
-  }
 
-  .card-actions a {
-    font-size: 0; /* لإزالة أي نص خفي يسبب حجم زائد */
-    width: auto;
-    height: auto;
-    padding: 4px;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .card-actions i,
-  .card-actions .pdf-icon,
-  .card-actions .word-icon,
-  .card-actions .print-icon {
-    font-size: 16px;
-    width: 24px;
-    height: 24px;
-  }
-
-  .btn-icon img {
-    width: 20px !important;
-    height: 20px !important;
-  }
-}
 @media (max-width: 768px) {
   .instruction-wrapper {
     display: none !important;
@@ -1379,4 +1347,57 @@ h3 {
 
 .btn-secondary:hover {
   background-color: #545b62;
+}
+@media (max-width: 768px) {
+  .card-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 10px !important;
+    margin-top: 10px !important;
+    width: 100% !important;
+  }
+
+  .card-actions a {
+    font-size: 0; /* لإزالة أي نص خفي يسبب حجم زائد */
+    width: auto;
+    height: auto;
+    padding: 4px;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .card-actions i,
+  .card-actions .pdf-icon,
+  .card-actions .word-icon,
+  .card-actions .print-icon {
+    font-size: 16px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .btn-icon img {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}
+@media (max-width: 768px) {
+  /* إخفاء أيقونة الوورد */
+  .top-bar .left a[href*="Doc4.docm"] {
+    display: none !important;
+  }
+
+  /* إخفاء رابط التعليمات */
+  .top-bar .left a[href*="تثبيت البرنامج"] {
+    display: none !important;
+  }
+
+  /* إخفاء التاريخ */
+  .top-bar .center #date {
+    display: none !important;
+  }
 }
