@@ -1,1114 +1,242 @@
 <!DOCTYPE html>
+
 <html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <title>نماذج الجوازات قدوم</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="img/icon-g.png" type="image/x-icon">
-    <link rel="stylesheet" href="css/all.min.css">
-    <link rel="stylesheet" href="css/all.css">
-
-    
- 
-
-    
+<meta charset="utf-8"/>
+<title>نماذج الجوازات قدوم</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.css" rel="stylesheet"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="style.css" rel="stylesheet"/>
+<link href="img/icon-g.png" rel="icon" type="image/x-icon"/>
+<link href="css/all.min.css" rel="stylesheet"/>
+<link href="css/all.css" rel="stylesheet"/>
 </head>
 <body>
-    <div class="top-bar">
-        <div class="right">
-            <div class="logo-container">
-                <img src="img/main-httpswww.gdp.gov.saportalassetsimglogo.png" alt="الشعار">
-                <div>
-                    <div>المملكة العربية السعودية</div>
-                    <div>وزارة الداخلية - المديرية العامة للجوازات</div>
-                   <div class="fas fa-plane-arrival">   نماذج الجوازات قدوم</div>
-                </div>
-            </div>
-        </div>
-        <div class="center">
-            <span id="date"></span>
-            
-        </div>
-        <div class="left">
-            <a href="#"><i class="fas fa-desktop"></i></a>
-        
-            <!-- أيقونة الجرس مع الإشعار -->
-            <a href="#" onclick="fetchLatestRelease()">
-                <div class="icon-with-notification">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">1</span>
-                </div>
-             </a>
-             
-             <!-- مربع النص لعرض المحتوى أسفل الجرس -->
-             <div id="notification-content" style="display: none;">
-                 <p id="latest-release-text">جارٍ التحميل...</p>
-             </div>
-             
-            
-            
-        
-            <a id="print-button"><i class="fas fa-print"></i></a>
-            <a href="#" onclick="toggleHeadsetNotification(event)">
-                <div class="icon-with-notification">
-                    <i class="fas fa-headset"></i>
-                    <span class="notification-star">1</span> <!-- رقم 1 بدلاً من النجمة -->
-                </div>
-             </a>
-             
-             <!-- مربع النص لعرض محتوى الاقتراح -->
-             <div id="headset-notification-content" style="display: none;">
-                 <p id="headset-latest-release-text">في حال وجود اي ملاحظة او اقتراح يرجى التواصل واتس اب فقط مع سعود الحجي رقم جوال 0568190224</p>
-             </div>
-             
-            <a href="passport-d.html"><i class="fa-solid fa-power-off"></i></a>
-        </div>
+    <div id="password-container" style="
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+">
+  <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 300px; width: 90%;">
+    <h3 style="margin-bottom: 15px;">الرجاء إدخال الرقم السري </h3>
+    <input type="password" id="page-password" style="padding: 10px; width: 100%;" placeholder="••••••" />
+    <div style="margin-top: 15px;">
+      <button onclick="checkPassword()" style="padding: 10px 20px;">دخول</button>
+      <button onclick="redirectToExit()" style="padding: 10px 20px; background-color: #d9534f; color: white; border: none; margin-right: 10px;">إغلاق</button>
     </div>
-    
-    <div class="search-bar">
-        <input type="text" id="search-input" placeholder="ابحث هنا...">
-        <button id="search-button">بحث</button>
-    </div>
-    
-    <div class="container">
-        
-        <!-- محتويات الصفحة الأخرى -->
-    </div>
-    <script src="script.js"></script>
-    
-    
-        <div class="sidebar" id="sidebar">
-            <button class="toggle-sidebar" id="toggle-sidebar-btn" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
-            </button>
-            <ul>
-                <li class="active" onclick="setActive(this)" title="الحضور والانصراف"><i class="fas fa-calendar-check"></i> <a href="#content-attendance"><span>الحضور والانصراف</span></a></li>
-                <li onclick="setActive(this)" title="نماذج المستخدمة  يوميا"><i class="fas fa-file-alt"></i> <a href="#content-daily-forms"><span>نماذج المستخدمة  يوميا</span></a></li>
-                <li onclick="setActive(this)" title="إنشاء خطابات العرض"><i class="fa-solid fa-pencil"></i> <a href="#content-offer-letter"><span>إنشاء خطابات العرض</span></a></li>
-                <li onclick="setActive(this)" title="نماذج الأفراد"><i class="fas fa-users"></i> <a href="#content-individuals"><span>نماذج الأفراد</span></a></li>
-                <li onclick="setActive(this)" title="خطابات العرض المتكررة"><i class="fas fa-edit"></i> <a href="#content-ready-letters"><span>خطابات العرض المتكررة</span></a></li>
-                <li onclick="setActive(this)" title="نماذج الممنوعين"><i class="fa-solid fa-user-shield"></i> <a href="#content-banned-forms"><span>نماذج الممنوعين</span></a></li>
-                <li onclick="setActive(this)" title="نماذج المعادين"><i class="fa-solid fa-user-slash"></i> <a href="#content-saudi-forms1"><span>نماذج المعادين</span></a></li>
-                <li onclick="setActive(this)" title="نماذج سعوديين"><i class="fa-regular fa-user"></i> <a href="#content-saudi-forms"><span>نماذج سعوديين</span></a></li>
-                <li onclick="setActive(this)" title="الخطوط الناقلة"><i class="fas fa-plane"></i> <a href="#content-carrier-lines"><span>الخطوط الناقلة</span></a></li>
-            </ul>
-        </div>
-        <!-- إضافة القسم الجديد فوق قسم "الحضور والانصراف" -->
-        
-        
-        
-    
-        
-        <div class="content">
-            <p >لتحميل النموذج المطلوب بصيغة (Word) اضغط على الرمز<span class="fa-solid fa-file-word" style="color: #1a63e0; font-size: 25px;"></span></p>
-            <span style="color: #e01a1a;">
+    <p id="error-msg" style="color: red; margin-top: 10px; display: none;"></p>
+  </div>
+</div>
+<div class="top-bar">
+<div class="right">
+<div class="logo-container">
+<img alt="الشعار" src="img/main-httpswww.gdp.gov.saportalassetsimglogo.png"/>
+<div>
+<div>المملكة العربية السعودية</div>
+<div>وزارة الداخلية - المديرية العامة للجوازات</div>
+<div class="fas fa-plane-arrival">   نماذج الجوازات قدوم</div>
+</div>
+</div>
+</div>
+<div class="center">
+<span id="date"></span>
+</div>
+<div class="left">
+<a href="#"><i class="fas fa-desktop"></i></a>
+<!-- أيقونة الجرس مع الإشعار -->
+<a href="#" onclick="fetchLatestRelease()">
+<div class="icon-with-notification">
+<i class="fas fa-bell"></i>
+<span class="notification-badge">1</span>
+</div>
+</a>
+<!-- مربع النص لعرض المحتوى أسفل الجرس -->
+<div id="notification-content" style="display: none;">
+<p id="latest-release-text">جارٍ التحميل...</p>
+</div>
+<a id="print-button"><i class="fas fa-print"></i></a>
+<a href="#" onclick="toggleHeadsetNotification(event)">
+<div class="icon-with-notification">
+<i class="fas fa-headset"></i>
+<span class="notification-star">1</span> <!-- رقم 1 بدلاً من النجمة -->
+</div>
+</a>
+<!-- مربع النص لعرض محتوى الاقتراح -->
+<div id="headset-notification-content" style="display: none;">
+<p id="headset-latest-release-text">في حال وجود اي ملاحظة او اقتراح يرجى التواصل واتس اب فقط مع سعود الحجي رقم جوال 0568190224</p>
+</div>
+<a href="passport-d.html"><i class="fa-solid fa-power-off"></i></a>
+</div>
+</div>
+<div class="search-bar">
+<input id="search-input" placeholder="ابحث هنا..." type="text"/>
+<button id="search-button">بحث</button>
+</div>
+<div class="container">
+<!-- محتويات الصفحة الأخرى -->
+</div>
+<script src="script.js"></script>
+<div class="sidebar" id="sidebar">
+<button class="toggle-sidebar" id="toggle-sidebar-btn" onclick="toggleSidebar()">
+<i class="fas fa-bars"></i>
+</button>
+<ul>
+<li class="active" onclick="setActive(this)" title="الحضور والانصراف"><i class="fas fa-calendar-check"></i> <a href="#content-attendance"><span>الحضور والانصراف</span></a></li>
+<li onclick="setActive(this)" title="نماذج المستخدمة  يوميا"><i class="fas fa-file-alt"></i> <a href="#content-daily-forms"><span>نماذج المستخدمة  يوميا</span></a></li>
+<li onclick="setActive(this)" title="إنشاء خطابات العرض"><i class="fa-solid fa-pencil"></i> <a href="#content-offer-letter"><span>إنشاء خطابات العرض</span></a></li>
+<li onclick="setActive(this)" title="نماذج الأفراد"><i class="fas fa-users"></i> <a href="#content-individuals"><span>نماذج الأفراد</span></a></li>
+<li onclick="setActive(this)" title="خطابات العرض المتكررة"><i class="fas fa-edit"></i> <a href="#content-ready-letters"><span>خطابات العرض المتكررة</span></a></li>
+<li onclick="setActive(this)" title="نماذج الممنوعين"><i class="fa-solid fa-user-shield"></i> <a href="#content-banned-forms"><span>نماذج الممنوعين</span></a></li>
+<li onclick="setActive(this)" title="نماذج المعادين"><i class="fa-solid fa-user-slash"></i> <a href="#content-saudi-forms1"><span>نماذج المعادين</span></a></li>
+<li onclick="setActive(this)" title="نماذج سعوديين"><i class="fa-regular fa-user"></i> <a href="#content-saudi-forms"><span>نماذج سعوديين</span></a></li>
+<li onclick="setActive(this)" title="الخطوط الناقلة"><i class="fas fa-plane"></i> <a href="#content-carrier-lines"><span>الخطوط الناقلة</span></a></li>
+</ul>
+</div>
+<!-- إضافة القسم الجديد فوق قسم "الحضور والانصراف" -->
+<div class="content">
+<div class="instruction-box">
+<h3><i class="fa-solid fa-file-word"></i> تعليمات WORD</h3>
+<ol>
+<span style="color: #e01a1a;">
                 في حال ظهور عبارة قامت مايكروسوفت بمنع وحدات المايكرو  word 
             </span>
-            <a href="vido/2024-08-26 06-08-25.mp4" style="background-color: #4aa32f;" target="_blank">
+<a href="vido/2024-08-26 06-08-25.mp4" style="background-color: #4aa32f;" target="_blank">
                 اضغط هنا
             </a>
-            <p>لتحميل النموذج المطلوب بصيغة (PDF) اضغط على الرمز<span class="fa-solid fa-file-pdf" style="color: #e01a1a; font-size: 25px;"></span></p>
-            <p>لعرض النموذج المطلوب بصيغة (html ) اضغط على الرمز<span class="fa-brands fa-edge-legacy" style="color: #4aa32f; font-size: 25px;"></span></p>
-            
-            
-            <DIV class="TOPCONT"id="content-attendance"><h2>الحضور والانصراف</h2></DIV>
-           
-            <div class="content-section" >
-                
-                
-                
-                <div class="left-top-con">  <H3 class="top-text">صالة رقم (4)</H3></div>
-                <div class="button-grid">
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                         
-                                
-                                <h3>مناوبة (أ)</h3>
-                                <p>كشف حضور وانصراف مناوبة (أ) </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            
-                            <SPan>غير متوفر حاليا</SPan>
-                            
-                            
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>مناوبة (ب)</h3>
-                                <p>كشف حضور وانصراف مناوبة (ب) </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <SPan>غير متوفر حاليا</SPan>
-                            
-                        </div>  
-
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>مناوبة (ج)</h3>
-                                <p>كشف حضور وانصراف مناوبة (ج) </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <SPan>غير متوفر حاليا</SPan>                      
-                        </div>                     
-                    </div>
-                    
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>مناوبة (د)</h3>
-                                <p>كشف حضور وانصراف مناوبة (د) </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <SPan>غير متوفر حاليا</SPan>                        
-                        </div>                     
-                    </div>
-                    
-                        <div class="icon-top-con">  <H3 class="top-text">صالة رقم (3)</H3></div>
-                        <div class="button">
-                            <div class="icon-container">
-                                <div class="description">
-                             
-                                    
-                                    <h3>مناوبة (أ)</h3>
-                                    <p>كشف حضور وانصراف مناوبة (أ) </p>
-                                </div>
-                            </div>
-                            <div class="button-container">
-                                
-                                <SPan>غير متوفر حاليا</SPan>
-                                
-                                
-                            </div>
-                        </div>
-                        <div class="button">
-                            <div class="icon-container">
-                                <div class="description">
-                                    <h3>مناوبة (ب)</h3>
-                                    <p>كشف حضور وانصراف مناوبة (ب) </p>
-                                </div>
-                            </div>
-                            <div class="button-container">
-                                <SPan>غير متوفر حاليا</SPan>
-                                
-                            </div>  
-    
-                        </div>
-                        <div class="button">
-                            <div class="icon-container">
-                                <div class="description">
-                                    <h3>مناوبة (ج)</h3>
-                                    <p>كشف حضور وانصراف مناوبة (ج) </p>
-                                </div>
-                            </div>
-                            <div class="button-container">
-                                <SPan>غير متوفر حاليا</SPan>                      
-                            </div>                     
-                        </div>
-                        
-                        <div class="button">
-                            <div class="icon-container">
-                                <div class="description">
-                                    <h3>مناوبة (د)</h3>
-                                    <p>كشف حضور وانصراف مناوبة (د) </p>
-                                </div>
-                            </div>
-                            <div class="button-container">
-                                <SPan>غير متوفر حاليا</SPan>                        
-                            </div>                     
-                        </div>
-                    
-                        <div class="icon-top-con">  <H3 class="top-text">صالة رقم (2)</H3></div>
-                        <div class="button">
-                            <div class="icon-container">
-                                <div class="description">
-                             
-                                    
-                                    <h3>مناوبة (أ)</h3>
-                                    <p>كشف حضور وانصراف مناوبة (أ) </p>
-                                </div>
-                            </div>
-                            <div class="button-container">
-                                
-                                <SPan>غير متوفر حاليا</SPan>
-                                
-                                
-                            </div>
-                        </div>
-                        <div class="button">
-                            <div class="icon-container">
-                                <div class="description">
-                                    <h3>مناوبة (ب)</h3>
-                                    <p>كشف حضور وانصراف مناوبة (ب) </p>
-                                </div>
-                            </div>
-                            <div class="button-container">
-                                <SPan>غير متوفر حاليا</SPan>
-                                
-                            </div>  
-    
-                        </div>
-                        <div class="button">
-                            <div class="icon-container">
-                                <div class="description">
-                                    <h3>مناوبة (ج)</h3>
-                                    <p>كشف حضور وانصراف مناوبة (ج) </p>
-                                </div>
-                            </div>
-                            <div class="button-container">
-                                <SPan>غير متوفر حاليا</SPan>                      
-                            </div>                     
-                        </div>
-                        
-                        <div class="button">
-                            <div class="icon-container">
-                                <div class="description">
-                                    <h3>مناوبة (د)</h3>
-                                    <p>كشف حضور وانصراف مناوبة (د) </p>
-                                </div>
-                            </div>
-                            <div class="button-container">
-                                <SPan>غير متوفر حاليا</SPan>                        
-                            </div>                     
-                        </div>     
-                </div>
-            </div>
-            
-
-
-            
-            <DIV class="TOPCONT"><h2>نماذج المستخدمة  يوميا</h2></DIV>
-            
-            <div class="content-section" id="content-daily-forms">
-                
-                
-                <div class="button-grid">
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3> جميع النماذج اليومية في ملف واحد</h3>
-                                <p>صادر + تاشيرات + حذف سجلات + تعديل + موازنة + بوابات+ التقارير  </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نــماذج  اليومية/نموذج استلام.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="dic-Arrival/نــماذج  اليومية/نموذج استلام.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>استعلام بصمة</h3>
-                                <p>استعلام عن بصمة للمسافر</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/نــماذج  اليومية/استعلام بطرق الاربع.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/نــماذج  اليومية/استعلام بطرق الاربع.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>تسجيل بصمة</h3>
-                                <p>تسجيل الخصائص الحيوية للمسافر</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نــماذج  اليومية/تسجيل خصائص حيوية.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="dic-Arrival/نــماذج  اليومية/تسجيل خصائص حيوية.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i>تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>تزوير فحص</h3>
-                                <p>نموذج فحص لحالات الاشتباه</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/نــماذج  اليومية/تزوير فحص.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>تأشيرات منتهية</h3>
-                                <p>نموذج للتاشيرات المنتهيه </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival\نــماذج  اليومية\الزيارة المنتهية.docx" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival\نــماذج  اليومية\الزيارة المنتهية.pdf" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>بيان صادر</h3>
-                                <p>نموذج تسليم الصادر </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/نــماذج  اليومية/صادر _1.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/نــماذج  اليومية/صادر.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>تعديل الرحلات</h3>
-                                <p>نماذج تعديل الرحلات </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/نــماذج  اليومية/تعديل الرحلات.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/نــماذج  اليومية/تعديل رحلات.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>تسليم البوابات</h3>
-                                <p>استلام وتسليم البوابات</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/نــماذج  اليومية/تسليم البوابات.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/نــماذج  اليومية/استلام بوابات.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>تقرير الرحلات</h3>
-                                <p>تقارير تقفيل الرحلات المغادرة</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/نــماذج  اليومية/تقارير الرحلات_1.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/نــماذج  اليومية/تقارير الرحلات.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>ازدواجية بصمة</h3>
-                                <p>من لديه جنسية سعودية وغيرها </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/نــماذج  اليومية/ازدواجية بصمة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href=""  class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3> حذف السجلات</h3>
-                                <p>من تم الغاء سجل خروجهم  </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/نــماذج  اليومية/حذف سجل_1.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="dic/نــماذج  اليومية/حذف السجلات.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3> موازنة</h3>
-                                <p>نموذج الموازنة في نهاية الاستلام  </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/نــماذج  اليومية/موازنة_4.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="/dic/نــماذج  اليومية/موازنة_4.pdf" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-
-                   
-                </div>
-            </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-            <DIV class="TOPCONT"><h2>إنشاء خطابات العرض</h2></DIV>
-            <div class="content-section" id="content-offer-letter">
-                
-                <div class="button-grid">
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>خطاب عرض باسم مسافر</h3>
-                                <p>انشاء خطاب عرض ويحتوي على اسم المسافر وغيره</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/خطابات العرض/خطاب باسم .docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>خطاب عرض بدون اسم</h3>
-                                <p>خطاب عرض لا يحتوي على جدول بالاسم </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/خطابات العرض/خطاب بدون اسم.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>خطاب إشارة إلى</h3>
-                                <p>خطاب تشير فيه الى خطاب معين </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/خطابات العرض/خطاب اشارة.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-
-
-
-
-
-
-
-
-
-
-            <DIV class="TOPCONT"><h2>نماذج الأفراد</h2></DIV>
-            <div class="content-section" id="content-individuals">
-                
-                <div class="button-grid">
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>تطبيق</h3>
-                                <p>نموذج لتطبيق ساعات اضافية </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الافراد/تطبيق.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>توقيع التعاميم</h3>
-                                <p>اخذ تواقيع العموم على التعاميم</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الافراد/توقيع التعاميم.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الافراد/نموذج توقيع التعاميم.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>افادة</h3>
-                                <p>افادة غياب للمجندات </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الافراد/افادة غياب.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                        <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>استئذان</h3>
-                                <p>نموذج لرفع استاذان للادارة</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الافراد/استاذان_1.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الافراد/‎⁨نسخة نوذج استئذان⁩.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>نقل صلاحيات</h3>
-                                <p>نقل صلاحيات من فرد الى فرد اخر</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الافراد/نقل صلاحيات_1.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>غياب مجندات</h3>
-                                <p>محضر غياب للمجندات</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الافراد/غياب مجندات.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الافراد/غياب مجندات.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                            <a href="page/‏‏index - mgndat.html" target="_blank"><i class="fa-brands fa-edge-legacy" style="color: #0eb917;" ></i> صفحة ويب</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>غياب أفراد</h3>
-                                <p>محضر غياب للافراد</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الافراد/غياب افراد.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الافراد/غياب افراد.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                            <a href="page/‏‏index - mgndat.html" target="_blank"><i class="fa-brands fa-edge-legacy" style="color: #0eb917;"></i>صفحة ويب </a>
-
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>خطاب تميز</h3>
-                                <p>خطاب لمدير الادارة لتميز موظف</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الافراد/تميز_1.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الافراد/تميز_1.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-
-
-
-
-
-
-
-            <DIV class="TOPCONT"><h2>خطابات العرض المتكررة</h2></DIV>
-            <div class="content-section" id="content-ready-letters">
-                
-                <div class="button-grid">
-                    
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>عطل في السيتا</h3>
-                                <p>عطل في نظام تسجيل المسافرين </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/خطابات جاهزة لتعديل/‏‏عطل في السيتا.docx" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/خطابات جاهزة لتعديل/‏‏عطل في السيتا.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>فقدان الجواز قبل الوصول للكونتر + تعهدالمراجعة</h3>
-                                <p>مقيم فقد جوازه بعد قدومه للملكة </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival\خطابات العرض المتكررة\خطاب فقدام مقيم لجوازه.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>عطل في النظام</h3>
-                                <p>عطل في نظام المسافرين</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/خطابات جاهزة لتعديل/خطا في النظام رحلة .docx" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/خطابات جاهزة لتعديل/عطل في النظام والعمل بالاحتياطي.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>نقل معلومات تأشيرة</h3>
-                                <p> نقل معلومات والزياره على الجواز ثاني</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/خطابات العرض المتكررة/خطاب بشأن نقل معلومات تأشيرة.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    
-                    
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>  عدم قبول البصمة </h3>
-                                <p>راكب لم يتم التعرف عن بصمته  </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival\خطابات العرض المتكررة\عدم قبول الخصائص الحيوية (1).pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival\خطابات العرض المتكررة\عدم قبول الخصائص الحيوية.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>تعهد لحالة راكب خارج المملكة</h3>
-                                <p>حالة المسافر تظهر انه خارج المملكة </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/السعودين/تعهد لحالة داخل المملكة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-                        </div>
-                    </div>
-                    
-                    
-                    
-                </div>
-            </div>
-
-            
-
-
-
-
-
-
-            <DIV class="TOPCONT"><h2>نماذج الممنوعين</h2></DIV>
-            <div class="content-section" id="content-banned-forms">
-                
-                
-                <div class="button-grid">
-                   
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>ترقب عند القدوم </h3>
-                                <p>خطاب ترقب عند المغادرة والقدوم</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الممنوعين/اشعار مباحث.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                            <a href="page/WANTD/MATLOBAN.html" target="_blank"><i class="fa-brands fa-edge-legacy" style="color: #0eb917;"></i> صفحة ويب</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>تبليغ مراجعة</h3>
-                                <p>مسافر يبلغ بالمراجعة </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الممنوعين/تبيلغ مراجعة_1.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الممنوعين/مطلوبين تبليغ مراجعة.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>ايقاف خدمات</h3>
-                                <p>ايقاف خدمات لراكب</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival\نماذج الممنوعين\ايقاف خدمات جديد.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>منع دخول مباحث</h3>
-                                <p>منع دخول الجهة المباحث</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                             <a href="" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الممنوعين/منع دخول مباحث.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                            <a href="page/WANTD/MATLOBAN.html" target="_blank"><i class="fa-brands fa-edge-legacy" style="color: #0eb917;"></i> صفحة ويب</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>منع دخول</h3>
-                                <p>منع دخول الرفع لمدير الادارة</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الممنوعين/منع دخول جوازات.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الممنوعين/منع دخول جوازات جديد.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                            <a href="" target="_blank"><i class="fa-brands fa-edge-legacy" style="color: #0eb917;"></i> صفحة ويب</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>يقبض عليه</h3>
-                                <p>مسافر لدية ملاحظة قبض علية</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الممنوعين/قبض_1.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الممنوعين/قبض.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                            <a href="" target="_blank"><i class="fa-brands fa-edge-legacy" style="color: #0eb917;"></i> صفحة ويب</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>محضر تفتيش جمارك</h3>
-                                <p>محضر تفتيش جمارك ترقب عند القدوم </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الممنوعين/محضر تفتيش جمارك .docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>إقرار مراجعة</h3>
-                                <p>لتوقيع المسافر لمراجعة الجهة الطالبه</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/نماذج الممنوعين/اقرار مراجعة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/نماذج الممنوعين/مطلوبين تبليغ مراجعة.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>خطاب عرض</h3>
-                                <p>خطاب عرض لمدير الادارة</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/نماذج الممنوعين/خطاب عرض.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            
-
-
-            <DIV class="TOPCONT"><h2>نماذج سعوديين</h2></DIV>
-            <div class="content-section" id="content-saudi-forms">
-                
-
-                <div class="button-grid">
-                    
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>قدوم من دول الممنوعة بدون تصريح</h3>
-                                <p>الدول الممنوعه مثل  باكستان السودان لبنان وغيرها </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival\السعودين\سعودي قادم من الدول التي يمنع السفر  اليها بدون تصريح .docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>قدوم من دول الممنوعة ودول الصراع ويحمل تصريح</h3>
-                                <p>مواطن يحمل تصريح لسفر لدول المنع </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival\السعودين\سعودي قادم من دولة ممنوعة ولديه امر.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-
-                    
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>قدوم من دول الصراع ولا يحمل تصريح</h3>
-                                <p>الدول الصراع مثل ايران العراق ليبيا سوريا اليمن </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                           <a href="dic-Arrival\السعودين\سعودي قادم من دول الصراع بدون  تصريح دول الصراع.docm" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-
-                        </div>
-                    </div>
-
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>فقدان الجواز قبل الوصول للكونتر </h3>
-                                <p>مواطن فقد جوازه بعد قدومه للملكة </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival\السعودين\نسخة فاقد جوازه قبل الوصول الى كاونتر الجوازات.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>تعهد لحالة داخل المملكة </h3>
-                                <p>اقرار على الخليجين</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/السعودين/تعهد لحالة داخل المملكة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>كفالة</h3>
-                                <p>كفالة مسافر </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/السعودين/نموذج كفالة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/السعودين/نموذج كفالة.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>اقرار مراجعة</h3>
-                                <p>اقرار مراجعة للاحوال او الجوازات </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/السعودين/اقرار بالمراجعة (تعهد).pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/السعودين/تعهد بالمراجعة.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-
-                        </div>
-                    </div>
-                   
-
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>نموذج فحص وثيقة</h3>
-                                <p>وجود ختم لاحد الدول الممنوعه  </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival\السعودين\فحص وثيقة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/السعودين/نموذج فحص الوثيقة.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-
-                        </div>
-                    </div>
-<div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>اقرار وتعهد بخط سير الرحلة </h3>
-                                <p>تعهد لوجود ختم لاحد الدول الممنوعه  </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/السعودين/اقرار وتعهد بسير الرحلة .pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/السعودين/اقرار وتعهد بسير الرحلة .docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>نموذج تذكرة المرور</h3>
-                                <p>نموذج خاص لقدوم مسافر سعودي بتذكرة مرور</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/السعودين/تذكرة مرور النموذج الجديد.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic-Arrival/السعودين/تذكرة مرور النموذج الجديد.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-
-                        </div>
-                    </div>
-
-
-                    
-                </div>
-            </div>
-            
-
-
-
-
-
-
-
-            <DIV class="TOPCONT"><h2> نماذج المعادين </h2></DIV>
-            <div class="content-section" id="content-saudi-forms1">
-                
-                <div class="button-grid">
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>نموذج 13 + محضر تامين الوجبات</h3>
-                                <p> راكب معاد </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/المعادين/خطاب عرض لاعادة راكب.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="dic-Arrival/المعادين/خطاب عرض لاعادة راكب.docm" ><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل </a>
-
-                        </div>
-                    </div>
-                    
-                    
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>محضر ثلاثي للمعادين</h3>
-                                <p>محضر اعادة راكب </p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <span>بانتظار النماذج</span>
-                        </div>
-                    </div>
-                    
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>بيان الايواء</h3>
-                                <p>  نموذج بيان الايواء للمعادين</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic-Arrival/المعادين/بيان الايواء.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="dic-Arrival/المعادين/بيان الايواء.docx" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-
-            <DIV class="TOPCONT"><h2>الخطوط الناقلة</h2></DIV>
-            <div class="content-section" id="content-carrier-lines">
-                
-                <div class="button-grid">
-                    
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>ملاحظة على المنفستات</h3>
-                                <p>في حال وجود ملاحظة على منفست الرحلة</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/خطوط/ملاحظة على المنفست.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>ترانزيت</h3>
-                                <p>ركاب الترانزيت المغادرين</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/خطوط/ترانزيت.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                             <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>الغاء راكب</h3>
-                                  <p>نموذج الغاء راكب خاص للخطوط الناقلة</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/خطوط/الغاء راكب.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                         <a href="" class="unavailable target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> غير متوفر</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>محضر ضبط مخالفة</h3>
-                                <p>محضر مخافة للخطوط الناقلة</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/خطوط/محضر ضبط مخالفة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/خطوط/محضر ضبط مخالفة.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                    <div class="button">
-                        <div class="icon-container">
-                            <div class="description">
-                                <h3>مخالفة الخطوط خطاب عرض</h3>
-                                <p>خطاب عرض الى مدير الادارة مخالفة</p>
-                            </div>
-                        </div>
-                        <div class="button-container">
-                            <a href="dic/خطوط/خطاب عرض مخالفة.pdf" target="_blank" onclick="window.open(this.href, 'popup', 'width=800,height=600'); return false;"><i class="fa-solid fa-file-pdf" style="color: #c41c1c;"></i> عرض</a>
-                            <a href="dic/خطوط/تسجيل المسافرين.docx" target="_top"><i class="fa-solid fa-file-word" style="color: #1a63e0;"></i> تعديل</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-
-            <div class="footer">
-                <p>حقوق النشر &copy; 2024 جميع الحقوق محفوظة | <a href="#">رابط</a></p>
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-    
+<li>يرجى تمكين وحدات المايكرو للاستفادة من مربع النصوص كم في الشرح <a href="vido/2024-08-26 06-08-25.mp4" style="background-color: #4aa32f;" target="_blank">
+                        اضغط هنا
+                    </a></li>
+<li>يُرجى إغلاق جميع الصفحات المفتوحه في حال عدم ظهور مربع النصوص او توقفه</li>
+<li>الحد الاقصى لفتح نفس الخطاب 3 خطابات في نفس الوقت يرجى اغلاق الخطابات فور الانتهاء منها لتوفير مساحة </li>
+</ol>
+</div>
+<p>لتحميل النموذج المطلوب بصيغة (PDF) اضغط على الرمز<span class="fa-solid fa-file-pdf" style="color: #e01a1a; font-size: 25px;"></span></p>
+<p>لعرض النموذج المطلوب بصيغة (html ) اضغط على الرمز<span class="fa-brands fa-edge-legacy" style="color: #4aa32f; font-size: 25px;"></span></p>
+<div class="TOPCONT" id="content-attendance"><h2>الحضور والانصراف</h2></div>
+<div class="content-section">
+<div class="left-top-con"> <h3 class="top-text">صالة رقم (4)</h3></div>
+<div class="button-grid">
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (أ)</h3><p>كشف حضور وانصراف مناوبة (أ)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (ب)</h3><p>كشف حضور وانصراف مناوبة (ب)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (ج)</h3><p>كشف حضور وانصراف مناوبة (ج)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (د)</h3><p>كشف حضور وانصراف مناوبة (د)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="icon-top-con"> <h3 class="top-text">صالة رقم (3)</h3></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (أ)</h3><p>كشف حضور وانصراف مناوبة (أ)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (ب)</h3><p>كشف حضور وانصراف مناوبة (ب)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (ج)</h3><p>كشف حضور وانصراف مناوبة (ج)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (د)</h3><p>كشف حضور وانصراف مناوبة (د)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="icon-top-con"> <h3 class="top-text">صالة رقم (2)</h3></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (أ)</h3><p>كشف حضور وانصراف مناوبة (أ)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (ب)</h3><p>كشف حضور وانصراف مناوبة (ب)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (ج)</h3><p>كشف حضور وانصراف مناوبة (ج)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مناوبة (د)</h3><p>كشف حضور وانصراف مناوبة (د)</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+</div>
+</div>
+<div class="TOPCONT"><h2>نماذج المستخدمة  يوميا</h2></div>
+<div class="content-section" id="content-daily-forms">
+<div class="button-grid">
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>جميع النماذج اليومية في ملف واحد</h3><p>صادر + تاشيرات + حذف سجلات + تعديل + موازنة + بوابات+ التقارير</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نــماذج  اليومية/نموذج استلام.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نــماذج  اليومية/نموذج استلام.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نــماذج  اليومية/نموذج استلام.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>استعلام بصمة</h3><p>استعلام عن بصمة للمسافر</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/نــماذج  اليومية/استعلام بطرق الاربع.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic/نــماذج  اليومية/استعلام بطرق الاربع.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/نــماذج  اليومية/استعلام بطرق الاربع.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>تسجيل بصمة</h3><p>تسجيل الخصائص الحيوية للمسافر</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نــماذج  اليومية/تسجيل خصائص حيوية.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نــماذج  اليومية/تسجيل خصائص حيوية.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نــماذج  اليومية/تسجيل خصائص حيوية.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>تزوير فحص</h3><p>نموذج فحص لحالات الاشتباه</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/نــماذج  اليومية/تزوير فحص.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/نــماذج  اليومية/تزوير فحص.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>تأشيرات منتهية</h3><p>نموذج للتاشيرات المنتهيه</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival\نــماذج  اليومية\الزيارة المنتهية.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival\نــماذج  اليومية\الزيارة المنتهية.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival\نــماذج  اليومية\الزيارة المنتهية.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>بيان صادر</h3><p>نموذج تسليم الصادر</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/نــماذج  اليومية/صادر _1.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic/نــماذج  اليومية/صادر.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/نــماذج  اليومية/صادر _1.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>تعديل الرحلات</h3><p>نماذج تعديل الرحلات</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/نــماذج  اليومية/تعديل الرحلات.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic/نــماذج  اليومية/تعديل رحلات.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/نــماذج  اليومية/تعديل الرحلات.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>تسليم البوابات</h3><p>استلام وتسليم البوابات</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/نــماذج  اليومية/تسليم البوابات.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic/نــماذج  اليومية/استلام بوابات.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/نــماذج  اليومية/تسليم البوابات.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>تقرير الرحلات</h3><p>تقارير تقفيل الرحلات المغادرة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/نــماذج  اليومية/تقارير الرحلات_1.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic/نــماذج  اليومية/تقارير الرحلات.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/نــماذج  اليومية/تقارير الرحلات_1.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>ازدواجية بصمة</h3><p>من لديه جنسية سعودية وغيرها</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/نــماذج  اليومية/ازدواجية بصمة.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/نــماذج  اليومية/ازدواجية بصمة.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>حذف السجلات</h3><p>من تم الغاء سجل خروجهم</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/نــماذج  اليومية/حذف سجل_1.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic/نــماذج  اليومية/حذف السجلات.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/نــماذج  اليومية/حذف سجل_1.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>موازنة</h3><p>نموذج الموازنة في نهاية الاستلام</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/نــماذج  اليومية/موازنة_4.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/نــماذج  اليومية/موازنة_4.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+</div>
+</div>
+<div class="TOPCONT"><h2>إنشاء خطابات العرض</h2></div>
+<div class="content-section" id="content-offer-letter">
+<div class="button-grid">
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>خطاب عرض باسم مسافر</h3><p>انشاء خطاب عرض ويحتوي على اسم المسافر وغيره</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/خطابات العرض/خطاب باسم .docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>خطاب عرض بدون اسم</h3><p>خطاب عرض لا يحتوي على جدول بالاسم</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/خطابات العرض/خطاب بدون اسم.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>خطاب إشارة إلى</h3><p>خطاب تشير فيه الى خطاب معين</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/خطابات العرض/خطاب اشارة.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+</div>
+</div>
+<div class="TOPCONT"><h2>نماذج الأفراد</h2></div>
+<div class="content-section" id="content-individuals">
+<div class="button-grid">
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>تطبيق</h3><p>نموذج لتطبيق ساعات اضافية</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الافراد/تطبيق.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الافراد/تطبيق.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>توقيع التعاميم</h3><p>اخذ تواقيع العموم على التعاميم</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الافراد/توقيع التعاميم.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الافراد/نموذج توقيع التعاميم.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الافراد/توقيع التعاميم.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>افادة</h3><p>افادة غياب للمجندات</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الافراد/افادة غياب.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الافراد/افادة غياب.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>استئذان</h3><p>نموذج لرفع استاذان للادارة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الافراد/استاذان_1.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الافراد/‎⁨نسخة نوذج استئذان⁩.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الافراد/استاذان_1.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>نقل صلاحيات</h3><p>نقل صلاحيات من فرد الى فرد اخر</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الافراد/نقل صلاحيات_1.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الافراد/نقل صلاحيات_1.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>غياب مجندات</h3><p>محضر غياب للمجندات</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الافراد/غياب مجندات.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الافراد/غياب مجندات.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الافراد/غياب مجندات.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>غياب أفراد</h3><p>محضر غياب للافراد</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الافراد/غياب افراد.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الافراد/غياب افراد.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الافراد/غياب افراد.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>خطاب تميز</h3><p>خطاب لمدير الادارة لتميز موظف</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الافراد/تميز_1.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الافراد/تميز_1.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الافراد/تميز_1.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+</div>
+</div>
+<div class="TOPCONT"><h2>خطابات العرض المتكررة</h2></div>
+<div class="content-section" id="content-ready-letters">
+<div class="button-grid">
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>عطل في السيتا</h3><p>عطل في نظام تسجيل المسافرين</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic/خطابات جاهزة لتعديل/‏‏عطل في السيتا.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>فقدان الجواز قبل الوصول للكونتر + تعهدالمراجعة</h3><p>مقيم فقد جوازه بعد قدومه للملكة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival\خطابات العرض المتكررة\خطاب فقدام مقيم لجوازه.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>عطل في النظام</h3><p>عطل في نظام المسافرين</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic/خطابات جاهزة لتعديل/خطا في النظام رحلة .docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>نقل معلومات تأشيرة</h3><p>نقل معلومات والزياره على الجواز ثاني</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/خطابات العرض المتكررة/خطاب بشأن نقل معلومات تأشيرة.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>عدم قبول البصمة</h3><p>راكب لم يتم التعرف عن بصمته</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival\خطابات العرض المتكررة\عدم قبول الخصائص الحيوية (1).pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival\خطابات العرض المتكررة\عدم قبول الخصائص الحيوية.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival\خطابات العرض المتكررة\عدم قبول الخصائص الحيوية (1).pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>تعهد لحالة راكب خارج المملكة</h3><p>حالة المسافر تظهر انه خارج المملكة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/السعودين/تعهد لحالة داخل المملكة.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/السعودين/تعهد لحالة داخل المملكة.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+</div>
+</div>
+<div class="TOPCONT"><h2>نماذج الممنوعين</h2></div>
+<div class="content-section" id="content-banned-forms">
+<div class="button-grid">
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>ترقب عند القدوم</h3><p>خطاب ترقب عند المغادرة والقدوم</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الممنوعين/اشعار مباحث.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>تبليغ مراجعة</h3><p>مسافر يبلغ بالمراجعة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الممنوعين/تبيلغ مراجعة_1.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الممنوعين/مطلوبين تبليغ مراجعة.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الممنوعين/تبيلغ مراجعة_1.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>ايقاف خدمات</h3><p>ايقاف خدمات لراكب</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival\نماذج الممنوعين\ايقاف خدمات جديد.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>منع دخول مباحث</h3><p>منع دخول الجهة المباحث</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الممنوعين/منع دخول مباحث.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>منع دخول</h3><p>منع دخول الرفع لمدير الادارة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الممنوعين/منع دخول جوازات.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الممنوعين/منع دخول جوازات جديد.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الممنوعين/منع دخول جوازات.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>يقبض عليه</h3><p>مسافر لدية ملاحظة قبض علية</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الممنوعين/قبض_1.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الممنوعين/قبض.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الممنوعين/قبض_1.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>محضر تفتيش جمارك</h3><p>محضر تفتيش جمارك ترقب عند القدوم</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الممنوعين/محضر تفتيش جمارك .docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>إقرار مراجعة</h3><p>لتوقيع المسافر لمراجعة الجهة الطالبه</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/نماذج الممنوعين/اقرار مراجعة.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/نماذج الممنوعين/مطلوبين تبليغ مراجعة.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/نماذج الممنوعين/اقرار مراجعة.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>خطاب عرض</h3><p>خطاب عرض لمدير الادارة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/نماذج الممنوعين/خطاب عرض.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/نماذج الممنوعين/خطاب عرض.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+</div>
+</div>
+<div class="TOPCONT"><h2>نماذج سعوديين</h2></div>
+<div class="content-section" id="content-saudi-forms">
+<div class="button-grid">
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>قدوم من دول الممنوعة بدون تصريح</h3><p>الدول الممنوعه مثل  باكستان السودان لبنان وغيرها</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival\السعودين\سعودي قادم من الدول التي يمنع السفر  اليها بدون تصريح .docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>قدوم من دول الممنوعة ودول الصراع ويحمل تصريح</h3><p>مواطن يحمل تصريح لسفر لدول المنع</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival\السعودين\سعودي قادم من دولة ممنوعة ولديه امر.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>قدوم من دول الصراع ولا يحمل تصريح</h3><p>الدول الصراع مثل ايران العراق ليبيا سوريا اليمن</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival\السعودين\سعودي قادم من دول الصراع بدون  تصريح دول الصراع.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>فقدان الجواز قبل الوصول للكونتر</h3><p>مواطن فقد جوازه بعد قدومه للملكة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival\السعودين\نسخة فاقد جوازه قبل الوصول الى كاونتر الجوازات.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>تعهد لحالة داخل المملكة</h3><p>اقرار على الخليجين</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/السعودين/تعهد لحالة داخل المملكة.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/السعودين/تعهد لحالة داخل المملكة.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>كفالة</h3><p>كفالة مسافر</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/السعودين/نموذج كفالة.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/السعودين/نموذج كفالة.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/السعودين/نموذج كفالة.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>اقرار مراجعة</h3><p>اقرار مراجعة للاحوال او الجوازات</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/السعودين/اقرار بالمراجعة (تعهد).pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/السعودين/تعهد بالمراجعة.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/السعودين/اقرار بالمراجعة (تعهد).pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>نموذج فحص وثيقة</h3><p>وجود ختم لاحد الدول الممنوعه</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival\السعودين\فحص وثيقة.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/السعودين/نموذج فحص الوثيقة.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival\السعودين\فحص وثيقة.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>اقرار وتعهد بخط سير الرحلة</h3><p>تعهد لوجود ختم لاحد الدول الممنوعه</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/السعودين/اقرار وتعهد بسير الرحلة .pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/السعودين/اقرار وتعهد بسير الرحلة .docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/السعودين/اقرار وتعهد بسير الرحلة .pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>نموذج تذكرة المرور</h3><p>نموذج خاص لقدوم مسافر سعودي بتذكرة مرور</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/السعودين/تذكرة مرور النموذج الجديد.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/السعودين/تذكرة مرور النموذج الجديد.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/السعودين/تذكرة مرور النموذج الجديد.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+</div>
+</div>
+<div class="TOPCONT"><h2> نماذج المعادين </h2></div>
+<div class="content-section" id="content-saudi-forms1">
+<div class="button-grid">
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>نموذج 13 + محضر تامين الوجبات</h3><p>راكب معاد</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/المعادين/خطاب عرض لاعادة راكب.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/المعادين/خطاب عرض لاعادة راكب.docm" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/المعادين/خطاب عرض لاعادة راكب.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>محضر ثلاثي للمعادين</h3><p>محضر اعادة راكب</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="#" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('#');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>بيان الايواء</h3><p>نموذج بيان الايواء للمعادين</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic-Arrival/المعادين/بيان الايواء.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic-Arrival/المعادين/بيان الايواء.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic-Arrival/المعادين/بيان الايواء.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+</div>
+</div>
+<div class="TOPCONT"><h2>الخطوط الناقلة</h2></div>
+<div class="content-section" id="content-carrier-lines">
+<div class="button-grid">
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>ملاحظة على المنفستات</h3><p>في حال وجود ملاحظة على منفست الرحلة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/خطوط/ملاحظة على المنفست.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/خطوط/ملاحظة على المنفست.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>ترانزيت</h3><p>ركاب الترانزيت المغادرين</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/خطوط/ترانزيت.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/خطوط/ترانزيت.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>الغاء راكب</h3><p>نموذج الغاء راكب خاص للخطوط الناقلة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/خطوط/الغاء راكب.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="#" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/خطوط/الغاء راكب.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>محضر ضبط مخالفة</h3><p>محضر مخافة للخطوط الناقلة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/خطوط/محضر ضبط مخالفة.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic/خطوط/محضر ضبط مخالفة.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/خطوط/محضر ضبط مخالفة.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+<div class="model-card"><div class="card-content"><img alt="" class="model-icon" src="img/icon-g.png"/><h3>مخالفة الخطوط خطاب عرض</h3><p>خطاب عرض الى مدير الادارة مخالفة</p><p style="font-size: 10px; color: green; margin-top: 5px;">🔗 المرفقات المطلوبة:  </p></div><div class="card-actions"><a class="btn-icon pdf-icon" href="dic/خطوط/خطاب عرض مخالفة.pdf" onclick="window.open(this.href,'popup','width=800,height=600');return false;" target="_blank" title="عرض PDF"></a><a class="btn-icon word-icon" href="dic/خطوط/تسجيل المسافرين.docx" target="_top" title="تعديل Word"></a><a class="btn-icon print-icon" href="javascript:void(0);" onclick="printFile('dic/خطوط/خطاب عرض مخالفة.pdf');" title="طباعة"><i class="fa-solid fa-print"></i></a></div></div>
+</div>
+</div>
+<div class="footer">
+<p>حقوق النشر © 2024 جميع الحقوق محفوظة | <a href="#">وكيل رقيب / سعود الحجي -جوازات مطار الملك خالد </a></p>
+</div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
