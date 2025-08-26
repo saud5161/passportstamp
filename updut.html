@@ -44,6 +44,11 @@
             </div>
 
             <div class="input-group">
+            <label for="occupation">المهنة:</label>
+            <input type="text" id="occupation" name="occupation" placeholder="أدخل المهنة" required>
+            </div>
+
+            <div class="input-group">
                 <label for="sponsorName">اسم الكفيل:</label>
                 <input type="text" id="sponsorName" name="sponsorName" placeholder="أدخل اسم الكفيل" required>
             </div>
@@ -91,6 +96,7 @@
             const nationality = document.getElementById("nationality").value.trim();
             const newPassportNumber = document.getElementById("newPassportNumber").value.trim();
             const oldPassportNumber = document.getElementById("oldPassportNumber").value.trim();
+            const occupation = document.getElementById("occupation").value.trim();
             const residencyNumber = document.getElementById("residencyNumber").value.trim();
             const sponsorName = document.getElementById("sponsorName").value.trim();
             const flightNumber = document.getElementById("flightNumber").value.trim();
@@ -103,6 +109,7 @@
             message.push(`*رقم الجواز الجديد:* ${newPassportNumber}`);
             message.push(`*رقم الجواز القديم:* ${oldPassportNumber}`);
             message.push(`*رقم الإقامة:* ${residencyNumber}`);
+            message.push(`*المهنة:* ${occupation}`);
             message.push(`*اسم الكفيل:* ${sponsorName}`);
             message.push(`*رقم الرحلة:* ${flightNumber}`);
             message.push(`*وقت الإقلاع:* ${padNumber(departureHour)}:${padNumber(departureMinutes)}`);
