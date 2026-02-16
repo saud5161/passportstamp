@@ -1,1220 +1,615 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <title>نظام الإنتاجية والمناوبات</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&display=swap" rel="stylesheet">
-  
-  <style>
-    :root {
-      --bg-body: #0f172a;
-      --bg-sidebar: #1e293b;
-      --bg-card: #1e293b;
-      --primary: #3b82f6;
-      --productivity: #06b6d4;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --admin: #8b5cf6;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --border: #334155;
-      --radius: 12px;
-    }
-
-    * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-    body {
-      margin: 0; font-family: 'Cairo', sans-serif;
-      background-color: var(--bg-body); color: var(--text-main);
-      height: 100vh; display: flex; overflow: hidden;
-    }
-
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-body); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    .app-container { display: flex; width: 100%; height: 100%; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام التوزيع الرسمي</title>
     
-    .sidebar {
-      width: 260px; background: var(--bg-sidebar); border-left: 1px solid var(--border);
-      display: flex; flex-direction: column; padding: 20px; gap: 10px; flex-shrink: 0; z-index: 50;
-      transition: transform 0.3s ease;
-    }
-    
-    .brand { display: flex; align-items: center; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
-    .brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--productivity)); border-radius: 10px; display: grid; place-items: center; font-weight: bold; font-size: 20px; color: white; }
-    
-    .nav-item {
-      display: flex; align-items: center; gap: 12px; padding: 12px 16px; position: relative;
-      border-radius: var(--radius); color: var(--text-muted); cursor: pointer; transition: all 0.2s;
-      font-weight: 600; font-size: 14px;
-    }
-    .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
-    .nav-item.active { background: rgba(59, 130, 246, 0.15); color: var(--primary); border-right: 3px solid var(--primary); }
-    
-    /* Notification Badge */
-    .nav-badge {
-        background: var(--danger); color: white; border-radius: 50%; 
-        width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center;
-        position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-        box-shadow: 0 0 5px var(--danger); animation: pulse-red 2s infinite;
-    }
-    @keyframes pulse-red { 0% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);} 70% {box-shadow: 0 0 0 5px rgba(239, 68, 68, 0);} 100% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);} }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 
-    .user-info { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); text-align: center; font-size: 13px; color: var(--productivity); font-weight: bold; margin-bottom: 5px; }
-    .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-    .top-header { height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; border-bottom: 1px solid var(--border); background: rgba(15, 23, 42, 0.95); }
-    .content-scroll { flex: 1; overflow-y: auto; padding: 30px; }
-    .section { display: none; animation: fadeIn 0.3s ease; }
-    .section.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #f1c40f;
+            --bg: #f4f7f6;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --font-ui: 'Tajawal', sans-serif;
+        }
 
-    #mobileMenuBtn { display: none; position: fixed; top: 15px; right: 15px; z-index: 1001; background: var(--primary); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 20px; cursor: pointer; align-items: center; justify-content: center; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-    .grid-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; background: var(--bg-card); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); }
-    .form-control { width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 12px; border-radius: 10px; font-family: inherit; font-size: 16px; -webkit-appearance: none; appearance: none; }
-    .form-control:focus { border-color: var(--primary); }
-    .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--bg);
+            margin: 0;
+            padding-bottom: 60px;
+            color: #333;
+        }
 
-    .btn-primary { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; width: 100%; }
-    .btn-danger { background: var(--danger); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; }
-    .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 8px 16px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 10px;}
+        /* --- UI Styles --- */
+        .app-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
 
-    .auth-box { width: 350px; background: var(--bg-card); padding: 30px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
-    .auth-toggle { font-size: 13px; color: var(--primary); cursor: pointer; margin-top: 15px; display: inline-block; }
-    .auth-toggle:hover { text-decoration: underline; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .app-title { margin: 0; font-size: 1.1rem; font-weight: bold; }
 
-    .status-selector { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
-    
-    @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
-    .radio-label { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px 16px; border-radius: 20px; text-align: center; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--text-muted); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 6px; select-none: none; position: relative; overflow: hidden; }
-    .radio-label:has(input:checked) { border-color: transparent; color: white !important; background: var(--primary); transform: translateY(-2px) scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: pulse-ring 2s infinite; }
-    .radio-label[data-type="bad"]:has(input:checked) { background: var(--danger); }
-    .radio-label[data-type="good"]:has(input:checked) { background: var(--success); }
-    .radio-label input { display: none; }
+        .btn-action {
+            padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer;
+            font-family: var(--font-ui); font-size: 0.9rem; font-weight: bold;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .btn-reset { background: rgba(231, 76, 60, 0.2); color: #ffadad; border: 1px solid rgba(231, 76, 60, 0.5); }
+        .btn-pdf { background: var(--accent); color: var(--primary); }
 
-    .transfer-area { display: flex; gap: 20px; height: 450px; margin-top: 20px; }
-    .list-panel { flex: 1; display: flex; flex-direction: column; background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
-    .panel-header { padding: 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-    .list-box { flex: 1; overflow-y: auto; padding: 10px; }
-    .list-item { padding: 12px 14px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
-    .list-item:hover { background: rgba(255,255,255,0.06); }
-    .list-item.selected { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--primary); }
+        .add-staff-row { display: flex; gap: 8px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; }
+        .input-new-name { flex: 1; padding: 8px; border-radius: 4px; border: none; font-family: var(--font-ui); font-size: 0.9rem; }
+        .btn-add-name { background: var(--success); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-weight: bold; }
 
-    .stats-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; position:relative; }
-    .score-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; }
-    .score-table th { text-align: right; padding: 15px; color: var(--text-muted); border-bottom: 2px solid var(--border); font-size: 13px; font-weight: bold; background: rgba(0,0,0,0.2); }
-    .score-table td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; vertical-align: middle; }
-    .score-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
-    .score-input { width: 100px; text-align: center; padding: 8px; background: var(--bg-body); border: 1px solid var(--border); color: var(--productivity); border-radius: 8px; font-weight: 800; font-size: 16px; -webkit-appearance: none; transition: 0.2s; }
-    .score-input:focus { border-color: var(--productivity); box-shadow: 0 0 0 3px rgba(6,182,212,0.15); }
+        .sticky-bar {
+            position: sticky; top: 110px; z-index: 900;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(5px);
+            border-bottom: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
 
-    .gauge-container { width: 220px; margin: 0 auto; text-align: center; position: relative; }
-    .gauge-svg { width: 100%; height: auto; overflow: visible; }
-    .gauge-arc-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 12; stroke-linecap: round; }
-    .gauge-arc-val { fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke-dasharray 1s ease-out, stroke 0.5s; }
-    .gauge-needle { fill: var(--text-main); transform-origin: 100px 90px; transition: transform 1s cubic-bezier(0.4, 0.0, 0.2, 1); }
-    .gauge-center { fill: var(--bg-card); stroke: var(--border); stroke-width: 2; }
-    .gauge-text { font-size: 24px; font-weight: bold; fill: var(--text-main); text-anchor: middle; }
-    .gauge-reason { font-size: 12px; margin-top: 5px; font-weight: bold; line-height: 1.4; }
+        .scroll-area { display: flex; overflow-x: auto; gap: 8px; padding: 10px; -webkit-overflow-scrolling: touch; }
 
-    .bar-chart-container { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
-    .bar-row { display: grid; grid-template-columns: 180px 1fr 60px; align-items: center; gap: 15px; }
-    .bar-track { height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
-    .bar-fill { height: 100%; background: var(--productivity); border-radius: 4px; width: 0; transition: width 1s ease; }
-    .bar-fill.rank-1 { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .chip {
+            flex: 0 0 auto; padding: 8px 15px; background: #fff;
+            border: 1px solid #dcdcdc; border-radius: 20px; font-size: 0.9rem;
+            position: relative; transition: 0.2s; cursor: pointer;
+        }
+        .chip.selected { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 
-    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .kpi-box { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 15px; border-radius: 12px; }
-    .kpi-val { font-size: 20px; font-weight: 800; margin-top: 5px; word-break: break-word; }
-    .kpi-lbl { font-size: 12px; color: var(--text-muted); }
+        .delete-badge {
+            position: absolute; top: -5px; right: -5px; background: var(--danger); color: white;
+            width: 18px; height: 18px; border-radius: 50%; font-size: 10px;
+            display: flex; align-items: center; justify-content: center; border: 2px solid white;
+        }
 
-    .breakdown-item { cursor: pointer; transition: 0.2s; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); margin-bottom: 8px; border: 1px solid transparent; }
-    .breakdown-item:hover { background: rgba(255,255,255,0.06); border-color: var(--border); }
-    .breakdown-details { background: rgba(0,0,0,0.3); margin-top: -5px; border-radius: 0 0 10px 10px; padding: 15px; font-size: 12px; display: none; margin-bottom: 15px; border: 1px solid var(--border); border-top: none; }
-    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-main); }
+        .cnt-btn {
+            flex: 0 0 45px; height: 45px; border: 2px solid #e0e0e0; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-weight: bold;
+            color: var(--primary); background: white; font-size: 1.1rem;
+        }
+        .cnt-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .cnt-btn.used { background: #eee; color: #ccc; pointer-events: none; border-color: transparent; }
 
-    .profile-header { background: linear-gradient(to left, var(--bg-card), rgba(6, 182, 212, 0.15)); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
-    .profile-stat-group { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; }
-    .mini-stat { text-align: center; }
-    .mini-stat .val { font-weight: bold; font-size: 16px; }
-    .mini-stat .lbl { font-size: 10px; color: var(--text-muted); }
+        .action-row { padding: 15px; display: flex; gap: 10px; }
+        .main-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 8px; color: white;
+            font-weight: bold; font-family: var(--font-ui); font-size: 1rem;
+            opacity: 0.5; pointer-events: none;
+        }
+        .main-btn.ready { opacity: 1; pointer-events: auto; cursor: pointer; }
+        .btn-single { background: var(--success); }
+        .btn-merge { background: #f39c12; }
 
-    .hidden { display: none !important; }
+        .workspace { padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
 
-    @media (max-width: 768px) {
-      .app-container { flex-direction: column; height: 100vh; }
-      .top-header { display: none !important; }
-      #mobileMenuBtn { display: flex !important; }
-      .sidebar { position: fixed; top: 0; right: 0; width: 75%; max-width: 300px; height: 100%; transform: translateX(100%); z-index: 2000; box-shadow: -5px 0 20px rgba(0,0,0,0.5); padding-top: 60px; background: var(--bg-sidebar); align-items: stretch; }
-      .sidebar.active { transform: translateX(0); }
-      .app-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1500; backdrop-filter: blur(2px); }
-      .app-overlay.active { display: block; }
-      .sidebar .brand { display: flex; justify-content: center; }
-      .sidebar .user-info { display: block; }
-      .nav-item { padding: 15px; font-size: 14px; border-radius: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-      .nav-item span { margin-left: 10px; }
-      .content-scroll { padding: 20px; padding-top: 70px; } 
-      .transfer-area { flex-direction: column; height: auto !important; }
-      .list-panel { height: 300px; flex: none; }
-      .radio-label { padding: 12px 18px; font-size: 13px; margin-bottom: 5px; }
-      .auth-box { width: 100%; }
-    }
-  </style>
+        .card {
+            background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--primary); overflow: hidden;
+        }
+        .card.merged { border-top-color: #f39c12; }
+        .card-header { padding: 10px 15px; background: #fbfbfb; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; font-weight: bold; color: var(--primary); }
+        .card-body { padding: 10px; }
+        
+        .slot {
+            background: #fff; border: 1px dashed #ccc; padding: 8px; margin-bottom: 8px;
+            border-radius: 6px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .slot.filled { background: #eafaf1; border: 1px solid #abebc6; }
+        .slot-text { font-weight: bold; font-size: 0.95rem; }
+        .slot-sub { font-size: 0.75rem; color: #777; display: block; }
+
+        /* =========================================
+           تصميم تقرير PDF
+           ========================================= */
+        #pdf-report {
+            display: none; 
+            background: white;
+            color: black;
+            font-family: 'Tajawal', sans-serif;
+            padding: 20px;
+            direction: rtl;
+            width: 100%;
+            box-sizing: border-box;
+            line-height: 1.3;
+        }
+
+        .pdf-header {
+            text-align: center;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .pdf-title { font-size: 24px; font-weight: 800; color: #2c3e50; margin: 0; }
+        .pdf-date { font-size: 14px; font-weight: bold; color: #555; }
+        
+        .pdf-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .pdf-column {
+            flex: 1;
+            width: 49%;
+        }
+
+        .pdf-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 10px;
+            border: 1px solid #bdc3c7;
+        }
+        
+        .pdf-table th, .pdf-table td {
+            border: 1px solid #bdc3c7;
+            padding: 6px 8px;
+            vertical-align: middle;
+        }
+
+        .pdf-table th {
+            background-color: #2c3e50; 
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .pdf-table tr:nth-child(even) {
+            background-color: #f9f9f9; 
+        }
+        
+        .pdf-cnt-badge {
+            background: #ecf0f1;
+            color: #2c3e50;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 800;
+            text-align: center;
+            display: block;
+            width: fit-content;
+            margin: 0 auto;
+            border: 1px solid #bdc3c7;
+        }
+
+        .pdf-staff-main { font-weight: bold; color: #000; display: block; font-size: 12px; }
+        .pdf-staff-relief { font-size: 10px; color: #e67e22; display: block; margin-top: 2px; font-weight: bold; }
+
+        .pdf-section-head {
+            background: #34495e;
+            color: #fff;
+            padding: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 0;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .pdf-extra-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            font-size: 11px;
+            border: 1px solid #bdc3c7;
+        }
+        .pdf-extra-table td {
+            border: 1px solid #bdc3c7;
+            padding: 8px;
+        }
+        .pdf-extra-label {
+            background: #ecf0f1;
+            font-weight: bold;
+            width: 25%;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        /* تم حذف كلاس الفوتر بالكامل من هنا */
+
+    </style>
 </head>
 <body>
 
-  <div id="authScreen" style="position:fixed; inset:0; background:rgba(15,23,42,0.98); z-index:2500; display:grid; place-items:center; padding: 20px;">
-    
-    <div id="loginForm" class="auth-box">
-      <h2 style="color:var(--primary); margin-bottom:20px;">🔐 تسجيل الدخول</h2>
-      <input type="email" id="email" class="form-control" placeholder="البريد الإلكتروني" style="margin-bottom:10px">
-      <input type="password" id="password" class="form-control" placeholder="كلمة المرور" style="margin-bottom:10px">
-      <button class="btn-primary" onclick="signIn()">دخول</button>
-      <div class="auth-toggle" onclick="toggleAuthMode()">ليس لديك حساب؟ طلب تسجيل</div>
-      <div id="authMsg" class="text-danger" style="margin-top:10px; font-size:12px; color:var(--danger)"></div>
+    <div class="app-header" id="mainHeader">
+        <div class="header-top">
+            <h1 class="app-title">توزيع الكاونترات</h1>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-action btn-reset" onclick="resetSchedule()">↻ إعادة تعيين</button>
+                <button class="btn-action btn-pdf" onclick="downloadPDF()">📄 حفظ PDF</button>
+            </div>
+        </div>
+        <div class="add-staff-row">
+            <input type="text" id="newStaffName" class="input-new-name" placeholder="أدخل اسم الموظف الجديد...">
+            <button class="btn-action btn-add-name" onclick="addNewStaff()">+ حفظ</button>
+        </div>
     </div>
 
-    <div id="registerForm" class="auth-box hidden">
-      <h2 style="color:var(--success); margin-bottom:20px;">📝 طلب انضمام</h2>
-      
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px">
-          <input type="text" id="reg_rank" class="form-control" placeholder="الرتبة">
-          <input type="text" id="reg_name" class="form-control" placeholder="الاسم">
-      </div>
-
-      <input type="email" id="reg_email" class="form-control" placeholder="البريد الإلكتروني" style="margin-bottom:10px">
-      <input type="password" id="reg_pass" class="form-control" placeholder="كلمة المرور" style="margin-bottom:10px">
-      
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px">
-          <select id="reg_hall" class="form-control">
-              <option value="" disabled selected>الصالة</option>
-              <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-          </select>
-          <select id="reg_shift" class="form-control">
-              <option value="" disabled selected>المناوبة</option>
-              <option value="أ">أ</option><option value="ب">ب</option><option value="ج">ج</option><option value="د">د</option>
-          </select>
-      </div>
-      
-      <select id="reg_type" class="form-control" style="margin-bottom:15px">
-          <option value="" disabled selected>نوع الصالة</option>
-          <option value="arrival">قدوم</option>
-          <option value="departure">مغادرة</option>
-      </select>
-
-      <button class="btn-primary" style="background:var(--success)" onclick="signUp()">إرسال الطلب</button>
-      <button class="btn-secondary" onclick="toggleAuthMode()">رجوع لتسجيل الدخول</button>
-      <div id="regMsg" class="text-danger" style="margin-top:10px; font-size:12px;"></div>
+    <div class="sticky-bar">
+        <div style="padding:5px 15px 0; font-size:0.8rem; color:#777; display:flex; justify-content:space-between;">
+            <span>الأفراد (اضغط للاختيار)</span>
+            <span style="color:red; cursor:pointer;" onclick="toggleDeleteMode()" id="delModeBtn">[حذف من القائمة]</span>
+        </div>
+        <div class="scroll-area" id="staffContainer"></div>
+        
+        <div style="padding:5px 15px 0; font-size:0.8rem; color:#777;">الكاونترات</div>
+        <div class="scroll-area" id="counterContainer"></div>
     </div>
 
-  </div>
+    <div class="action-row">
+        <button id="btnAdd" class="main-btn btn-single" onclick="createCard(false)">+ كاونتر فردي</button>
+        <button id="btnMerge" class="main-btn btn-merge" onclick="createCard(true)">🔗 دمج كاونترين</button>
+    </div>
 
-  <button id="mobileMenuBtn" onclick="toggleSidebar()">☰</button>
-  <div id="mobileOverlay" class="app-overlay" onclick="toggleSidebar()"></div>
+    <div class="workspace" id="workspace"></div>
 
-  <div class="app-container">
-    <aside class="sidebar" id="mainSidebar">
-      <div class="brand">
-        <div class="brand-icon">P</div>
-        <div><b>الإنتاجية</b><div style="font-size:11px;color:var(--text-muted)">إدارة المناوبات</div></div>
-      </div>
-      <nav style="display:flex; flex-direction:column; gap:5px; width:100%">
-        <div class="nav-item active" onclick="go('daily')" id="nav-daily"><span>📝</span> الحضور اليومي</div>
-        <div class="nav-item" onclick="go('monthly')" id="nav-monthly"><span>✈️</span> إنتاجية المسافرين</div>
-        <div class="nav-item" onclick="go('record')" id="nav-record"><span>👤</span> سجل الفرد</div>
-        <div class="nav-item" onclick="go('stats')" id="nav-stats"><span>📊</span> الإحصائيات العامة</div>
-        <div class="nav-item" onclick="go('manage')" id="nav-manage"><span>⚙️</span> نقل / تعديل</div>
-        <div class="nav-item hidden" onclick="go('requests')" id="nav-requests" style="border-color:var(--warning); color:var(--warning)">
-            <span>👨‍💻</span> طلبات الانضمام
-            <div id="reqBadge" class="nav-badge hidden"></div>
+    <div class="workspace">
+        <div class="card">
+            <div class="card-header">
+                الخدمة الذاتية <span style="color:green; cursor:pointer;" onclick="addExtraSlot('self')">+</span>
+            </div>
+            <div class="card-body" id="mobile-self"></div>
         </div>
-      </nav>
-      
-      <div class="user-info" id="userDisplayName"></div>
-      <button class="btn-secondary" onclick="logout()" style="margin:20px">خروج</button>
-    </aside>
-
-    <main class="main-content">
-      <header class="top-header">
-        <div style="font-weight:800; font-size:18px" id="pageTitle">تسجيل المناوبة</div>
-        <div style="font-size:13px; color:var(--productivity)" id="dateNow"></div>
-      </header>
-      <div class="content-scroll">
-
-        <div id="sec-daily" class="section active">
-          <div class="grid-filters">
-            <div><label>التاريخ</label><input type="date" id="d_date" class="form-control"></div>
-            <div><label>الصالة</label><select id="d_hall" class="form-control" onchange="loadDailyData()"></select></div>
-            <div><label>المناوبة</label><select id="d_shift" class="form-control" onchange="loadDailyData()"></select></div>
-          </div>
-          
-          <div style="background:var(--bg-card); padding:15px; border-radius:var(--radius); border:1px solid var(--border)">
-             <div class="status-selector" id="statusRadios"></div>
-             <div id="otherInputDiv" class="hidden" style="margin-top:10px; border-top:1px solid var(--border); padding-top:10px;">
-                <label style="font-size:12px; color:var(--text-muted)">📝 اكتب نوع الحالة:</label>
-                <input type="text" id="status_manual_text" class="form-control" placeholder="مثلاً: مهمة خارجية...">
-             </div>
-          </div>
-
-          <div class="transfer-area">
-            <div class="list-panel">
-              <div class="panel-header"><span>المتاح (<span id="c-pool">0</span>)</span> <button class="btn-secondary" onclick="moveAll()">الكل ⬅️</button></div>
-              <div class="list-box" id="list-pool"></div>
+        <div class="card">
+            <div class="card-header">
+                الإرشاد <span style="color:green; cursor:pointer;" onclick="addExtraSlot('guide')">+</span>
             </div>
-            <div class="list-panel" style="border-color:var(--primary)">
-              <div class="panel-header"><span>تم التحضير (<span id="c-chosen">0</span>)</span> <button class="btn-secondary" onclick="clearChosen()">إرجاع ➡️</button></div>
-              <div class="list-box" id="list-chosen"></div>
-            </div>
-          </div>
-          <div style="margin-top:15px"><button class="btn-primary" onclick="submitDaily()">💾 حفظ المناوبة</button></div>
-          <div id="dailyMsg" style="margin-top:10px"></div>
+            <div class="card-body" id="mobile-guide"></div>
+        </div>
+    </div>
+
+    <div id="pdf-report">
+        <div class="pdf-header">
+            <div class="pdf-title">جدول البريكات</div>
+            <div class="pdf-date" id="pdfDateStr"></div>
         </div>
 
-        <div id="sec-monthly" class="section">
-          <div class="grid-filters">
-            <div><label>السنة</label><input type="number" id="m_year" class="form-control" value="2026"></div>
-            <div><label>الشهر</label><select id="m_month" class="form-control"></select></div>
-            <div><label>الصالة</label><select id="m_hall_filter" class="form-control" onchange="loadMonthlyEntry()"></select></div>
-            <div><label>المناوبة</label><select id="m_shift_filter" class="form-control" onchange="loadMonthlyEntry()"></select></div>
-            <div style="display:flex; align-items:flex-end"><button class="btn-primary" onclick="loadMonthlyEntry()">عرض القائمة</button></div>
-          </div>
-
-          <div class="stats-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:15px; margin-bottom:15px;">
-              <h3 style="margin:0">✈️ رصد عدد المسافرين</h3>
-              <button class="btn-primary" onclick="submitMonthlyScores()">💾 حفظ الأرقام</button>
-            </div>
-            <div style="overflow-x:auto;">
-              <table class="score-table">
-                <thead><tr><th style="text-align:right">الاسم</th><th>الرتبة</th><th>العدد الحالي</th><th>تعديل العدد</th></tr></thead>
-                <tbody id="monthlyBody"></tbody>
-              </table>
-            </div>
-            <div id="monthlyMsg" style="margin-top:10px"></div>
-          </div>
-        </div>
-
-        <div id="sec-record" class="section">
-          <div class="grid-filters">
-            <div><label>الصالة</label><select id="rec_hall" class="form-control" onchange="filterRecSelect()"></select></div>
-            <div><label>المناوبة</label><select id="rec_shift" class="form-control" onchange="filterRecSelect()"></select></div>
-            <div><label>بحث بالاسم</label><input type="text" id="rec_search_text" class="form-control" placeholder="اكتب الاسم..." onkeyup="filterRecSelect()"></div>
-            <div style="flex:2"><label>اختر الفرد</label><select id="rec_emp_select" class="form-control"></select></div>
-            <div style="display:flex; align-items:flex-end"><button class="btn-primary" onclick="loadSoldierRecord()">عرض السجل</button></div>
-          </div>
-
-          <div id="soldier-profile" class="hidden">
-            <div class="profile-header">
-              <div style="display:flex; gap:15px; align-items:center; width:100%">
-                  <div style="font-size:40px; background:rgba(255,255,255,0.1); width:60px; height:60px; display:grid; place-items:center; border-radius:50%">👮</div>
-                  <div style="flex:1">
-                    <h2 id="p_name" style="margin:0"></h2>
-                    <div style="margin-top:5px; color:var(--text-muted)">
-                       <span id="p_rank" style="background:var(--primary); padding:2px 8px; border-radius:4px; color:white; font-size:12px"></span>
-                       <span id="p_loc" style="margin-right:10px; font-size:13px"></span>
-                    </div>
-                  </div>
-                  <div style="text-align:center">
-                    <div style="font-size:12px;color:var(--text-muted)">الإنتاجية</div>
-                    <div style="font-size:24px; font-weight:bold; color:var(--productivity)" id="p_total_prod">0</div>
-                  </div>
-              </div>
-
-              <div class="profile-stat-group">
-                  <div class="mini-stat"><div class="val" id="p_count_absent" style="color:var(--danger)">0</div><div class="lbl">غياب</div></div>
-                  <div class="mini-stat"><div class="val" id="p_count_late" style="color:var(--warning)">0</div><div class="lbl">تأخير</div></div>
-                  <div class="mini-stat"><div class="val" id="p_count_early" style="color:var(--success)">0</div><div class="lbl">حضور مبكر</div></div>
-                  <div class="mini-stat"><div class="val" id="p_count_excused" style="color:#8b5cf6">0</div><div class="lbl">استئذان</div></div>
-                  <div class="mini-stat"><div class="val" id="p_count_vio" style="color:var(--danger)">0</div><div class="lbl">مخالفات</div></div>
-              </div>
-            </div>
-
-            <div class="stats-card" style="display:flex; flex-direction:column; align-items:center;">
-                 <h3 style="margin:0 0 20px 0; align-self:flex-start">🧭 مستوى الانضباط</h3>
-                 <div class="gauge-container">
-                     <svg class="gauge-svg" viewBox="0 0 200 100">
-                         <path class="gauge-arc-bg" d="M20 90 A 80 80 0 0 1 180 90" />
-                         <path id="p_gauge_arc" class="gauge-arc-val" d="M20 90 A 80 80 0 0 1 180 90" stroke-dasharray="0, 251" />
-                         <polygon id="p_gauge_needle" class="gauge-needle" points="100,90 95,90 100,20 105,90" />
-                         <circle cx="100" cy="90" r="5" class="gauge-center" />
-                     </svg>
-                     <div id="p_gauge_text" class="gauge-text" style="margin-top:-10px">0%</div>
-                     <div id="p_gauge_reason" class="gauge-reason" style="color:var(--text-muted)">--</div>
-                 </div>
-            </div>
-
-            <div class="stats-card">
-              <div style="font-weight:bold; font-size:14px; margin-bottom:15px">📈 الرسم البياني للإنتاجية (السنوي)</div>
-              <div id="p_chart_container" style="display:flex; align-items:flex-end; height:180px; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--border)"></div>
-              <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:10px; color:var(--text-muted)" id="p_chart_labels"></div>
-            </div>
-
-            <div class="stats-card">
-              <div style="font-weight:bold; margin-bottom:10px">سجل الحضور والغياب</div>
-              <div style="max-height:300px; overflow-y:auto">
-                <table class="score-table">
-                  <thead><tr><th>التاريخ</th><th>الحالة</th><th>ملاحظة</th></tr></thead>
-                  <tbody id="p_history"></tbody>
+        <div class="pdf-container">
+            
+            <div class="pdf-column">
+                <div class="pdf-section-head">القائمة الأولى</div>
+                <table class="pdf-table">
+                    <thead>
+                        <tr>
+                            <th width="20%">الكاونتر</th>
+                            <th width="80%">الموظف / التغطية</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pdf-table-1"></tbody>
                 </table>
-              </div>
             </div>
-          </div>
+
+            <div class="pdf-column">
+                <div class="pdf-section-head">القائمة الثانية</div>
+                <table class="pdf-table">
+                    <thead>
+                        <tr>
+                            <th width="20%">الكاونتر</th>
+                            <th width="80%">الموظف / التغطية</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pdf-table-2"></tbody>
+                </table>
+
+                <div class="pdf-section-head" style="margin-top:15px; background:#2c3e50;">مهام أخرى</div>
+                <table class="pdf-extra-table">
+                    <tr>
+                        <td class="pdf-extra-label">الخدمة الذاتية</td>
+                        <td id="pdf-self-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="pdf-extra-label">الإرشاد</td>
+                        <td id="pdf-guide-cell"></td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        
         </div>
 
-        <div id="sec-stats" class="section">
-          <div class="grid-filters">
-            <div><label>من</label><input type="date" id="st_from" class="form-control"></div>
-            <div><label>إلى</label><input type="date" id="st_to" class="form-control"></div>
-            <div><label>الصالة</label><select id="st_hall" class="form-control"></select></div>
-            <div><label>المناوبة</label><select id="st_shift" class="form-control"></select></div>
-            <div style="display:flex; align-items:flex-end"><button class="btn-primary" onclick="loadGeneralStats()">تحديث المؤشرات</button></div>
-          </div>
+    <script>
+        // --- Data ---
+        let defaultStaff = [
+            "محمد العتيبي", "رامي المطيري", "مساعد الطوب", "غنيه سهلي", "ابتهال القحطاني", 
+            "أريج معافا", "معاذ الحبيب", "سلطان الرشيدي", "مصعب ال علوان", "عبدالله الحارثي", 
+            "مطلق السلولي", "هاجر العنزي", "منيفه العتيبي", "نرجس الدوسري", "بشائر الفيفي", 
+            "مريم الزهراني", "سامي البقمي", "عبدالسلام الحربي", "سالم هليل", "عبدالعزيز العريني", 
+            "محمد نياف", "حسين العجلان", "مقرن المطيري", "علي الشهري", "عايد المطيري", 
+            "سلمان السويح", "ساره العمري", "شروق العتيبي", "أحلام الشهري", "شايع العتيق", "ثامر العنزي"
+        ];
 
-          <div class="stats-card" style="display:flex; flex-direction:column; align-items:center; margin-bottom:20px;">
-                <h3 style="margin:0 0 10px 0; align-self:flex-start">🌍 مؤشر الانضباط العام للنظام</h3>
-                <div class="gauge-container">
-                    <svg class="gauge-svg" viewBox="0 0 200 100">
-                        <path class="gauge-arc-bg" d="M20 90 A 80 80 0 0 1 180 90" />
-                        <path id="g_gauge_arc" class="gauge-arc-val" d="M20 90 A 80 80 0 0 1 180 90" stroke-dasharray="0, 251" />
-                        <polygon id="g_gauge_needle" class="gauge-needle" points="100,90 95,90 100,20 105,90" />
-                        <circle cx="100" cy="90" r="5" class="gauge-center" />
-                    </svg>
-                    <div id="g_gauge_text" class="gauge-text" style="margin-top:-10px">0%</div>
-                    <div id="g_gauge_reason" class="gauge-reason" style="color:var(--text-muted)">--</div>
-                </div>
-          </div>
+        let state = {
+            staff: [],
+            cards: [],
+            slots: {}
+        };
 
-          <div class="kpi-row">
-            <div class="kpi-box" style="border-top:3px solid var(--productivity)">
-              <div class="kpi-lbl">إجمالي الإنتاجية</div>
-              <div class="kpi-val" id="g_total_prod" style="color:var(--productivity)">0</div>
-            </div>
-            
-            <div class="kpi-box" style="border-top:3px solid var(--danger)">
-              <div class="kpi-lbl">أكثر صالة غياب</div>
-              <div class="kpi-val" id="g_most_absent" style="color:var(--danger); font-size:16px">-</div>
-              <div style="font-size:10px; color:var(--text-muted)" id="g_most_absent_count"></div>
-            </div>
-            
-            <div class="kpi-box" style="border-top:3px solid var(--success)">
-              <div class="kpi-lbl">أكثر صالة انضباط</div>
-              <div class="kpi-val" id="g_most_disciplined" style="color:var(--success); font-size:16px">-</div>
-              <div style="font-size:10px; color:var(--text-muted)" id="g_most_disciplined_count"></div>
-            </div>
+        let temp = {
+            selStaff: null,
+            selCnt: [],
+            deleteMode: false
+        };
 
-            <div class="kpi-box" style="border-top:3px solid var(--danger)">
-              <div class="kpi-lbl">أكثر صالة مخالفات</div>
-              <div class="kpi-val" id="g_most_violations" style="color:var(--danger); font-size:16px">-</div>
-              <div style="font-size:10px; color:var(--text-muted)" id="g_most_violations_count"></div>
-            </div>
-          </div>
+        // --- Init ---
+        window.onload = () => {
+            loadData();
+            sortStaff();
+            renderAll();
+        };
 
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr)); gap:20px">
-            <div class="stats-card">
-              <h3>🏆 الأعلى إنتاجية</h3>
-              <div id="prod_leaderboard" class="bar-chart-container"></div>
-            </div>
-
-            <div class="stats-card">
-              <h3>تحليل الحالات (شامل)</h3>
-              <p style="font-size:11px; color:var(--text-muted); margin-bottom:15px">انقر على الحالة لعرض التفاصيل</p>
-              <div id="status_breakdown"></div>
-            </div>
-          </div>
-        </div>
-
-        <div id="sec-requests" class="section">
-            <div class="stats-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <h3>👨‍💻 طلبات الانضمام الجديدة</h3>
-                    <button class="btn-primary" style="width:auto; padding:5px 15px; font-size:12px" onclick="approveAllUsers()">✅ قبول الكل</button>
-                </div>
-                <div id="requestsList">
-                    <p style="color:var(--text-muted)">جاري البحث...</p>
-                </div>
-            </div>
-
-            <div class="stats-card" style="margin-top:20px">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <h3>👥 إدارة جميع المستخدمين</h3>
-                    <button class="btn-secondary" style="width:auto; padding:5px 15px; font-size:12px; margin:0" onclick="toggleAllUsersList()">👁️ عرض الأسماء</button>
-                </div>
-                
-                <div id="allUsersContainer" class="hidden">
-                    <div id="allUsersList">
-                        <p style="color:var(--text-muted)">جاري التحميل...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="sec-manage" class="section">
-           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr)); gap:20px">
-              
-              <div class="stats-card">
-                <h3>🔄 نقل الأفراد</h3>
-                <div style="margin:15px 0">
-                    <label>اختر الفرد</label>
-                    <select id="m_emp" class="form-control"></select>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-                  <div><label>إلى صالة</label><select id="m_new_hall" class="form-control"></select></div>
-                  <div><label>إلى مناوبة</label><select id="m_new_shift" class="form-control"></select></div>
-                </div>
-                <button class="btn-primary" style="margin-top:15px; width:100%" onclick="moveEmployee()">تنفيذ النقل</button>
-                <div id="moveMsg" style="margin-top:10px"></div>
-              </div>
-
-              <div class="stats-card">
-                  <h3>✏️ تعديل إحصائية (إنتاجية)</h3>
-                  <div style="font-size:12px; color:var(--text-muted); margin-bottom:15px">حذف أو تعديل رقم سابق</div>
-                  
-                  <div class="grid-filters" style="padding:10px; background:rgba(0,0,0,0.2); grid-template-columns: 1fr 1fr; margin-bottom:10px">
-                      <div><label>السنة</label><input type="number" id="e_year" class="form-control" value="2026"></div>
-                      <div><label>الشهر</label><select id="e_month" class="form-control"></select></div>
-                  </div>
-                  
-                  <div style="margin-bottom:10px">
-                      <label>بحث عن فرد</label>
-                      <input type="text" id="e_search" class="form-control" placeholder="الاسم..." onkeyup="filterEditSelect()">
-                  </div>
-                  <div style="margin-bottom:10px"><select id="e_emp_select" class="form-control" onchange="fetchStatForEdit()"></select></div>
-
-                  <div id="editStatArea" class="hidden" style="margin-top:15px; border-top:1px solid var(--border); padding-top:15px">
-                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-                          <span>الدرجة الحالية:</span>
-                          <input type="number" id="e_score_val" class="score-input" style="width:100px; font-size:16px">
-                      </div>
-                      <div style="display:flex; gap:10px">
-                          <button class="btn-primary" style="flex:1" onclick="updateStat()">تحديث</button>
-                          <button class="btn-danger" onclick="deleteStat()">حذف</button>
-                      </div>
-                  </div>
-                  <div id="editMsg" style="margin-top:10px"></div>
-              </div>
-           </div>
-        </div>
-
-      </div>
-    </main>
-  </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  // === CONFIG ===
-  const SUPABASE_URL = "https://dkrtiuelioyshbjoocqm.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_ts5SGrWhODsG6EH5dUt9Wg_KUvsf-CF";
-
-  const HALLS = ["1","2","3","4","5"];
-  const SHIFTS = ["أ","ب","ج","د"];
-  const MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
-  
-  const STATUSES = {
-    early:    { label:"حضور مبكر", color:"#10b981", type:'good' },
-    assignment: { label:"تكليف",   color:"#10b981", type:'good' }, 
-    
-    late:     { label:"متأخر",     color:"#f59e0b", type:'bad' },
-    absent:   { label:"غياب",      color:"#ef4444", type:'bad' },
-    detained: { label:"موقوف",     color:"#ef4444", type:'bad' },
-    app:      { label:"تطبيق",     color:"#fbbf24", type:'bad' },
-
-    normal:   { label:"حضور عادي", color:"#3b82f6", type:'neutral' },
-    excused:  { label:"استئذان",   color:"#8b5cf6", type:'neutral' },
-    vacation: { label:"إجازة",     color:"#64748b", type:'neutral' },
-    sick:     { label:"مرضية",     color:"#f472b6", type:'neutral' },
-    newborn:  { label:"رعاية مولود",color:"#d946ef", type:'neutral' },
-    death:    { label:"حالة وفاة", color:"#94a3b8", type:'neutral' },
-    rest:     { label:"راحة",      color:"#64748b", type:'neutral' },
-    course:   { label:"دورة",      color:"#8b5cf6", type:'neutral' },
-    other:    { label:"غير ذلك",   color:"#e2e8f0", type:'neutral' }
-  };
-
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  let sessionUser = null;
-  let employees = [];
-  let dailyPool = [], chosen = [];
-  let curStatus = "normal";
-
-  const $ = (id) => document.getElementById(id);
-  const today = () => new Date().toISOString().split('T')[0];
-
-  window.onload = async () => {
-    $('d_date').value = $('st_from').value = $('st_to').value = today();
-    $('dateNow').textContent = new Date().toLocaleDateString('ar-SA');
-    
-    [ 'd_hall', 'm_hall_filter', 'm_new_hall', 'm_new_shift', 'd_shift', 'm_shift_filter', 'st_hall', 'st_shift', 'rec_hall', 'rec_shift' ].forEach(id => {
-        const isShift = id.includes('shift');
-        fillSelect(id, isShift ? SHIFTS : HALLS, id.startsWith('st') || id.startsWith('rec') || id.startsWith('m_hall') || id.startsWith('m_shift'));
-    });
-
-    const mSel = $('m_month');
-    const eSel = $('e_month');
-    MONTHS.forEach((m,i) => {
-        mSel.innerHTML += `<option value="${i+1}">${m}</option>`;
-        eSel.innerHTML += `<option value="${i+1}">${m}</option>`;
-    });
-    mSel.value = eSel.value = new Date().getMonth() + 1;
-
-    const radioDiv = $('statusRadios');
-    for(const [k,v] of Object.entries(STATUSES)){
-      const lbl = document.createElement('label');
-      lbl.className = 'radio-label';
-      lbl.setAttribute('data-type', v.type);
-      lbl.style.color = v.color;
-      lbl.style.borderColor = v.color;
-      lbl.innerHTML = `<input type="radio" name="st" value="${k}" ${k==='normal'?'checked':''} onchange="changeStatus(this.value)">${v.label}`;
-      radioDiv.appendChild(lbl);
-    }
-
-    checkAuth();
-  };
-
-  function fillSelect(id, arr, hasAll=false){
-    const el = $(id); el.innerHTML = hasAll ? '<option value="">الكل</option>' : '';
-    arr.forEach(x => el.innerHTML += `<option value="${x}">${x}</option>`);
-    if(!hasAll && el.options.length) el.selectedIndex = 0;
-  }
-
-  function toggleSidebar() {
-      const sb = document.getElementById('mainSidebar');
-      const ov = document.getElementById('mobileOverlay');
-      sb.classList.toggle('active');
-      ov.classList.toggle('active');
-  }
-
-  function toggleAuthMode() {
-      const login = $('loginForm');
-      const reg = $('registerForm');
-      if(login.classList.contains('hidden')) {
-          login.classList.remove('hidden'); reg.classList.add('hidden');
-      } else {
-          login.classList.add('hidden'); reg.classList.remove('hidden');
-      }
-  }
-
-  function toggleAllUsersList() {
-      const el = $('allUsersContainer');
-      if(el.classList.contains('hidden')) {
-          el.classList.remove('hidden');
-          loadAllApprovedUsers(); 
-      } else {
-          el.classList.add('hidden');
-      }
-  }
-
-  function go(pg){
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    $('sec-'+pg).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    $('nav-'+pg).classList.add('active');
-    $('pageTitle').textContent = $(`nav-${pg}`).textContent.trim();
-    if(window.innerWidth <= 768) { const sb = document.getElementById('mainSidebar'); if(sb.classList.contains('active')) toggleSidebar(); }
-    
-    // Load requests if admin
-    if(pg === 'requests' && isAdmin) loadRequests();
-  }
-
-  function changeStatus(val) {
-      curStatus = val;
-      if(val === 'other') $('otherInputDiv').classList.remove('hidden');
-      else $('otherInputDiv').classList.add('hidden');
-  }
-
-  // --- Auth & Permissions ---
-  let isAdmin = false;
-
-  async function checkAuth(){
-    const {data} = await sb.auth.getSession();
-    sessionUser = data.session?.user;
-    
-    if(sessionUser){
-      $('authScreen').classList.add('hidden');
-      
-      const meta = sessionUser.user_metadata || {};
-      const disp = meta.display_name || meta.name || meta.full_name || sessionUser.email.split('@')[0];
-      
-      $('userDisplayName').innerHTML = `<div style="font-weight:bold; font-size:14px; margin-bottom:5px">مرحباً، ${disp}</div>`;
-
-      // Auto Apply Preferences
-      if(meta.hall) {
-          if($('d_hall')) $('d_hall').value = meta.hall;
-          if($('st_hall')) $('st_hall').value = meta.hall;
-          if($('rec_hall')) $('rec_hall').value = meta.hall;
-      }
-      if(meta.shift) {
-          if($('d_shift')) $('d_shift').value = meta.shift;
-          if($('st_shift')) $('st_shift').value = meta.shift;
-          if($('rec_shift')) $('rec_shift').value = meta.shift;
-      }
-
-      await checkPermissions();
-      loadEmployees();
-    } else {
-      $('authScreen').classList.remove('hidden');
-    }
-  }
-
-  async function checkPermissions() {
-      const { data, error } = await sb
-          .from('allowed_users')
-          .select('email')
-          .eq('email', sessionUser.email)
-          .single();
-      
-      if (data) {
-          isAdmin = true;
-          $('userDisplayName').innerHTML += ' <span style="color:#10b981; font-size:11px; display:block">● الصلاحيات المخولة: جميع الصلاحيات متاحة</span>';
-          $('nav-requests').classList.remove('hidden');
-          
-          // Check for notifications
-          checkNotifications();
-      } else {
-          isAdmin = false;
-          $('userDisplayName').innerHTML += ' <span style="color:#f59e0b; font-size:11px; display:block">● الصلاحيات المخولة: بدون (فقط للاطلاع)</span>';
-          disableEditingUI();
-      }
-  }
-
-  async function checkNotifications() {
-      const { count } = await sb.from('employees').select('*', { count: 'exact', head: true }).eq('is_approved', false);
-      if(count > 0) {
-          $('reqBadge').textContent = count;
-          $('reqBadge').classList.remove('hidden');
-      } else {
-          $('reqBadge').classList.add('hidden');
-      }
-  }
-
-  function disableEditingUI() {
-      const btns = document.querySelectorAll('button.btn-primary');
-      btns.forEach(btn => {
-          const txt = btn.textContent;
-          if (txt.includes('حفظ') || txt.includes('نقل') || txt.includes('تحديث') || txt.includes('إنشاء') || txt.includes('قبول')) {
-              if(btn.closest('.auth-box')) return; 
-              btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed'; btn.innerHTML = '🔒 ' + txt; btn.title = "غير مصرح لك بالتعديل";
-          }
-      });
-      const delBtns = document.querySelectorAll('button.btn-danger');
-      delBtns.forEach(btn => {
-          const txt = btn.textContent;
-          btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed'; btn.innerHTML = '🔒 ' + txt; btn.title = "غير مصرح لك بالحذف";
-      });
-      if($('otherInputDiv')) $('otherInputDiv').classList.add('hidden');
-  }
-
-  async function signIn(){
-    const { data, error } = await sb.auth.signInWithPassword({
-      email: $('email').value, password: $('password').value
-    });
-    
-    if(error) {
-        $('authMsg').textContent = error.message; 
-    } else {
-        const { data: empData } = await sb.from('employees').select('is_approved').eq('id', data.user.id).single();
-        if(data.user.email === 'shift-management@test.com' || (empData && empData.is_approved)) {
-            checkAuth();
-        } else {
-            await sb.auth.signOut();
-            $('authMsg').innerHTML = `<span style="color:#ef4444; font-weight:bold">⛔ تم تسجيلك بنجاح، ولكن حسابك بانتظار تفعيل المدير للدخول.</span>`;
+        function loadData() {
+            const saved = localStorage.getItem('official_sched_v5'); // New Key
+            if(saved) {
+                state = JSON.parse(saved);
+                if(!state.staff || state.staff.length === 0) state.staff = [...defaultStaff];
+            } else {
+                state.staff = [...defaultStaff];
+            }
         }
-    }
-  }
 
-  async function signUp(){
-      const email = $('reg_email').value;
-      const pass = $('reg_pass').value;
-      const rank = $('reg_rank').value;
-      const name = $('reg_name').value;
-      const hall = $('reg_hall').value;
-      const shift = $('reg_shift').value;
-      const type = $('reg_type').value;
+        function saveData() {
+            localStorage.setItem('official_sched_v5', JSON.stringify(state));
+            renderAll();
+        }
 
-      if(!email || !pass || !name || !hall || !shift) {
-          $('regMsg').textContent = "الرجاء تعبئة كافة البيانات"; return;
-      }
+        function sortStaff() {
+            state.staff.sort((a, b) => a.localeCompare('ar'));
+        }
 
-      const { data: authData, error: authError } = await sb.auth.signUp({
-        email: email, password: pass,
-        options: { data: { display_name: `${rank} ${name}`, hall: hall, shift: shift, hall_type: type } }
-      });
+        // --- Logic ---
+        function resetSchedule() {
+            if(confirm("هل تريد إعادة تعيين الجدول (إفراغ الخانات فقط)؟")) {
+                state.cards = [];
+                state.slots = {};
+                saveData();
+            }
+        }
 
-      if(authError) {
-          $('regMsg').textContent = authError.message;
-          return;
-      }
+        function addNewStaff() {
+            const input = document.getElementById('newStaffName');
+            const name = input.value.trim();
+            if(name) {
+                if(state.staff.includes(name)) {
+                    alert("الاسم موجود مسبقاً");
+                    return;
+                }
+                state.staff.push(name);
+                sortStaff();
+                saveData();
+                input.value = '';
+                alert("تمت الإضافة بنجاح");
+            }
+        }
 
-      if(authData.user) {
-          const { error: dbError } = await sb.from('employees').insert({
-              id: authData.user.id,
-              name: name,
-              rank: rank,
-              hall: hall,
-              shift: shift,
-              email: email,
-              is_approved: false 
-          });
+        function toggleDeleteMode() {
+            temp.deleteMode = !temp.deleteMode;
+            document.getElementById('delModeBtn').innerText = temp.deleteMode ? '[تم الانتهاء]' : '[حذف من القائمة]';
+            renderStaff();
+        }
 
-          if(dbError) {
-              $('regMsg').textContent = "حدث خطأ: " + dbError.message;
-          } else {
-              await sb.auth.signOut();
-              alert('✅ تم التسجيل! اسمك متاح الآن في القوائم، ولكن عليك انتظار موافقة المدير لتسجيل الدخول.');
-              toggleAuthMode();
-          }
-      }
-  }
+        function removeStaffFromList(e, name) {
+            e.stopPropagation();
+            if(confirm(`حذف "${name}" نهائياً؟`)) {
+                state.staff = state.staff.filter(n => n !== name);
+                saveData();
+            }
+        }
 
-  async function logout(){ await sb.auth.signOut(); location.reload(); }
+        // --- Render UI ---
+        function renderAll() {
+            renderStaff();
+            renderCounters();
+            renderWorkspace();
+            renderExtrasMobile();
+            updateBtns();
+        }
 
-async function loadRequests() {
-      const list = $('requestsList');
-      list.innerHTML = 'جاري التحميل...';
-      
-      // التعديل هنا: أضفنا .neq('email', null) لجلب من لديهم إيميل فقط
-      const { data: reqs, error } = await sb.from('employees')
-          .select('*')
-          .eq('is_approved', false)
-          .neq('email', null); 
-      
-      if(!reqs || reqs.length === 0) {
-          list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted)">لا توجد طلبات تسجيل جديدة</div>';
-          return;
-      }
+        function renderStaff() {
+            const container = document.getElementById('staffContainer');
+            container.innerHTML = '';
+            const used = Object.values(state.slots);
 
-      list.innerHTML = '';
-      reqs.forEach(r => {
-          // نتأكد مرة أخرى أن الإيميل موجود
-          if(!r.email) return;
+            state.staff.forEach(name => {
+                if(used.includes(name)) return;
+                const div = document.createElement('div');
+                div.className = `chip ${temp.selStaff === name ? 'selected' : ''}`;
+                div.innerHTML = `${name} ${temp.deleteMode ? `<div class="delete-badge" onclick="removeStaffFromList(event, '${name}')">✕</div>` : ''}`;
+                div.onclick = () => {
+                    if(!temp.deleteMode) {
+                        temp.selStaff = (temp.selStaff === name) ? null : name;
+                        renderStaff();
+                    }
+                };
+                container.appendChild(div);
+            });
+        }
 
-          const item = document.createElement('div');
-          item.style.cssText = "background:rgba(255,255,255,0.05); padding:15px; margin-bottom:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border)";
-          item.innerHTML = `
-            <div>
-                <div style="font-weight:bold; color:var(--text-main)">${r.rank || ''} ${r.name}</div>
-                <div style="font-size:12px; color:var(--text-muted)">${r.email}</div>
-                <div style="font-size:11px; margin-top:5px; color:var(--productivity)">صالة ${r.hall} | مناوبة ${r.shift}</div>
-            </div>
-            <div style="display:flex; gap:10px">
-                <button class="btn-primary" style="padding:8px 15px; font-size:12px; background:var(--success); width:auto" onclick="approveUser('${r.id}')">قبول ✅</button>
-                <button class="btn-danger" style="padding:8px 15px; font-size:12px; width:auto" onclick="rejectUser('${r.id}')">رفض ❌</button>
-            </div>
-          `;
-          list.appendChild(item);
-      });
-  }
+        function renderCounters() {
+            const container = document.getElementById('counterContainer');
+            container.innerHTML = '';
+            let assigned = [];
+            state.cards.forEach(c => assigned.push(...c.nums));
 
-async function loadAllApprovedUsers() {
-      const list = $('allUsersList');
-      list.innerHTML = 'جاري التحميل...';
-      
-      // التعديل هنا: جلب فقط من لديه إيميل (مسجل حقيقي) وموافق عليه
-      const { data: users } = await sb.from('employees')
-          .select('*')
-          .eq('is_approved', true)
-          .neq('email', null);
-      
-      if(!users || users.length === 0) {
-          list.innerHTML = '<div style="padding:10px; text-align:center">لا يوجد مستخدمين مسجلين</div>';
-          return;
-      }
+            for(let i=1; i<=20; i++) {
+                const btn = document.createElement('div');
+                btn.className = `cnt-btn ${assigned.includes(i) ? 'used' : ''} ${temp.selCnt.includes(i) ? 'active' : ''}`;
+                btn.textContent = i;
+                btn.onclick = () => {
+                    if(temp.selCnt.includes(i)) temp.selCnt = temp.selCnt.filter(n=>n!==i);
+                    else {
+                        if(temp.selCnt.length >= 2) temp.selCnt.shift();
+                        temp.selCnt.push(i);
+                    }
+                    renderAll();
+                };
+                container.appendChild(btn);
+            }
+        }
 
-      list.innerHTML = '';
-      users.forEach(r => {
-          const item = document.createElement('div');
-          item.style.cssText = "background:rgba(0,0,0,0.2); padding:15px; margin-bottom:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border)";
-          item.innerHTML = `
-            <div>
-                <div style="font-weight:bold; color:var(--text-main)">${r.rank || ''} ${r.name}</div>
-                <div style="font-size:11px; color:var(--text-muted)">${r.email}</div>
-            </div>
-            <div style="display:flex; gap:10px">
-                <button class="btn-primary" style="padding:6px 12px; font-size:11px; background:var(--admin); width:auto" onclick="makeAdmin('${r.id}', '${r.email}')">ترقية لمدير 🔼</button>
-            </div>
-          `;
-          list.appendChild(item);
-      });
-  }
+        function updateBtns() {
+            const add = document.getElementById('btnAdd');
+            const mrg = document.getElementById('btnMerge');
+            add.className = `main-btn btn-single ${temp.selCnt.length===1 ? 'ready':''}`;
+            mrg.className = `main-btn btn-merge ${temp.selCnt.length===2 ? 'ready':''}`;
+        }
 
-  async function approveUser(id) {
-      if(!confirm('هل أنت متأكد من قبول هذا العضو؟')) return;
-      const { error } = await sb.from('employees').update({ is_approved: true }).eq('id', id);
-      if(error) alert('خطأ: ' + error.message); else { loadRequests(); checkNotifications(); }
-  }
-  
-  async function makeAdmin(id, email) {
-      if(!email) return alert('هذا المستخدم ليس لديه إيميل مسجل');
-      if(!confirm('هل أنت متأكد من منح صلاحيات كاملة (مدير)؟')) return;
-      const { error } = await sb.from('allowed_users').insert({ email: email });
-      if(error) alert(error.message); else { alert('تمت الترقية بنجاح ✅'); }
-  }
+        function createCard(isMerge) {
+            const nums = temp.selCnt.sort((a,b)=>a-b);
+            state.cards.push({ id: Date.now().toString(), nums: nums, type: isMerge ? 'merged' : 'single' });
+            temp.selCnt = [];
+            saveData();
+        }
 
-  async function approveAllUsers() {
-      if(!confirm('هل أنت متأكد من قبول جميع الطلبات المعلقة؟')) return;
-      const { error } = await sb.from('employees').update({ is_approved: true }).eq('is_approved', false);
-      if(error) alert('خطأ: ' + error.message); else { alert('تم قبول الجميع ✅'); loadRequests(); checkNotifications(); }
-  }
+        function deleteCard(id) {
+            if(confirm('هل أنت متأكد من حذف هذا الكاونتر؟')) {
+                Object.keys(state.slots).forEach(k => { if(k.startsWith(id)) delete state.slots[k]; });
+                state.cards = state.cards.filter(c => c.id !== id);
+                saveData();
+            }
+        }
 
-  async function rejectUser(id) {
-      if(!confirm('سيتم حذف الطلب نهائياً. هل أنت متأكد؟')) return;
-      const { error } = await sb.from('employees').delete().eq('id', id);
-      if(error) alert('خطأ: ' + error.message); else { loadRequests(); checkNotifications(); }
-  }
+        function renderWorkspace() {
+            const ws = document.getElementById('workspace');
+            ws.innerHTML = '';
+            state.cards.forEach(c => {
+                const el = document.createElement('div');
+                el.className = `card ${c.type === 'merged' ? 'merged' : ''}`;
+                let title = c.type==='merged' ? `${c.nums[0]} & ${c.nums[1]}` : `${c.nums[0]}`;
+                let slots = '';
+                if(c.type === 'single') {
+                    slots += makeSlot(c.id+'_m', 'المستلم الأساسي');
+                    slots += makeSlot(c.id+'_r', 'الراحة / الغطاء');
+                } else {
+                    slots += makeSlot(c.id+'_m1', `مستلم ${c.nums[0]}`);
+                    slots += makeSlot(c.id+'_m2', `مستلم ${c.nums[1]}`);
+                    slots += makeSlot(c.id+'_sh', 'مشترك / راحة');
+                }
+                el.innerHTML = `<div class="card-header"><span>كاونتر ${title}</span><span style="color:#c0392b; cursor:pointer;" onclick="deleteCard('${c.id}')">✕</span></div><div class="card-body">${slots}</div>`;
+                ws.appendChild(el);
+            });
+        }
 
-  // --- Data Loading ---
-  async function loadEmployees(){
-    const {data} = await sb.from('employees').select('*').order('name'); 
-    employees = data || [];
-    loadDailyData();
-    filterRecSelect(); 
-    filterEditSelect();
-    const manSel = $('m_emp'); manSel.innerHTML = '';
-    employees.forEach(e => manSel.innerHTML += `<option value="${e.id}">${e.name}</option>`);
-  }
+        function makeSlot(id, title) {
+            const val = state.slots[id];
+            return `<div class="slot ${val ? 'filled' : ''}" onclick="fillSlot('${id}')"><div><span class="slot-sub">${title}</span><span class="slot-text">${val || 'اضغط للإضافة'}</span></div>${val ? `<span style="color:red; font-weight:bold; padding:5px;" onclick="clearSlot(event, '${id}')">✕</span>` : ''}</div>`;
+        }
 
-  function loadDailyData(){
-    const h = $('d_hall').value, s = $('d_shift').value;
-    dailyPool = employees.filter(e => e.hall == h && e.shift == s);
-    chosen = [];
-    renderDaily();
-  }
-  function renderDaily(){
-    const p = $('list-pool'), c = $('list-chosen');
-    p.innerHTML = ''; c.innerHTML = '';
-    const chIds = chosen.map(x=>x.id);
-    const avail = dailyPool.filter(x => !chIds.includes(x.id));
+        function fillSlot(id) {
+            if(state.slots[id]) return;
+            if(!temp.selStaff) { alert("اختر اسماً أولاً"); return; }
+            state.slots[id] = temp.selStaff;
+            temp.selStaff = null;
+            saveData();
+        }
 
-    $('c-pool').textContent = avail.length;
-    $('c-chosen').textContent = chosen.length;
+        function clearSlot(e, id) {
+            e.stopPropagation();
+            delete state.slots[id];
+            saveData();
+        }
 
-    avail.forEach(e => {
-      const d = document.createElement('div'); d.className = 'list-item';
-      d.innerHTML = `<span>${e.name}</span> <span class="emp-meta">${e.rank||''}</span>`;
-      d.onclick = () => { 
-          let note = "";
-          if(curStatus === 'other') note = $('status_manual_text').value || "غير محدد";
-          chosen.push({...e, st:curStatus, manualNote: note}); 
-          renderDaily(); 
-      };
-      p.appendChild(d);
-    });
+        function renderExtrasMobile() {
+            fillExtraList('mobile-self', 'self');
+            fillExtraList('mobile-guide', 'guide');
+        }
 
-    chosen.forEach((e, idx) => {
-      const def = STATUSES[e.st];
-      let displayLabel = def.label;
-      if(e.st === 'other') displayLabel = e.manualNote;
+        function fillExtraList(divId, prefix) {
+            const div = document.getElementById(divId);
+            div.innerHTML = '';
+            let max = 0;
+            Object.keys(state.slots).forEach(k => { if(k.startsWith(prefix)) max = Math.max(max, parseInt(k.split('_')[1])); });
+            for(let i=1; i<=max+1; i++) { div.innerHTML += makeSlot(`${prefix}_${i}`, ''); }
+        }
 
-      const d = document.createElement('div'); d.className = 'list-item selected';
-      d.style.borderColor = def.color;
-      d.style.backgroundColor = `${def.color}15`; 
-      d.innerHTML = `<span>${e.name}</span> <small style="color:${def.color}">${displayLabel}</small>`;
-      d.onclick = () => { chosen.splice(idx,1); renderDaily(); };
-      c.appendChild(d);
-    });
-  }
-  function moveAll(){
-    const chIds = chosen.map(x=>x.id);
-    let note = "";
-    if(curStatus === 'other') note = $('status_manual_text').value || "غير محدد";
-    dailyPool.filter(x => !chIds.includes(x.id)).forEach(e => chosen.push({...e, st:curStatus, manualNote: note}));
-    renderDaily();
-  }
-  function clearChosen(){ chosen=[]; renderDaily(); }
-  
-  async function submitDaily(){
-    if (!isAdmin) { alert('⛔ عذراً، هذا الحساب للصلاحيات "مشاهدة فقط". لا يمكنك حفظ التغييرات.'); return; }
-    if(!chosen.length) return alert('القائمة فارغة');
-    $('dailyMsg').textContent = 'جاري الحفظ...';
-    
-    const rows = chosen.map(c => ({
-      event_date: $('d_date').value, hall: $('d_hall').value, shift: $('d_shift').value,
-      employee_id: c.id, status: c.st, note: c.manualNote || null, created_by: sessionUser.id
-    }));
+        function addExtraSlot() { alert("املأ الخانة الفارغة لتظهر خانة جديدة."); }
 
-    const {error} = await sb.from('events').upsert(rows, {onConflict:'event_date,employee_id'});
-    if(error) { $('dailyMsg').textContent = error.message; } 
-    else { $('dailyMsg').textContent = 'تم الحفظ بنجاح ✅'; chosen=[]; renderDaily(); $('status_manual_text').value=''; }
-  }
+        // --- PDF Generation ---
+        function downloadPDF() {
+            document.getElementById('pdfDateStr').innerText = `التاريخ: ${new Date().toLocaleDateString('ar-SA')}`;
+            
+            const tb1 = document.getElementById('pdf-table-1');
+            const tb2 = document.getElementById('pdf-table-2');
+            tb1.innerHTML = ''; tb2.innerHTML = '';
 
-  async function loadMonthlyEntry(){
-    const y = $('m_year').value, m = $('m_month').value;
-    const h = $('m_hall_filter').value, s = $('m_shift_filter').value;
-    const targetEmps = employees.filter(e => e.hall == h && e.shift == s);
-    const {data: stats} = await sb.from('monthly_stats').select('*').eq('year', y).eq('month', m);
-    const statMap = {};
-    if(stats) stats.forEach(x => statMap[x.employee_id] = x.score);
+            let sortedCards = [...state.cards].sort((a,b) => a.nums[0] - b.nums[0]);
+            
+            let midPoint = Math.ceil(sortedCards.length / 2);
+            let leftCards = sortedCards.slice(0, midPoint);
+            let rightCards = sortedCards.slice(midPoint);
 
-    const tb = $('monthlyBody'); tb.innerHTML = '';
-    targetEmps.forEach(e => {
-      const val = statMap[e.id] || 0;
-      tb.innerHTML += `<tr>
-        <td>${e.name}</td><td><span class="emp-meta">${e.rank||''}</span></td>
-        <td style="opacity:0.7">${val}</td>
-        <td><input type="number" class="score-input" min="0" value="${val}" id="sc_${e.id}"></td>
-      </tr>`;
-    });
-  }
-  async function submitMonthlyScores(){
-    if (!isAdmin) { alert('⛔ عذراً، الحساب للمشاهدة فقط.'); return; }
-    const y = $('m_year').value, m = $('m_month').value;
-    const h = $('m_hall_filter').value, s = $('m_shift_filter').value;
-    const targetEmps = employees.filter(e => e.hall == h && e.shift == s);
-    const updates = [];
-    targetEmps.forEach(e => {
-        const val = $(`sc_${e.id}`).value;
-        if(val !== '') updates.push({ employee_id: e.id, year: y, month: m, score: parseInt(val) });
-    });
-    if(!updates.length) return;
-    $('monthlyMsg').textContent = 'جاري الحفظ...';
-    const {error} = await sb.from('monthly_stats').upsert(updates, {onConflict:'employee_id,year,month'});
-    $('monthlyMsg').textContent = error ? 'خطأ' : 'تم الحفظ ✅';
-  }
+            const createRow = (c) => {
+                let row = document.createElement('tr');
+                let badge = `<span class="pdf-cnt-badge">${c.nums.join(' & ')}</span>`;
+                let content = '';
 
-  function filterRecSelect(){
-     const h = $('rec_hall').value;
-     const s = $('rec_shift').value;
-     const txt = $('rec_search_text').value.toLowerCase();
-     const el = $('rec_emp_select'); el.innerHTML = '';
-     let filtered = employees;
-     if(h) filtered = filtered.filter(e => e.hall == h);
-     if(s) filtered = filtered.filter(e => e.shift == s);
-     if(txt) filtered = filtered.filter(e => e.name.toLowerCase().includes(txt));
-     if(filtered.length === 0) el.innerHTML = '<option value="">لا يوجد نتائج</option>';
-     filtered.forEach(e => { el.innerHTML += `<option value="${e.id}">${e.name} (${e.hall}-${e.shift})</option>`; });
-     if(filtered.length) el.selectedIndex = 0;
-  }
+                if(c.type === 'single') {
+                    let m = state.slots[c.id+'_m'] || '-';
+                    let r = state.slots[c.id+'_r'] || '-';
+                    content = `<span class="pdf-staff-main">${m}</span>${r !== '-' ? `<span class="pdf-staff-relief">تغطية: ${r}</span>` : ''}`;
+                } else {
+                    let m1 = state.slots[c.id+'_m1'] || '-';
+                    let m2 = state.slots[c.id+'_m2'] || '-';
+                    let sh = state.slots[c.id+'_sh'] || '-';
+                    content = `
+                        <div style="display:flex; justify-content:space-between;">
+                            <span class="pdf-staff-main" style="font-size:11px">${c.nums[0]}: ${m1}</span>
+                            <span class="pdf-staff-main" style="font-size:11px">${c.nums[1]}: ${m2}</span>
+                        </div>
+                        ${sh !== '-' ? `<span class="pdf-staff-relief" style="text-align:center;">مشترك: ${sh}</span>` : ''}
+                    `;
+                }
+                row.innerHTML = `<td style="text-align:center;">${badge}</td><td>${content}</td>`;
+                return row;
+            };
 
-  async function loadSoldierRecord(){
-    const id = $('rec_emp_select').value;
-    if(!id) return alert('الرجاء اختيار الفرد');
-    const emp = employees.find(e => e.id == id);
-    
-    $('soldier-profile').classList.remove('hidden');
-    $('p_name').textContent = emp.name;
-    $('p_rank').textContent = emp.rank || 'فرد';
-    $('p_loc').textContent = `صالة ${emp.hall} | مناوبة ${emp.shift}`;
-    
-    const {data: evs} = await sb.from('events').select('*').eq('employee_id', emp.id).order('event_date', {ascending:false}).limit(100);
-    const tb = $('p_history'); tb.innerHTML = '';
-    
-    let cAbsent=0, cLate=0, cEarly=0, cExcused=0, cVio=0;
-    if(evs) {
-        evs.forEach(ev => {
-            const stDef = STATUSES[ev.status] || STATUSES.normal;
-            if(ev.status === 'absent') cAbsent++;
-            if(ev.status === 'late') cLate++;
-            if(ev.status === 'early') cEarly++;
-            if(ev.status === 'excused') cExcused++;
-            if(stDef.type === 'bad') cVio++;
-            let noteTxt = ev.note || '-';
-            if(ev.status === 'other' && ev.note) noteTxt = ev.note;
-            tb.innerHTML += `<tr><td>${ev.event_date}</td><td><span style="color:${stDef.color}; font-weight:bold">${stDef.label}</span></td><td>${noteTxt}</td></tr>`;
-        });
-    }
-    $('p_count_absent').textContent = cAbsent;
-    $('p_count_late').textContent = cLate;
-    $('p_count_early').textContent = cEarly;
-    $('p_count_excused').textContent = cExcused;
-    $('p_count_vio').textContent = cVio;
+            leftCards.forEach(c => tb1.appendChild(createRow(c)));
+            rightCards.forEach(c => tb2.appendChild(createRow(c)));
 
-    // --- GAUGE LOGIC 50% START ---
-    let score = 50; 
-    let reasonText = "اعتيادي - متوسط";
-    let reasonColor = "var(--text-muted)";
-    
-    // Penalties
-    score -= (cAbsent * 20); 
-    score -= (cLate * 10);
-    
-    // Bonuses
-    score += (cEarly * 10);
-    
-    // Check productivity
-    const y = new Date().getFullYear();
-    const {data: stats} = await sb.from('monthly_stats').select('month,score').eq('employee_id', emp.id).eq('year', y);
-    
-    let totalProd = 0;
-    if(stats) stats.forEach(s => totalProd += s.score);
-    if(totalProd > 0) score += 10; // Bonus for having productivity
+            // إضافات
+            document.getElementById('pdf-self-cell').innerText = getExtraText('self');
+            document.getElementById('pdf-guide-cell').innerText = getExtraText('guide');
 
-    // Logic
-    if(score < 50) {
-        reasonText = "منخفض - تنبيه (مخالفات)";
-        reasonColor = "var(--danger)";
-    } else if (score >= 100) {
-        score = 100;
-        reasonText = "مميز - أداء عالي";
-        reasonColor = "var(--success)";
-    } else {
-        // Between 50 and 99
-        reasonText = "اعتيادي - متوسط";
-    }
-    if(score < 0) score = 0;
+            const element = document.getElementById('pdf-report');
+            element.style.display = 'block';
 
-    updateGauge('p', score, reasonText, reasonColor);
+            const opt = {
+                margin:       5,
+                filename:     'جدول_البريكات.pdf',
+                image:        { type: 'jpeg', quality: 0.99 },
+                html2canvas:  { scale: 2, useCORS: true }, 
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
 
-    // Chart rendering
-    const chart = $('p_chart_container'); chart.innerHTML = '';
-    const labels = $('p_chart_labels'); labels.innerHTML = '';
-    let max = 0;
-    if(stats) stats.forEach(s => { if(s.score > max) max = s.score; });
-    MONTHS.forEach((mName, i) => {
-      const idx = i+1; const rec = stats?.find(s => s.month === idx); const val = rec ? rec.score : 0;
-      const h = max > 0 ? (val/max*100) : 0; const barHeight = Math.max(h, 1); 
-      chart.innerHTML += `<div style="flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center;">
-           <span style="font-size:10px; color:var(--text-main); margin-bottom:2px; ${val>0?'':'opacity:0'}">${val}</span>
-           <div style="width:100%; background:var(--productivity); height:${barHeight}%; border-radius:4px 4px 0 0; opacity:${val>0?1:0.2}"></div></div>`;
-      labels.innerHTML += `<div style="flex:1; text-align:center">${idx}</div>`;
-    });
-    $('p_total_prod').textContent = totalProd;
-  }
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.style.display = 'none';
+            });
+        }
 
-  function updateGauge(prefix, percent, reason="", rColor="") {
-      const maxDash = 251; const arc = $(`${prefix}_gauge_arc`); const needle = $(`${prefix}_gauge_needle`); const text = $(`${prefix}_gauge_text`);
-      const rDiv = $(`${prefix}_gauge_reason`); if(rDiv && reason) { rDiv.textContent = reason; rDiv.style.color = rColor; }
-      let color = "#10b981"; if(percent < 50) color = "#ef4444"; else if(percent < 85) color = "#f59e0b"; 
-      arc.style.strokeDasharray = `${(percent/100)*251}, 251`; arc.style.stroke = color;
-      const deg = -90 + (percent * 1.8); needle.style.transform = `rotate(${deg}deg)`; text.textContent = Math.round(percent) + "%"; text.style.fill = color;
-  }
-
-  async function loadGeneralStats(){
-    const from = $('st_from').value, to = $('st_to').value;
-    const h = $('st_hall').value, s = $('st_shift').value;
-    const curYear = new Date(from).getFullYear();
-    let qProd = sb.from('monthly_stats').select('employee_id, score, employees!inner(name, hall, shift)').eq('year', curYear);
-    if(h) qProd = qProd.eq('employees.hall', h); if(s) qProd = qProd.eq('employees.shift', s);
-    const {data: prodData} = await qProd;
-    const empProdMap = {}; let totalSysProd = 0;
-    if(prodData) prodData.forEach(row => {
-      const eid = row.employee_id;
-      if(!empProdMap[eid]) empProdMap[eid] = { name:row.employees.name, hall:row.employees.hall, shift:row.employees.shift, total:0 };
-      empProdMap[eid].total += row.score; totalSysProd += row.score;
-    });
-    const sorted = Object.values(empProdMap).sort((a,b) => b.total - a.total);
-    const chartDiv = $('prod_leaderboard'); chartDiv.innerHTML = ''; const maxVal = sorted[0]?.total || 0;
-    sorted.slice(0, 10).forEach((e, i) => {
-       const pct = maxVal > 0 ? (e.total/maxVal*100) : 0;
-       chartDiv.innerHTML += `<div class="bar-row"><div style="font-size:13px; white-space:nowrap; overflow:hidden;">${i+1}. ${e.name} <span class="emp-meta">${e.hall}-${e.shift}</span></div>
-            <div class="bar-track"><div class="bar-fill rank-1" style="width:${pct}%"></div></div><div style="font-weight:bold; color:var(--productivity)">${e.total}</div></div>`;
-    });
-    $('g_total_prod').textContent = totalSysProd;
-
-    let qEv = sb.from('events').select('status, event_date, note, employees!inner(name, hall, shift)').gte('event_date', from).lte('event_date', to);
-    if(h) qEv = qEv.eq('employees.hall', h); if(s) qEv = qEv.eq('employees.shift', s);
-    const {data: events} = await qEv;
-    const statsEvents = events || [];
-    const statusCounts = {}; const hallViolations = {}; const hallAbsent = {}; const hallDiscipline = {}; 
-    const globalBadCounts = { absent:0, late:0, detained:0, app:0 };
-    let globalBad = 0; let globalGood = 0; let globalTotal = 0;
-
-    statsEvents.forEach(ev => {
-       globalTotal++; statusCounts[ev.status] = (statusCounts[ev.status]||0)+1;
-       const key = `صالة ${ev.employees.hall} - مناوبة ${ev.employees.shift}`;
-       const type = STATUSES[ev.status]?.type || 'neutral';
-       if(type === 'bad') { 
-           globalBad++; hallViolations[key] = (hallViolations[key]||0)+1; 
-           if(ev.status === 'absent') globalBadCounts.absent++; if(ev.status === 'late') globalBadCounts.late++;
-           if(ev.status === 'detained') globalBadCounts.detained++; if(ev.status === 'app') globalBadCounts.app++;
-       }
-       if(type === 'good') { globalGood++; hallDiscipline[key] = (hallDiscipline[key]||0)+1; }
-       if(type === 'good' || ev.status === 'normal') hallDiscipline[key] = (hallDiscipline[key]||0)+1;
-       if(ev.status === 'absent') hallAbsent[key] = (hallAbsent[key]||0)+1;
-    });
-
-    let globalPct = 90;
-    if(globalTotal > 0) {
-        const violationRate = globalBad / globalTotal; const goodRate = globalGood / globalTotal;
-        globalPct = 90 - (violationRate * 100) + (goodRate * 10);
-        if(globalPct > 100) globalPct = 100; if(globalPct < 0) globalPct = 0;
-    }
-    let gReason = "الوضع مستقر"; let gColor = "var(--text-muted)";
-    if(globalPct < 85) {
-        let maxV = 0, maxK = ""; for(let k in globalBadCounts) { if(globalBadCounts[k] > maxV) { maxV=globalBadCounts[k]; maxK=k; } }
-        let label = STATUSES[maxK]?.label || "مخالفات"; gReason = `المؤشر منخفض بسبب ارتفاع: ${label}`; gColor = "var(--danger)";
-    } else if(globalPct >= 95) { gReason = "ممتاز: التزام عالٍ ومخالفات قليلة"; gColor = "var(--success)"; }
-    updateGauge('g', globalPct, gReason, gColor);
-
-    let maxVio = 0, mostVioHall = "لا يوجد"; for(const [k, v] of Object.entries(hallViolations)){ if(v > maxVio) { maxVio = v; mostVioHall = k; } }
-    $('g_most_violations').textContent = mostVioHall; $('g_most_violations_count').textContent = maxVio > 0 ? `${maxVio} مخالفة` : '';
-    let maxAbs = 0, mostAbsHall = "لا يوجد"; for(const [k, v] of Object.entries(hallAbsent)){ if(v > maxAbs) { maxAbs = v; mostAbsHall = k; } }
-    $('g_most_absent').textContent = mostAbsHall; $('g_most_absent_count').textContent = maxAbs > 0 ? `${maxAbs} غياب` : '';
-    let maxDis = 0, mostDisHall = "لا يوجد"; for(const [k, v] of Object.entries(hallDiscipline)){ if(v > maxDis) { maxDis = v; mostDisHall = k; } }
-    $('g_most_disciplined').textContent = mostDisHall; $('g_most_disciplined_count').textContent = maxDis > 0 ? `${maxDis} حالة انضباط` : '';
-
-    const statDiv = $('status_breakdown'); statDiv.innerHTML = '';
-    for(const [k, count] of Object.entries(statusCounts)){
-      const def = STATUSES[k] || {label:k, color:'#fff'}; 
-      // Filter people for this status
-      const people = statsEvents.filter(x => x.status === k);
-      let detailsHtml = '';
-      people.forEach(p => {
-          detailsHtml += `
-            <div class="detail-row">
-                <span>${p.employees.name}</span>
-                <span style="color:var(--text-muted)">${p.employees.hall}-${p.employees.shift} | ${p.event_date}</span>
-            </div>
-          `;
-      });
-
-      statDiv.innerHTML += `
-        <div class="breakdown-item" onclick="toggleDetails('${k}')">
-           <div style="display:flex; justify-content:space-between; align-items:center">
-             <span style="color:${def.color}">■ ${def.label}</span>
-             <span style="font-weight:bold">${count}</span>
-           </div>
-        </div>
-        <div id="details-${k}" class="breakdown-details">
-            ${detailsHtml}
-        </div>
-      `;
-    }
-  }
-
-  function toggleDetails(statusKey){
-      const el = $(`details-${statusKey}`);
-      if(el.style.display === 'block') el.style.display = 'none';
-      else el.style.display = 'block';
-  }
-
-  async function moveEmployee(){
-    if (!isAdmin) { alert('⛔ عذراً، الحساب للمشاهدة فقط.'); return; }
-    const id=$('m_emp').value, h=$('m_new_hall').value, s=$('m_new_shift').value;
-    if(!id) return;
-    const {error} = await sb.from('employees').update({hall:h, shift:s}).eq('id',id);
-    if(error) { if(error.code === '42501') $('moveMsg').innerHTML = '<span style="color:red">⛔ غير مصرح لك بالنقل</span>'; else $('moveMsg').textContent = 'خطأ: ' + error.message; } 
-    else { $('moveMsg').textContent = 'تم النقل بنجاح ✅'; loadEmployees(); }
-  }
-  function filterEditSelect(){
-      const txt = $('e_search').value.toLowerCase(); const el = $('e_emp_select'); el.innerHTML = '';
-      const filtered = employees.filter(e => e.name.toLowerCase().includes(txt));
-      filtered.forEach(e => el.innerHTML += `<option value="${e.id}">${e.name} (${e.hall}-${e.shift})</option>`);
-      if(filtered.length) el.selectedIndex = 0;
-  }
-  async function fetchStatForEdit(){
-      const eid = $('e_emp_select').value; const y = $('e_year').value, m = $('e_month').value;
-      if(!eid) return; $('editMsg').textContent = 'جاري البحث...';
-      const {data} = await sb.from('monthly_stats').select('score').eq('employee_id', eid).eq('year', y).eq('month', m).single();
-      $('editStatArea').classList.remove('hidden'); $('e_score_val').value = data ? data.score : 0; $('editMsg').textContent = '';
-  }
-  async function updateStat(){
-      if (!isAdmin) { alert('⛔ عذراً، الحساب للمشاهدة فقط.'); return; }
-      const eid = $('e_emp_select').value; const y = $('e_year').value, m = $('e_month').value; const val = $('e_score_val').value;
-      const {error} = await sb.from('monthly_stats').upsert({employee_id: eid, year: y, month: m, score: parseInt(val)}, {onConflict:'employee_id,year,month'});
-      $('editMsg').textContent = error ? 'خطأ' : 'تم التحديث ✅';
-  }
-  async function deleteStat(){
-      if (!isAdmin) { alert('⛔ عذراً، الحساب للمشاهدة فقط.'); return; }
-      if(!confirm('هل أنت متأكد؟')) return;
-      const eid = $('e_emp_select').value; const y = $('e_year').value, m = $('e_month').value;
-      const {error} = await sb.from('monthly_stats').delete().eq('employee_id', eid).eq('year', y).eq('month', m);
-      $('editMsg').textContent = error ? 'خطأ' : 'تم الحذف 🗑️'; if(!error) $('e_score_val').value = 0;
-  }
-</script>
+        function getExtraText(prefix) {
+            let names = [];
+            Object.keys(state.slots).forEach(k => {
+                if(k.startsWith(prefix) && state.slots[k]) names.push(state.slots[k]);
+            });
+            if (names.length === 0) return 'لا يوجد';
+            // الفاصل بين الأسماء شرطة
+            return names.join(' - ');
+        }
+    </script>
 </body>
 </html>
