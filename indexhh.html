@@ -1,290 +1,841 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختيار نوع الملاحظة</title>
-    <link rel="stylesheet" href="style1.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام رسائل التوجيه</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-hijri/2.1.2/moment-hijri.min.js"></script>
+
     <style>
-        /* تنسيق المربعات */
-        .note-box {
-            display: inline-block;
-            width: 120px;
-            margin: 10px;
-            padding: 15px;
-            background-color: #f4f4f4;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 14px;
-            line-height: 1.5;
-            word-wrap: break-word;
+        :root {
+            --primary: #198754;
+            --primary-dark: #0f3d28;
+            --gold: #c5a059;
+            --bg: #f8f9fa;
+            --white: #ffffff;
+            --text: #2c3e50;
+            --radius: 12px;
         }
 
-        .note-box:hover {
-            background-color: #e1e1e1;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding-bottom: 100px;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .note-box.selected {
-            background-color: #007bff;
+        /* الهيدر */
+        header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
             color: white;
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--gold);
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+        }
+        header h1 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: 1px; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 0 15px; }
+
+        /* عناوين الأقسام (ستايل جديد) */
+        .section-title {
+            color: var(--primary-dark);
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin: 30px 0 15px 0;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .section-title i {
+            margin-left: 10px;
+            color: var(--gold);
+            font-size: 1.4rem;
         }
 
-        .note-box p {
-            margin: 10px 0;
-            font-size: 14px;
-            color: #333;
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50px;
+            height: 3px;
+            background-color: var(--gold);
+            border-radius: 2px;
+            transition: width 0.3s;
         }
+        
+        .section-title:hover::after { width: 100px; }
 
-        /* تنسيق الأيقونات */
-        .note-box i {
-            font-size: 20px;
+        /* الشبكة */
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
             margin-bottom: 10px;
         }
 
-        /* تنسيق النص تحت اختيار الملاحظة */
-        .instruction {
-            color: #28a745;
-            font-size: 16px;
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 15px 5px;
             text-align: center;
-            margin-top: 20px;
+            position: relative;
+            cursor: pointer;
+            height: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+            overflow: hidden;
         }
 
-        .instruction i {
-            font-size: 18px;
-            margin-right: 10px;
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(197, 160, 89, 0.2);
+            border-color: var(--gold);
         }
 
-        /* تنسيق المربعات في الشاشات الصغيرة */
-        @media (max-width: 768px) {
-            .note-box {
-                width: 45%;
-                padding: 12px;
-                font-size: 12px;
-            }
+        .card i {
+            font-size: 2rem;
+            color: var(--gold);
+            margin-bottom: 10px;
+            transition: transform 0.3s;
+        }
+        
+        .card:hover i { transform: scale(1.1); color: var(--primary); }
+        
+        .card span {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #555;
+            line-height: 1.2;
         }
 
-        /* تنسيق المربعات في الشاشات الصغيرة جدًا (الجوال) */
-        @media (max-width: 480px) {
-            .note-box {
-                width: 30%;
-                padding: 12px;
-                font-size: 12px;
-                text-align: center;
-            }
-            .note-box p {
-                font-size: 12px;
-            }
-
-            #noteTypeContainer {
-                text-align: center;
-                width: 100%;
-            }
+        /* النماذج */
+        .form-section {
+            display: none;
+            background: var(--white);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            animation: slideUp 0.3s ease-out;
+            border-top: 5px solid var(--gold);
+        }
+        .form-title {
+            color: var(--primary);
+            font-size: 1.3rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ddd;
         }
 
-        /* تنسيق الصورة */
-        .shortcut-image {
-            display: block;
-            margin: 20px auto;
-            width: 80%;
-            max-width: 400px; /* لضبط حجم الصورة بشكل مناسب */
+        /* الحقول */
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 0.9rem; color: #444; }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            background-color: #fcfcfc;
+            box-sizing: border-box;
+            transition: all 0.3s;
+            font-family: inherit;
         }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.15);
+            background-color: #fff;
+        }
+
+        .input-error-msg { color: #dc3545; font-size: 0.75rem; margin-top: 4px; font-weight: bold; display: none; }
+        .row { display: flex; gap: 10px; } .row > * { flex: 1; }
+
+        /* الأزرار العائمة */
+        .fab-container {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px; display: none; gap: 10px; z-index: 999;
+        }
+        .btn {
+            flex: 1; padding: 15px; border: none; border-radius: 50px; font-weight: bold;
+            font-size: 1rem; color: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-send { background: linear-gradient(135deg, #198754, #146c43); flex: 2; }
+        .btn-back { background: #6c757d; flex: 1; }
+
+        /* تخصيصات النماذج */
+        .passenger-group {
+            background: #fff; border: 1px solid #eee; border-right: 4px solid var(--gold);
+            padding: 15px; border-radius: 10px; margin-bottom: 15px;
+        }
+        .hijri-box {
+            background: #fdfcf5; padding: 15px; border-radius: 10px;
+            margin-bottom: 20px; border: 1px solid var(--gold); color: #5a4a25;
+        }
+        .doc-buttons-container { display: flex; gap: 10px; margin-bottom: 15px; }
+        .doc-button {
+            padding: 10px; flex: 1; border: none; border-radius: 8px; cursor: pointer;
+            background: #eee; color: #555; font-weight: bold; transition: 0.3s;
+        }
+        .doc-button.active { background: var(--primary); color: white; }
+
+        /* Checkbox Buttons */
+        .custom-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; background: #fdfdfd; padding: 10px; border: 1px dashed #ccc; border-radius: 8px; }
+        .checkbox-btn { background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; }
+        .checkbox-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
+        .checkbox-btn input { display: none; }
+
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>اختيار نوع الملاحظة</h2>
+<header>
+    <h1>نظام رسائل التوجيه</h1>
+</header>
 
-        <!-- تعليمات لاختيار الملاحظة -->
-        <div class="instruction">
-            <i class="fas fa-hand-pointer"></i> الرجاء اختيار الملاحظة بالنقر عليها
-        </div>
+<div class="container">
 
-        <div id="noteTypeContainer">
-            <!-- مربعات الاختيارات مع أيقونات لكل ملاحظة -->
-            <div class="note-box" data-note="انتهاء تأشيرة زيارة">
-                <i class="fas fa-calendar-times"></i>
-                <p>انتهاء تأشيرة زيارة</p>
-            </div>
-            <div class="note-box" data-note="التكميل">
-                <i class="fas fa-check-circle"></i>
-                <p>التكميل</p>
-            </div>
-             <div class="note-box" data-note="انشاء">
-                <i class="fa-regular fa-file"></i>
-                <p>نموذج جاهز</p>
-            </div>
-           <div class="note-box" data-note="أقل من 6 أشهر">
-    <i class="fa-solid fa-passport"></i>
-    <i class="fa-solid fa-id-card"></i>
-    <p>أقل من 6 أشهر</p>
-</div>
-
-            <div class="note-box" data-note="عدم قبول بصمة راكب">
-                <i class="fas fa-fingerprint"></i>
-                <p>عدم قبول بصمة راكب</p>
-            </div>
-             <div class="note-box" data-note="راكب لديه ارتباط بصمات">
-                <i class="fas fa-fingerprint"></i>
-                <p>راكب لديه ارتباط بصمات</p>
-            </div>
-            <div class="note-box" data-note="اشعار">
-                <i class="fas fa-bell"></i>
-                <p>اشعار</p>
-            </div>
-            <div class="note-box" data-note="إجازة عسكري قبل الوقت">
-                <i class="fas fa-user-shield"></i>
-                <p>إجازة عسكري قبل الوقت</p>
-            </div>
-            <div class="note-box" data-note="عسكري الى دولة ممنوعة">
-                 <i class="fas fa-user-shield"></i>
-                <p>عسكري الى دولة ممنوعة</p>
-            </div>
-            <div class="note-box" data-note="اختلاف">
-                 <i class="fas fa-user-shield"></i>
-                <p>عسكري اختلاف وجهه</p>
-            </div>
-            <div class="note-box" data-note="اختلاف اسم عند المغادرة">
-                <i class="fas fa-id-card"></i>
-                <p>اختلاف اسم عند المغادرة</p>
-            </div>
-            <div class="note-box" data-note="اختلاف جنسية الراكب">
-                <i class="fas fa-globe"></i>
-                <p>اختلاف جنسية الراكب</p>
-            </div>
-             <div class="note-box" data-note="الغاء رحلة عمليات">
-                <i class="fa-solid fa-plane-slash"></i>
-                <p>الغاء رحلة عمليات</p>
-            </div>
-            <div class="note-box" data-note="نقل معلومات">
-                <i class="fas fa-exchange-alt"></i>
-                <p>نقل معلومات</p>
-            </div>
-            <div class="note-box" data-note="تاريخ انتهاء الجواز يختلف بنظام">
-                <i class="fas fa-calendar-alt"></i>
-                <p>تاريخ انتهاء الجواز يختلف بنظام</p>
-            </div>
-            <div class="note-box" data-note="جواز سفر منتهي">
-                <i class="fas fa-passport"></i>
-                <p>جواز سفر منتهي</p>
-            </div>
-            <div class="note-box" data-note="راكب يحمل تذكرة مرور">
-                <i class="fas fa-ticket-alt"></i>
-                <p>راكب يحمل تذكرة مرور</p>
-            </div>
-            <div class="note-box" data-note="اشعار طيران خاص مغادرة">
-                <i class="fas fa-plane-departure"></i>
-                <p>اشعار طيران خاص مغادرة</p>
-            </div>
-          
-        </div>
+    <div id="mainMenu">
         
-        
-        <!-- تعليمات لإنشاء اختصار للموقع على iPhone -->
-        <div class="shortcut-instructions">
-            <p>لإضافة اختصار لهذا الموقع، اتبع الخطوات التالية:</p>
-            <ol>
-                <li>اضغط على زر <strong>المشاركة</strong> في Safari.</li>
-                <li>اختر <strong>إضافة إلى الشاشة الرئيسية</strong>.</li>
-                <li>قم بتأكيد الاسم واضغط على <strong>إضافة</strong>.</li>
-            </ol>
-            <!-- صورة لتوضيح إنشاء اختصار الموقع -->
-        <img src="https://www.actualidadiphone.com/wp-content/uploads/2015/04/acceso-directo-web-iphone-2.jpeg.webp" alt="اختصار الموقع" class="shortcut-image">
-
+        <div class="section-title"><i class="fas fa-clock"></i> أعمال المناوبة</div>
+        <div class="grid-menu">
+            <div class="card" onclick="openForm('presence')"><i class="fas fa-clipboard-list"></i><span>التكميل</span></div>
         </div>
 
-        <!-- زر لإخبار المستخدم كيفية إنشاء الاختصار -->
-        <button id="createShortcut">إضافة اختصار للموقع</button>
+        <div class="section-title"><i class="fas fa-users"></i> المسافرين الزيارة</div>
+        <div class="grid-menu">
+            <div class="card" onclick="openForm('visaExpiry')"><i class="fas fa-calendar-times"></i><span>انتهاء تأشيرة</span></div>
+            <div class="card" onclick="openForm('passError')">
+                <div style="position:relative; display:inline-block;">
+                    <i class="fas fa-passport"></i>
+                    <i class="fas fa-exclamation-circle" style="position:absolute; bottom:-5px; right:-5px; color:#dc3545; background:white; border-radius:50%; font-size:1rem;"></i>
+                </div>
+                <span>خطأ رقم جواز</span>
+            </div>
+            <div class="card" onclick="openForm('passportExp')"><i class="fas fa-passport" style="opacity:0.6"></i><span>جواز منتهي</span></div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-id-card"></i> المسافرين المقيمين</div>
+        <div class="grid-menu">
+            <div class="card" onclick="openForm('updut')"><i class="fas fa-sync-alt"></i><span>نقل معلومات</span></div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-globe"></i> المواطنين</div>
+        <div class="grid-menu">
+            <div class="card" onclick="openForm('less6')"><i class="fas fa-passport"></i><span>أقل من 6 أشهر</span></div>
+            <div class="card" onclick="openForm('askeryafter')"><i class="fas fa-user-clock"></i><span>إجازة عسكري</span></div>
+            <div class="card" onclick="openForm('askrycontery')"><i class="fas fa-plane-slash"></i><span>دولة ممنوعة</span></div>
+            <div class="card" onclick="openForm('askryd')"><i class="fas fa-map-marked-alt"></i><span>عسكري اختلاف</span></div>
+            <div class="card" onclick="openForm('defname')"><i class="fas fa-id-card-alt"></i><span>اختلاف اسم</span></div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-folder-open"></i> أخرى</div>
+        <div class="grid-menu">
+            <div class="card" onclick="openForm('custom')"><i class="fas fa-edit"></i><span>نموذج جاهز</span></div>
+            <div class="card" onclick="openForm('fingercon')"><i class="fas fa-fingerprint" style="color:#d32f2f;"></i><span>ارتباط بصمة</span></div>
+            <div class="card" onclick="openForm('noacspt')"><i class="fas fa-hand-paper"></i><span>عدم قبول بصمة</span></div>
+            <div class="card" onclick="openForm('want')"><i class="fas fa-bell"></i><span>إشعار</span></div>
+        </div>
+
     </div>
 
-    <script>
-        // عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', () => {
-            const noteBoxes = document.querySelectorAll('.note-box');
-            
-            // إضافة مستمعي الأحداث لكل مربع
-            noteBoxes.forEach(box => {
-                box.addEventListener('click', () => {
-                    // إلغاء التحديد عن جميع المربعات
-                    noteBoxes.forEach(b => b.classList.remove('selected'));
-                    // تحديد المربع الذي تم النقر عليه
-                    box.classList.add('selected');
-                    const selectedNote = box.getAttribute('data-note');
+    <div id="form-less6" class="form-section">
+        <div class="form-title">وثيقة سفر اقل من 6/3 اشهر</div>
+        
+        <div class="hijri-box">
+            <label style="color:var(--primary); font-weight:bold;">تاريخ اليوم: <span id="todayHijri"></span></label>
+            <hr style="border:0; border-top:1px solid #ccc; margin:10px 0;">
+            <label style="display:block; margin-bottom:8px;">حاسبة انتهاء الوثيقة (هجري):</label>
+            <div class="row">
+                <input type="number" id="hDay" placeholder="يوم" class="en-num">
+                <input type="number" id="hMonth" placeholder="شهر" class="en-num">
+                <input type="number" id="hYear" placeholder="سنة" class="en-num">
+            </div>
+            <button onclick="calcHijriLess6()" style="width:100%; margin-top:10px; background:var(--primary); color:white; border:none; padding:12px; border-radius:8px; font-weight:bold;">احسب الفرق</button>
+            <div id="l6_res" style="text-align:center; margin-top:10px; font-weight:bold; color:#1e40af;"></div>
+        </div>
 
-                    // الانتقال مباشرة إلى الصفحة المطلوبة
-                    switch (selectedNote) {
-                        case 'انتهاء تأشيرة زيارة':
-                            window.location.href = 'visa_expiry.html';
-                            break;
-                             case 'انشاء':
-                            window.location.href = 'passang.html';
-                            break;
-                        case 'أقل من 6 أشهر':
-                            window.location.href = 'less_than_6_months.html';
-                            break;
-                        case 'اشعار':
-                            window.location.href = 'want.html';
-                            break;
-                        case 'عدم قبول بصمة راكب':
-                            window.location.href = 'noacspt.html';
-                            break;
-                        case 'إجازة عسكري قبل الوقت':
-                            window.location.href = 'askeryafter.html';
-                            break;
-                        case 'عسكري الى دولة ممنوعة':
-                            window.location.href = 'askrycontery.html';
-                            break;
-                              case 'اختلاف':
-                            window.location.href = 'askryd.html';
-                            break;
-                        case 'اختلاف اسم عند المغادرة':
-                            window.location.href = 'name.html';
-                            break;
-                            case 'الغاء رحلة عمليات':
-                            window.location.href = 'flay.html';
-                            break;
-                        case 'اختلاف جنسية الراكب':
-                            window.location.href = 'nationalityd.html';
-                            break;
-                        case 'التكميل':
-                            window.location.href = 'presence.html';
-                            break;
-                        case 'اشعار طيران خاص مغادرة':
-                            window.location.href = 'spashl.html';
-                            break;
-                        case 'اشعار طيران خاص قدوم':
-                            window.location.href = 'spaary.html';
-                            break;
-                        case 'نقل معلومات':
-                            window.location.href = 'updut.html';
-                            break;
-                        case 'تاريخ انتهاء الجواز يختلف بنظام':
-                            window.location.href = 'Different-ending.html';
-                            break;
-                        case 'جواز سفر منتهي':
-                            window.location.href = 'passport-exp.html';
-                            break;
-                        case 'راكب يحمل تذكرة مرور':
-                            window.location.href = 'outpass.html';
-                           case 'راكب لديه ارتباط بصمات':
-                            window.location.href = 'FINGERCON.html';
-                            break;
-                        default:
-                            alert('نوع الملاحظة غير معروف.');
-                    }
-                });
-            });
+        <div class="doc-buttons-container">
+            <button type="button" id="passportButton" class="doc-button active" onclick="setDocType('passport')">جواز سفر</button>
+            <button type="button" id="idButton" class="doc-button" onclick="setDocType('id')">هوية</button>
+        </div>
 
-            // تنبيه لإضافة اختصار للموقع على iPhone
-            document.getElementById('createShortcut').addEventListener('click', function() {
-                alert("لإضافة اختصار لهذا الموقع، اضغط على زر المشاركة في Safari ثم اختر 'إضافة إلى الشاشة الرئيسية'.");
-            });
+        <div class="input-group"><label>عدد المسافرين</label><select id="l6_count" onchange="renderL6()"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+        <div id="l6_passengers"></div>
+
+        <div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="l6_h" placeholder="ساعة" class="en-num"><input type="number" id="l6_m" placeholder="دقيقة" class="en-num"></div></div>
+        <div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="l6_gh" placeholder="ساعة" class="en-num"><input type="number" id="l6_gm" placeholder="دقيقة" class="en-num"></div></div>
+        <div class="input-group"><label>وجهة المغادرة</label><input type="text" id="l6_dest" placeholder="أدخل جهة المغادرة"></div>
+    </div>
+
+    <div id="form-presence" class="form-section">
+        <div class="form-title">نموذج التكميل</div>
+        <div class="row"><div class="input-group"><label>المناوبة</label><select id="pr_shift"><option>أ</option><option>ب</option><option>ج</option><option>د</option></select></div><div class="input-group"><label>صالة</label><select id="pr_hall"><option>1</option><option>2</option><option>3</option><option>4</option></select></div></div>
+        <div class="input-group"><label>رتبة واسم الضابط</label><div class="row"><select id="pr_rank"><option>ملازم</option><option>نقيب</option><option>رائد</option><option>مقدم</option><option>عقيد</option></select><input type="text" id="pr_officer" oninput="localStorage.setItem('savedOfficer',this.value)"></div></div>
+        <div class="input-group" style="background:#e6fffa;padding:15px;border-radius:10px;"><label style="text-align:center;">القوة الكلية</label><input type="number" id="pr_force" oninput="calcPresence()" class="en-num" style="text-align:center;font-size:1.3rem;"></div>
+        <div class="row"><div class="input-group"><label>إجازة</label><input type="number" id="pr_leave" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>غياب</label><input type="number" id="pr_absence" class="en-num pr-calc" oninput="handlePrAbsence()"></div><div class="input-group"><label>راحة</label><input type="number" id="pr_rest" class="en-num pr-calc" oninput="calcPresence()"></div></div>
+        <div id="pr_abs_names_box" style="display:none; padding:10px; background:#fffbe6; margin-bottom:15px;"></div>
+        <div class="row"><div class="input-group"><label>تكليف</label><input type="number" id="pr_task" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>دورة</label><input type="number" id="pr_course" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>انتداب</label><input type="number" id="pr_del" class="en-num pr-calc" oninput="calcPresence()"></div></div>
+        <div class="row"><div class="input-group"><label>تأخير</label><input type="number" id="pr_delay" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>توقيف</label><input type="number" id="pr_jail" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>استئذان</label><input type="number" id="pr_perm" class="en-num pr-calc" oninput="calcPresence()"></div></div>
+        <div class="row"><div class="input-group"><label>وضع</label><input type="number" id="pr_birth" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>أمومة</label><input type="number" id="pr_mom" class="en-num pr-calc" oninput="calcPresence()"></div></div>
+        <div class="input-group"><label>الموجود (تلقائي)</label><input type="text" id="pr_available" readonly style="background:#e2e8f0;text-align:center;"></div>
+        <label>تفاصيل الموجود:</label>
+        <div class="row"><div class="input-group"><label>كاونتر</label><input type="number" id="pr_d_cnt" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>بوابة</label><input type="number" id="pr_d_gate" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>إداري</label><input type="number" id="pr_d_adm" class="en-num pr-dist" oninput="calcPresence()"></div></div>
+        <div class="row"><div class="input-group"><label>ر.أعمال</label><input type="number" id="pr_d_vip" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>قائمة</label><input type="number" id="pr_d_list" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>ذاتية</label><input type="number" id="pr_d_self" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>إرشاد</label><input type="number" id="pr_d_guide" class="en-num pr-dist" oninput="calcPresence()"></div></div>
+        <p id="pr_err" style="color:red;display:none;text-align:center;">العدد غير مطابق!</p>
+    </div>
+
+    <div id="form-visaExpiry" class="form-section">
+        <div class="form-title">نموذج انتهاء تأشيرة زيارة</div>
+        <div class="input-group">
+            <label>نوع التأشيرة</label>
+            <div class="row">
+                <select id="ve_type_select" onchange="document.getElementById('ve_type_manual').value=this.value">
+                    <option value="">-- اختر --</option>
+                    <option value="زيارة سياحية">زيارة سياحية</option><option value="زيارة عائلية">زيارة عائلية</option>
+                    <option value="زيارة مرور">زيارة مرور</option><option value="زيارة عمل">زيارة عمل</option>
+                    <option value="زيارة رجال اعمال">زيارة رجال اعمال</option><option value="زيارة مؤقتة">زيارة مؤقتة</option>
+                    <option value="زيارة حكومية">زيارة حكومية</option><option value="زيارة">زيارة</option>
+                    <option value="عمل مؤقت">عمل مؤقت</option><option value="زياره مرافق">زياره مرافق</option>
+                    <option value="زيارة شخصية">زيارة شخصية</option><option value="عمره">عمره</option>
+                </select>
+                <input type="text" id="ve_type_manual" placeholder="أو اكتب...">
+            </div>
+        </div>
+        <div class="input-group"><label>عدد المسافرين</label><select id="ve_count" onchange="renderVE()"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div>
+        <div id="ve_passengers"></div>
+        <div class="input-group"><label>تاريخ الانتهاء</label><div class="row"><select id="ve_d"><option value="">اليوم</option></select><select id="ve_m"><option value="">الشهر</option></select><select id="ve_y"><option>1447</option><option>1448</option><option>2025</option><option>2026</option></select></div></div>
+        <div class="input-group"><label>مدة الانتهاء (أيام)</label><select id="ve_days"><option value="">-- اختر المدة --</option></select></div>
+        <div class="input-group"><label>بيانات الرحلة</label><div class="row"><input type="text" id="ve_air" placeholder="الخطوط"><input type="text" id="ve_flt" placeholder="رقم الرحلة"></div></div>
+        <div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="ve_h" placeholder="ساعة" class="en-num"><input type="number" id="ve_m" placeholder="دقيقة" class="en-num"></div></div>
+        <div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="ve_gh" placeholder="ساعة" class="en-num"><input type="number" id="ve_gm" placeholder="دقيقة" class="en-num"></div></div>
+        <div class="input-group"><label>ملاحظة</label><textarea id="ve_note" placeholder="في حال وجود ملاحظات اضافية اكتب هنا..."></textarea></div>
+    </div>
+
+    <div id="form-passError" class="form-section">
+        <div class="form-title">خطأ في رقم الجواز</div>
+        <div class="input-group"><label>منفذ الدخول (اسم المطار):</label><input type="text" id="perr_port" oninput="updatePassErrNote()"></div>
+        <div class="input-group"><label>اسم المسافر</label><input type="text" id="perr_name" style="direction:ltr;text-align:right;"></div>
+        <div class="input-group"><label>رقم الجواز الصحيح</label><input type="text" id="perr_corr" class="en-num" style="direction:ltr"></div>
+        <div class="input-group"><label>رقم الجواز المسجل خطأ</label><input type="text" id="perr_wrong" class="en-num" style="direction:ltr"></div>
+        <div class="input-group"><label>نوع التأشيرة</label><input type="text" id="perr_visa"></div>
+        <div class="input-group"><label>الجنسية</label><input type="text" id="perr_nat"></div>
+        <div class="input-group"><label>الخطوط</label><input type="text" id="perr_air"></div>
+        <div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="perr_h" placeholder="ساعة" class="en-num"><input type="number" id="perr_m" placeholder="دقيقة" class="en-num"></div></div>
+        <div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="perr_gh" placeholder="ساعة" class="en-num"><input type="number" id="perr_gm" placeholder="دقيقة" class="en-num"></div></div>
+        <div class="input-group"><label>الملاحظة</label><textarea id="perr_note" rows="5">وعند الشروع في انهاء اجراءت مغادرته تبين وجود خطا في رقم الجواز المسجل في نظام المسافرين علما بان منفذ الدخول ( ... ) ولايوجد لديه تأشيرة مسجلة على رقم الجواز الصحيح</textarea></div>
+    </div>
+
+    <div id="form-custom" class="form-section">
+        <div class="form-title">نموذج جاهز (مخصص)</div>
+        <div class="custom-options">
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('c_border', this)"> رقم الحدود</label>
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('c_res', this)"> رقم الإقامة</label>
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('c_visa', this)"> نوع التأشيرة</label>
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('c_entry', this)"> تاريخ الدخول</label>
+        </div>
+        <div class="input-group"><label>اسم المسافر</label><input type="text" id="cust_name"></div>
+        <div class="input-group"><label>الجنسية</label><input type="text" id="cust_nat"></div>
+        <div class="input-group"><label>رقم الجواز</label><input type="text" id="cust_pass" class="en-num"></div>
+        <div id="c_border" style="display:none;" class="input-group"><label>رقم الحدود</label><input type="text" id="cust_border" class="en-num"></div>
+        <div id="c_res" style="display:none;" class="input-group"><label>رقم الإقامة</label><input type="text" id="cust_res" class="en-num"></div>
+        <div id="c_visa" style="display:none;" class="input-group"><label>نوع التأشيرة</label><input type="text" id="cust_visa"></div>
+        <div id="c_entry" style="display:none;" class="input-group"><label>تاريخ الدخول</label><input type="text" id="cust_entry"></div>
+        <div class="input-group"><label>رقم الرحلة</label><input type="text" id="cust_flt" class="en-num"></div>
+        <div class="input-group"><label>وقت فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="cust_h" placeholder="ساعة" class="en-num"><input type="number" id="cust_m" placeholder="دقيقة" class="en-num"></div></div>
+        <div class="input-group"><label>الملاحظة</label><textarea id="cust_note" rows="4"></textarea></div>
+    </div>
+
+    <div id="form-passportExp" class="form-section"><div class="form-title">جواز سفر منتهي</div><div class="input-group"><label>الاسم</label><input type="text" id="px_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="px_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="px_pass" class="en-num"></div><div class="input-group"><label>نوع التأشيرة</label><input type="text" id="px_visa"></div><div class="input-group"><label>المغادرة النهائية</label><input type="text" id="px_final"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="px_flight" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="px_dest"></div><div class="input-group"><label>وقت الاقلاع</label><input type="text" id="px_time"></div><div class="input-group"><label>الملاحظة</label><textarea id="px_note" rows="5">راجعنا المذكور بقصد المغادرة على متن رحلة الخطوط () رقم () والمتجهة الى () وعند الشروع في انهاء اجراءات خروجه تبين بأن جواز سفره منتهي () منذ ( يوم) مع العلم بأنه يحمل كرت صعود الى الطائرة (ويوجد- ولايوجد تمديد للجواز من السفارة)</textarea></div></div>
+    <div id="form-want" class="form-section"><div class="form-title">إشعار</div><div class="input-group"><label>عدد المسافرين</label><select id="wt_count" onchange="renderWT()"><option value="1">1</option><option value="2">2</option></select></div><div id="wt_passengers"></div><div class="input-group"><label>الرحلة</label><input type="text" id="wt_flight" placeholder="قدوم/مغادرة"></div><div class="input-group"><label>السبب</label><select id="wt_reason" onchange="document.getElementById('wt_custom').style.display=this.value==='other'?'block':'none'"><option value="فترة طويلة">فترة طويلة</option><option value="قدوم من دول الصراع">قدوم من دول الصراع</option><option value="إدراج على القائمة بالاشعار">إدراج على القائمة بالاشعار</option><option value="other">أخرى</option></select><textarea id="wt_custom" style="display:none;margin-top:10px;" placeholder="اكتب السبب..."></textarea></div></div>
+    <div id="form-askeryafter" class="form-section"><div class="form-title">إجازة عسكري قبل الوقت</div><div class="input-group"><label>الاسم</label><input type="text" id="aa_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="aa_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="aa_pass" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="aa_dest"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="aa_flight" class="en-num"></div><div class="input-group"><label>الخطوط</label><input type="text" id="aa_line"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="aa_h" placeholder="ساعة" class="en-num"><input type="number" id="aa_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="aa_gh" placeholder="ساعة" class="en-num"><input type="number" id="aa_gm" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>قطاع العسكري</label><input type="text" id="aa_sec"></div><div class="input-group"><label>مدة الإجازة</label><input type="text" id="aa_dur"></div><div class="input-group"><label>بداية الإجازة</label><div class="row"><input type="number" id="aa_d" placeholder="ي" class="en-num"><input type="number" id="aa_mo" placeholder="ش" class="en-num"><input type="number" id="aa_y" placeholder="س" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="aa_note">عند تسديد مغادرته اتضح انه من فئة العسكريين ولديه اجازة خارجية لم تبدا</textarea></div></div>
+    <div id="form-askrycontery" class="form-section"><div class="form-title">عسكري الى دولة ممنوعة</div><div class="input-group"><label>الاسم</label><input type="text" id="ac_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="ac_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="ac_pass" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="ac_dest"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="ac_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="ac_h" placeholder="ساعة" class="en-num"><input type="number" id="ac_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="ac_gh" placeholder="ساعة" class="en-num"><input type="number" id="ac_gm" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="ac_note">وعن الشروع في تسديد مغادرته اتضح انه من فئة العسكريين ويحمل وثيقة سفر إلى دولة ممنوعة...</textarea></div></div>
+    <div id="form-askryd" class="form-section"><div class="form-title">عسكري اختلاف وجهة</div><div class="input-group"><label>الاسم</label><input type="text" id="ad_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="ad_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="ad_pass" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="ad_dest"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="ad_flight" class="en-num"></div><div class="input-group"><label>الخطوط</label><input type="text" id="ad_line"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="ad_h" placeholder="ساعة" class="en-num"><input type="number" id="ad_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="ad_gh" placeholder="ساعة" class="en-num"><input type="number" id="ad_gm" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>القطاع</label><input type="text" id="ad_sec"></div><div class="input-group"><label>مدة الإجازة</label><input type="text" id="ad_dur"></div><div class="input-group"><label>الملاحظة</label><textarea id="ad_note">لديه اجازة محددة الوجهة ويرغب بسفر الى وجهة مختلفه</textarea></div></div>
+    <div id="form-defname" class="form-section"><div class="form-title">اختلاف اسم عند المغادرة</div><div class="input-group"><label>الاسم</label><input type="text" id="dn_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="dn_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="dn_pass" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="dn_dest"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="dn_flight" class="en-num"></div><div class="input-group"><label>الملاحظة</label><textarea id="dn_note">وعند تسديد مغادرته تبين بأن الاسم في نظام المسافرين يختلف عن الوثيقة...</textarea></div></div>
+    <div id="form-fingercon" class="form-section"><div class="form-title">ارتباط بصمة</div><div class="input-group"><label>الاسم</label><input type="text" id="fc_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="fc_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="fc_pass" class="en-num"></div><div class="input-group"><label>نوع التأشيرة</label><input type="text" id="fc_visa"></div><div class="input-group"><label>رقم الإقامة/الحدود</label><input type="text" id="fc_res" class="en-num"></div><div class="input-group"><label>الخطوط</label><input type="text" id="fc_air"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="fc_flight" class="en-num"></div><div class="input-group"><label>والمتجهة</label><input type="text" id="fc_dest"></div><div class="input-group"><label>جنسية الوافد الآخر</label><input type="text" id="fc_other" oninput="fillFCNote()"></div><div class="input-group"><label>النتيجة</label><select id="fc_res_type" onchange="fillFCNote()"><option value="موجود">موجود</option><option value="غير موجود">غير موجود</option></select></div><div class="input-group"><label>الملاحظة</label><textarea id="fc_note" rows="6"></textarea></div></div>
+    <div id="form-noacspt" class="form-section"><div class="form-title">عدم قبول بصمة راكب</div><div class="input-group"><label>عدد المسافرين</label><select id="nf_count" onchange="renderNF()"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div id="nf_passengers"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="nf_h" placeholder="ساعة" class="en-num"><input type="number" id="nf_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="nf_gh" placeholder="ساعة" class="en-num"><input type="number" id="nf_gm" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الخطوط</label><input type="text" id="nf_air"></div><div class="input-group"><label>الملاحظة</label><textarea id="nf_note">عند الشروع في انهاء إجراءات مغادرته وتحقق من الخصائص الحيوية لم يتم قبول الخصائص الحيوية وحيث تم الاستعلام عن الخصائص الحيوية بالطرق الأربعة والنتيجة ( غير موجود ) والتشييك بنظام الممنوعين والمطلوبين ولم يوجد عليه أي ملاحظات</textarea></div></div>
+    <div id="form-updut" class="form-section"><div class="form-title">نقل معلومات</div><div class="input-group"><label>الاسم</label><input type="text" id="up_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="up_nat"></div><div class="input-group"><label>الجواز الجديد</label><input type="text" id="up_new" class="en-num"></div><div class="input-group"><label>الجواز القديم</label><input type="text" id="up_old" class="en-num"></div><div class="input-group"><label>رقم الإقامة</label><input type="text" id="up_res" class="en-num"></div><div class="input-group"><label>المهنة</label><input type="text" id="up_job"></div><div class="input-group"><label>الكفيل</label><input type="text" id="up_sponsor"></div><div class="input-group"><label>الرحلة</label><input type="text" id="up_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="up_h" placeholder="ساعة" class="en-num"><input type="number" id="up_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="up_note">نقل معلومات وبحوزته الجواز الجديد والقديم وتعذر نقل معلوماته عن طريق ابشر</textarea></div></div>
+
+</div>
+
+<div id="fab-actions" class="fab-container">
+    <button class="btn btn-back" onclick="closeForm()"><i class="fas fa-arrow-right"></i> عودة</button>
+    <button class="btn btn-send" onclick="sendWhatsApp()"><i class="fab fa-whatsapp"></i> إرسال</button>
+</div>
+
+<script>
+    let currentForm = null;
+    let l6DocType = 'passport';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedOfficer = localStorage.getItem('officerName');
+        if(savedOfficer) document.getElementById('pr_officer').value = savedOfficer;
+        const fill = (eid, max) => {
+            const s = document.getElementById(eid);
+            if(s && s.options.length <= 1) for(let i=1;i<=max;i++) s.add(new Option(i,i));
+        }
+        fill('ve_d',31); fill('ve_m',12); fill('ve_days',90);
+    });
+
+    function updatePassErrNote() {
+        const port = document.getElementById('perr_port').value || '...';
+        document.getElementById('perr_note').value = `وعند الشروع في انهاء اجراءت مغادرته تبين وجود خطا في رقم الجواز المسجل في نظام المسافرين علما بان منفذ الدخول ( ${port} ) ولايوجد لديه تأشيرة مسجلة على رقم الجواز الصحيح`;
+    }
+
+    document.addEventListener('input', function(e) {
+        if(e.target.classList.contains('en-num')) {
+            const val = e.target.value;
+            if(/[\u0660-\u0669\u06f0-\u06f9]/.test(val)) {
+                e.target.value = val.replace(/[\u0660-\u0669\u06f0-\u06f9]/g, '');
+                let errSpan = e.target.parentNode.querySelector('.input-error-msg');
+                if(!errSpan) {
+                    errSpan = document.createElement('div');
+                    errSpan.className = 'input-error-msg';
+                    errSpan.innerText = 'أرقام إنجليزية فقط';
+                    e.target.parentNode.appendChild(errSpan);
+                }
+                errSpan.style.display = 'block';
+                setTimeout(() => errSpan.style.display='none', 3000);
+            }
+        }
+    });
+
+    function openForm(id) {
+        document.getElementById('mainMenu').style.display = 'none';
+        document.getElementById('fab-actions').style.display = 'flex';
+        document.querySelectorAll('.form-section').forEach(el => el.style.display = 'none');
+        document.getElementById('form-' + id).style.display = 'block';
+        currentForm = id;
+        
+        if(id === 'less6') { displayTodayHijri(); if(!document.getElementById('l6_passengers').innerHTML) renderL6(); }
+        if(id === 'visaExpiry' && !document.getElementById('ve_passengers').innerHTML) renderVE();
+        if(id === 'want' && !document.getElementById('wt_passengers').innerHTML) renderWT();
+        if(id === 'fingercon') fillFCNote();
+        if(id === 'noacspt' && !document.getElementById('nf_passengers').innerHTML) renderNF();
+        window.scrollTo(0,0);
+    }
+
+    function closeForm() {
+        document.getElementById('mainMenu').style.display = 'grid';
+        document.getElementById('fab-actions').style.display = 'none';
+        document.querySelectorAll('.form-section').forEach(el => el.style.display = 'none');
+
+        // تفريغ جميع الحقول النصية والملاحظات
+        document.querySelectorAll('input, textarea').forEach(input => input.value = '');
+
+        // إعادة القوائم المنسدلة للبداية
+        document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+
+        // تفريغ المحتويات الديناميكية لضمان إعادة إنشائها فارغة
+        document.getElementById('l6_passengers').innerHTML = '';
+        document.getElementById('ve_passengers').innerHTML = '';
+        document.getElementById('wt_passengers').innerHTML = '';
+        document.getElementById('nf_passengers').innerHTML = '';
+        document.getElementById('pr_abs_names_box').innerHTML = '';
+        
+        // إخفاء الخيارات المخصصة
+        document.querySelectorAll('.custom-options input').forEach(c => { 
+            c.checked = false; 
+            c.parentElement.classList.remove('active'); 
         });
-    </script>
+        ['c_border', 'c_res', 'c_visa', 'c_entry', 'wt_custom', 'pr_abs_names_box', 'pr_err'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.style.display = 'none';
+        });
+
+        currentForm = null;
+    }
+
+    function toggleCustomField(divId, checkbox) {
+        document.getElementById(divId).style.display = checkbox.checked ? 'block' : 'none';
+        checkbox.parentElement.classList.toggle('active', checkbox.checked);
+    }
+
+    // === أقل من 6 أشهر ===
+    function displayTodayHijri() {
+        if(window.Intl) {
+            document.getElementById("todayHijri").textContent = new Intl.DateTimeFormat('ar-SA-u-ca-islamic',{day:'numeric',month:'long',year:'numeric'}).format(new Date());
+        }
+    }
+    function getTodayHijriParts() {
+      const today = new Date();
+      const formatter = new Intl.DateTimeFormat('en-TN-u-ca-islamic', {year:'numeric',month:'numeric',day:'numeric'});
+      const parts = formatter.formatToParts(today);
+      const day = parseInt(parts.find(p=>p.type==='day').value);
+      const month = parseInt(parts.find(p=>p.type==='month').value);
+      const year = parseInt(parts.find(p=>p.type==='year').value);
+      return { day, month, year };
+    }
+    function calcHijriLess6() {
+        const inputDay = parseInt(document.getElementById("hDay").value);
+        const inputMonth = parseInt(document.getElementById("hMonth").value);
+        const inputYear = parseInt(document.getElementById("hYear").value);
+        if (isNaN(inputDay) || isNaN(inputMonth) || isNaN(inputYear)) {
+            document.getElementById("l6_res").textContent = "الرجاء إدخال تاريخ هجري صحيح.";
+            return;
+        }
+        const today = getTodayHijriParts();
+        const todayDays = today.year*354 + (today.month-1)*30 + today.day;
+        const inputDays = inputYear*354 + (inputMonth-1)*30 + inputDay;
+        let totalDiff = Math.floor(inputDays - todayDays);
+        const forward = totalDiff >= 0;
+        totalDiff = Math.abs(totalDiff);
+        const months = Math.floor(totalDiff/30);
+        const days = totalDiff%30;
+        let result = "";
+        const direction = forward ? "المتبقي" : "مرّ";
+        if(totalDiff===0) result="التاريخ هو اليوم.";
+        else {
+            const mText = months>0 ? `${months} شهر` : "";
+            const dText = days>0 ? `${days} يوم` : "";
+            if(mText && dText) result=`${direction} ${mText} و${dText}.`;
+            else if(mText) result=`${direction} ${mText}.`;
+            else result=`${direction} ${dText}.`;
+        }
+        document.getElementById("l6_res").textContent = result;
+        
+        // تعبئة بيانات المسافر الأول
+        if(document.getElementById("l6_rm_1")) {
+            document.getElementById("l6_rm_1").value = months;
+            document.getElementById("l6_rd_1").value = days;
+            document.getElementById("l6_ex_d_1").value = inputDay;
+            document.getElementById("l6_ex_m_1").value = inputMonth;
+            document.getElementById("l6_ex_y_1").value = inputYear;
+        }
+    }
+    function setDocType(type) {
+        // حفظ القيم الحالية قبل التغيير
+        const count = document.getElementById('l6_count').value;
+        let savedData = [];
+        for(let i=1; i<=count; i++) {
+            savedData.push({
+                nm: document.getElementById(`l6_nm_${i}`)?.value || '',
+                nat: document.getElementById(`l6_nat_${i}`)?.value || '',
+                ex_d: document.getElementById(`l6_ex_d_${i}`)?.value || '',
+                ex_m: document.getElementById(`l6_ex_m_${i}`)?.value || '',
+                ex_y: document.getElementById(`l6_ex_y_${i}`)?.value || '',
+                rm: document.getElementById(`l6_rm_${i}`)?.value || '',
+                rd: document.getElementById(`l6_rd_${i}`)?.value || '',
+                rsn: document.getElementById(`l6_rsn_${i}`)?.value || '',
+                not: document.getElementById(`l6_not_${i}`)?.value || ''
+            });
+        }
+
+        l6DocType = type;
+        document.getElementById("passportButton").className = `doc-button ${type==='passport'?'active':''}`;
+        document.getElementById("idButton").className = `doc-button ${type==='id'?'active':''}`;
+        
+        renderL6();
+
+        // استعادة القيم
+        for(let i=1; i<=count; i++) {
+            const data = savedData[i-1];
+            if(data) {
+                if(document.getElementById(`l6_nm_${i}`)) document.getElementById(`l6_nm_${i}`).value = data.nm;
+                if(document.getElementById(`l6_nat_${i}`)) document.getElementById(`l6_nat_${i}`).value = data.nat;
+                if(document.getElementById(`l6_ex_d_${i}`)) document.getElementById(`l6_ex_d_${i}`).value = data.ex_d;
+                if(document.getElementById(`l6_ex_m_${i}`)) document.getElementById(`l6_ex_m_${i}`).value = data.ex_m;
+                if(document.getElementById(`l6_ex_y_${i}`)) document.getElementById(`l6_ex_y_${i}`).value = data.ex_y;
+                if(document.getElementById(`l6_rm_${i}`)) document.getElementById(`l6_rm_${i}`).value = data.rm;
+                if(document.getElementById(`l6_rd_${i}`)) document.getElementById(`l6_rd_${i}`).value = data.rd;
+                if(document.getElementById(`l6_rsn_${i}`)) document.getElementById(`l6_rsn_${i}`).value = data.rsn;
+                if(document.getElementById(`l6_not_${i}`)) document.getElementById(`l6_not_${i}`).value = data.not;
+            }
+        }
+    }
+    function renderL6() {
+        const cnt = document.getElementById('l6_count').value;
+        const box = document.getElementById('l6_passengers');
+        box.innerHTML = '';
+        const lbl = l6DocType==='passport'?'رقم الجواز':'رقم الهوية';
+        const lblExp = l6DocType==='passport'?'تاريخ انتهاء الجواز':'تاريخ انتهاء الهوية';
+        for(let i=1;i<=cnt;i++) {
+            box.innerHTML += `<div class="passenger-group"><h5>مسافر ${i}</h5>
+            <div class="input-group"><label>الاسم</label><input type="text" id="l6_nm_${i}"></div>
+            <div class="input-group"><label>${lbl}</label><input type="text" id="l6_num_${i}" class="en-num" style="direction:ltr"></div>
+            <div class="input-group"><label>الجنسية</label><input type="text" id="l6_nat_${i}" value="سعودي"></div>
+            <div class="input-group"><label>${lblExp}</label><div class="row"><input type="number" id="l6_ex_d_${i}" placeholder="يوم" class="en-num"><input type="number" id="l6_ex_m_${i}" placeholder="شهر" class="en-num"><input type="number" id="l6_ex_y_${i}" placeholder="سنة" class="en-num"></div></div>
+            <div class="input-group"><label>المدة المتبقية</label><div class="row"><input type="number" id="l6_rm_${i}" placeholder="شهر" class="en-num"><input type="number" id="l6_rd_${i}" placeholder="يوم" class="en-num"></div></div>
+            <div class="input-group"><label>سبب السفر</label><input type="text" id="l6_rsn_${i}"></div>
+            <div class="input-group"><label>ملاحظة</label><textarea id="l6_not_${i}" placeholder="في حال وجود ملاحظات اضافية اكتب هنا مثل وبرفقة عائلته..."></textarea></div></div>`;
+        }
+    }
+
+    // === التكميل ===
+    function calcPresence() {
+        const g=(id)=>parseInt(document.getElementById(id).value)||0;
+        const f=g('pr_force'), d=g('pr_leave')+g('pr_absence')+g('pr_rest')+g('pr_task')+g('pr_course')+g('pr_del')+g('pr_delay')+g('pr_jail')+g('pr_perm')+g('pr_birth')+g('pr_mom');
+        document.getElementById('pr_available').value = f-d;
+        const dist=g('pr_d_cnt')+g('pr_d_gate')+g('pr_d_adm')+g('pr_d_vip')+g('pr_d_list')+g('pr_d_self')+g('pr_d_guide');
+        document.getElementById('pr_err').style.display = (parseInt(document.getElementById('pr_available').value)!==dist && dist>0)?'block':'none';
+    }
+    function handlePrAbsence() {
+        calcPresence();
+        const cnt = parseInt(document.getElementById('pr_absence').value)||0;
+        const box = document.getElementById('pr_abs_names_box');
+        box.innerHTML = '<label>أسماء الغياب:</label>';
+        if(cnt>0) { box.style.display='block'; for(let i=1;i<=cnt;i++) box.innerHTML+=`<input type="text" id="pr_an_${i}" placeholder="اسم ${i}" style="margin-top:8px;">`; }
+        else box.style.display='none';
+    }
+
+    function renderVE() {
+        const cnt = document.getElementById('ve_count').value;
+        const box = document.getElementById('ve_passengers');
+        box.innerHTML = '';
+        for(let i=1;i<=cnt;i++) {
+            let natAttr = i>1 ? `onfocus="this.value=document.getElementById('ve_nt_1').value"` : '';
+            box.innerHTML+=`<div class="passenger-group"><h5>مسافر ${i}</h5>
+            <div class="input-group"><label>الاسم</label><input type="text" id="ve_nm_${i}"></div>
+            <div class="row"><div class="input-group"><label>رقم الحدود</label><input type="text" id="ve_br_${i}" class="en-num"></div>
+            <div class="input-group"><label>الجنسية</label><input type="text" id="ve_nt_${i}" ${natAttr}></div></div></div>`;
+        }
+    }
+
+    function renderWT() {
+        const cnt = document.getElementById('wt_count').value;
+        const box = document.getElementById('wt_passengers');
+        box.innerHTML = '';
+        for(let i=1;i<=cnt;i++) box.innerHTML+=`<div class="passenger-group"><input type="text" id="wt_nm_${i}" placeholder="الاسم" style="margin-bottom:5px"><input type="text" id="wt_nt_${i}" placeholder="الجنسية" style="margin-bottom:5px"><input type="text" id="wt_id_${i}" placeholder="الهوية" class="en-num"></div>`;
+    }
+
+    function renderNF() {
+        const cnt = document.getElementById('nf_count').value;
+        const box = document.getElementById('nf_passengers');
+        box.innerHTML = '';
+        for(let i=1;i<=cnt;i++) box.innerHTML+=`<div class="passenger-group"><div class="input-group"><label>الاسم</label><input type="text" id="nf_nm_${i}"></div><div class="input-group"><label>الجنسية</label><input type="text" id="nf_nt_${i}"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="nf_ps_${i}" class="en-num"></div></div>`;
+    }
+
+    function fillFCNote() {
+        const nat = document.getElementById('fc_other').value || '.......';
+        const res = document.getElementById('fc_res_type').value;
+        document.getElementById('fc_note').value = `رجعنا الموضح بياناته أعلاه بقصد المغادرة وعند الشروع في إنهاء إجراءات مغادرته تعذر قبول الخصائص الحيوية وعند الرجوع للتقارير اتضح وجود ارتباط بصمة على رقم الإقامة مع وافد آخر من الجنسية ${nat} وبالرجوع إلى حالته اتضح بأنه خارج المملكة وتم الاستعلام عنه بالطرق الأربعة وتظهر النتيجة ( ${res} ) وتم التشييك عليه في قوائم الممنوعين والمطلوبين وتبين عدم وجود ملاحظات أمنية`;
+    }
+
+    function sendWhatsApp() {
+        let txt = [];
+        const val = (id) => { const e=document.getElementById(id); return e?e.value.trim():''; };
+        const pad = (n) => n?n.toString().padStart(2,'0'):'';
+
+        if(currentForm === 'passError') {
+            txt.push(`*اسم المسافر:* ${val('perr_name')}`);
+            txt.push(`*رقم الجواز الصحيح*: ${val('perr_corr')}`);
+            txt.push(`*رقم الجواز المسجل خطاء*: ${val('perr_wrong')}`);
+            txt.push(`*نوع التاشيره* ${val('perr_visa')}`);
+            txt.push(`*الجنسية:* ${val('perr_nat')}`);
+            if(val('perr_h') || val('perr_m')) txt.push(`*وقت الإقلاع:* ${pad(val('perr_h'))}:${pad(val('perr_m'))}`);
+            if(val('perr_gh') || val('perr_gm')) txt.push(`*موعد فتح البوابة:* ${pad(val('perr_gh'))}:${pad(val('perr_gm'))}`);
+            txt.push(`*الخطوط:* ${val('perr_air')}`);
+            txt.push(`\n*الملاحظة:*`);
+            txt.push(val('perr_note'));
+            txt.push(`\n*بأمل اطلاع سعادتكم والتوجيه*`);
+        }
+        else if(currentForm === 'custom') {
+            txt.push(`*الاسم:* ${val('cust_name')}`);
+            txt.push(`*الجنسية:* ${val('cust_nat')}`);
+            txt.push(`*رقم الجواز:* ${val('cust_pass')}`);
+            if(document.getElementById('c_border').style.display !== 'none') txt.push(`*رقم الحدود:* ${val('cust_border')}`);
+            if(document.getElementById('c_res').style.display !== 'none') txt.push(`*رقم الإقامة:* ${val('cust_res')}`);
+            if(document.getElementById('c_visa').style.display !== 'none') txt.push(`*نوع التأشيرة:* ${val('cust_visa')}`);
+            if(document.getElementById('c_entry').style.display !== 'none') txt.push(`*تاريخ الدخول:* ${val('cust_entry')}`);
+            txt.push(`*رقم الرحلة:* ${val('cust_flt')}`);
+            if(val('cust_h') || val('cust_m')) txt.push(`*وقت فتح البوابة:* ${pad(val('cust_h'))}:${pad(val('cust_m'))}`);
+            txt.push(`\n*الملاحظة:* ${val('cust_note')}`);
+            txt.push(`\n*بأمل اطلاع سعادتكم والتوجيه*`);
+        }
+        else if(currentForm === 'presence') {
+            if(val('pr_officer')) localStorage.setItem('officerName', val('pr_officer'));
+            txt.push(`المناوبة / ${val('pr_shift')} صالة ${val('pr_hall')}`);
+            txt.push(`رئيس المناوبة`);
+            txt.push(`${val('pr_rank')} / ${val('pr_officer')}`);
+            txt.push(`القوة / ${val('pr_force')}`);
+            const add = (l,i) => {if(val(i)>0) txt.push(`${l} / ${val(i)}`)};
+            add('الراحة','pr_rest'); add('إجازة','pr_leave'); add('إجازة أمومة','pr_mom');
+            add('تكليف','pr_task'); add('غياب','pr_absence');
+            const absC = parseInt(val('pr_absence'))||0;
+            for(let i=1;i<=absC;i++) txt.push('- ' + document.getElementById('pr_an_'+i).value);
+            add('دورة','pr_course'); add('إجازة وضع','pr_birth'); add('تأخير','pr_delay');
+            add('توقيف','pr_jail'); add('انتداب','pr_del'); add('استئذان','pr_perm');
+            let d=[]; const adD=(l,i)=>{if(val(i)>0)d.push(`${val(i)} ${l}`)};
+            adD('كاونتر','pr_d_cnt'); adD('بوابة','pr_d_gate'); adD('أعمال إدارية','pr_d_adm'); adD('رجال أعمال','pr_d_vip');
+            adD('قائمة','pr_d_list'); adD('الذاتية','pr_d_self'); adD('إرشاد','pr_d_guide');
+            const av = val('pr_available');
+            if(d.length>0) txt.push(`الموجود ${av} (${d.join(' + ')})`); else txt.push(`الموجود ${av}`);
+        }
+        else if(currentForm === 'less6') {
+            const num = parseInt(val("l6_count")) || 1;
+            for (let i = 1; i <= num; i++) {
+                txt.push(`*اسم المسافر:* ${val(`l6_nm_${i}`)}`);
+                const lbl = l6DocType === 'passport' ? 'رقم الجواز' : 'رقم الهوية';
+                txt.push(`*${lbl}:* ${val(`l6_num_${i}`)}`);
+                txt.push(`*الجنسية:* ${val(`l6_nat_${i}`)}`);
+                const lblExp = l6DocType === 'passport' ? 'تاريخ انتهاء الجواز' : 'تاريخ انتهاء الهوية';
+                txt.push(`*${lblExp}:* ${val(`l6_ex_y_${i}`)}/${pad(val(`l6_ex_m_${i}`))}/${pad(val(`l6_ex_d_${i}`))}`);
+                txt.push(`*المدة المتبقية:* ${val(`l6_rm_${i}`)} شهر و ${val(`l6_rd_${i}`)} يوم`);
+                txt.push(`*سبب السفر:* ${val(`l6_rsn_${i}`)}`);
+                
+                if (val("l6_h") || val("l6_m")) txt.push(`*وقت الإقلاع:* ${pad(val("l6_h"))}:${pad(val("l6_m"))}`);
+                if (val("l6_gh") || val("l6_gm")) txt.push(`*موعد فتح البوابة:* ${pad(val("l6_gh"))}:${pad(val("l6_gm"))}`);
+                if (val("l6_dest")) txt.push(`*وجهة المغادرة:* ${val("l6_dest")}`);
+                
+                const n = val(`l6_not_${i}`);
+                if(n) txt.push(`*الملاحظة / وثيقة السفر أقل من المدة النظامية:* ${n}`);
+                txt.push("----");
+            }
+            if(txt[txt.length-1]==="----") txt.pop();
+            txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
+        }
+        else if(currentForm === 'visaExpiry') {
+            const cnt = val('ve_count');
+            for(let i=1;i<=cnt;i++) {
+                txt.push(`*اسم المسافر:* ${document.getElementById('ve_nm_'+i).value}`);
+                txt.push(`*رقم الحدود:* ${document.getElementById('ve_br_'+i).value}`);
+                txt.push(`*الجنسية:* ${document.getElementById('ve_nt_'+i).value}`);
+            }
+            let vt = val('ve_type_manual'); if(!vt) vt=val('ve_type_select');
+            if(vt) txt.push(`*نوع التأشيرة:* ${vt}`);
+            if(val('ve_note')) txt.push(`*ملاحظات إضافية:* ${val('ve_note')}`);
+            if(val('ve_d') && val('ve_m') && val('ve_y')) txt.push(`*المغادرة النهائية:* ${pad(val('ve_d'))}-${pad(val('ve_m'))}-${val('ve_y')}`);
+            if(val('ve_air')) txt.push(`*خطوط الطيران:* ${val('ve_air')}`);
+            if(val('ve_flt')) txt.push(`*رقم الرحلة:* ${val('ve_flt')}`);
+            if(val('ve_h') || val('ve_m')) txt.push(`*وقت الإقلاع:* ${pad(val('ve_h'))}:${pad(val('ve_m'))}`);
+            if(val('ve_gh') || val('ve_gm')) txt.push(`*موعد فتح البوابة:* ${pad(val('ve_gh'))}:${pad(val('ve_gm'))}`);
+            const veDays = val('ve_days');
+            if (veDays) txt.push(`*الملاحظة/* التأشيرة منتهية (${veDays}) يوم`);
+            else txt.push(`*الملاحظة/* التأشيرة منتهية`);
+            txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
+        }
+        else if(currentForm === 'noacspt') {
+            const cnt = val('nf_count');
+            for(let i=1;i<=cnt;i++) {
+                txt.push(`*اسم المسافر:* ${document.getElementById('nf_nm_'+i).value}`);
+                txt.push(`*الجنسية:* ${document.getElementById('nf_nt_'+i).value}`);
+                txt.push(`*رقم الجواز:* ${document.getElementById('nf_ps_'+i).value}`);
+                txt.push('---');
+            }
+            if(val('nf_h')||val('nf_m')) txt.push(`*وقت الإقلاع:* ${pad(val('nf_h'))}:${pad(val('nf_m'))}`);
+            if(val('nf_gh')||val('nf_gm')) txt.push(`*موعد فتح البوابة:* ${pad(val('nf_gh'))}:${pad(val('nf_gm'))}`);
+            if(val('nf_air')) txt.push(`*الخطوط:* ${val('nf_air')}`);
+            txt.push(`\n*الملاحظة:* ${val('nf_note')}`);
+            txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
+        }
+        else if(currentForm === 'passportExp') {
+            txt.push(`*الاسم:* ${val('px_name')}`);
+            txt.push(`*الجنسية:* ${val('px_nat')}`);
+            txt.push(`*رقم الجواز:* ${val('px_pass')}`);
+            txt.push(`*نوع التأشيرة:* ${val('px_visa')}`);
+            txt.push(`*المغادرة النهائية:* ${val('px_final')}`);
+            txt.push(`*رقم الرحلة:* ${val('px_flight')}`);
+            txt.push(`*جهة المغادرة:* ${val('px_dest')}`);
+            txt.push(`*وقت الاقلاع:* ${val('px_time')}`);
+            txt.push(`*الملاحظة:* ${val('px_note')}`);
+        }
+        else if(currentForm === 'want') {
+            txt.push(`*إشعار*`);
+            const cnt = val('wt_count');
+            for(let i=1;i<=cnt;i++) txt.push(`الاسم: ${document.getElementById('wt_nm_'+i).value}\nالجنسية: ${document.getElementById('wt_nt_'+i).value}\nالهوية: ${document.getElementById('wt_id_'+i).value}`);
+            txt.push(`الرحلة: ${val('wt_flight')}`);
+            txt.push(`السبب:\n- ${val('wt_reason')==='other'?val('wt_custom'):val('wt_reason')}`);
+        }
+        else if(currentForm === 'askeryafter') {
+            txt.push(`*الاسم:* ${val('aa_name')}`);
+            txt.push(`*الجنسية:* ${val('aa_nat')}`);
+            txt.push(`*رقم الجواز:* ${val('aa_pass')}`);
+            txt.push(`*جهة المغادرة:* ${val('aa_dest')}`);
+            txt.push(`*رقم الرحلة:* ${val('aa_flight')}`);
+            txt.push(`*الخطوط:* ${val('aa_line')}`);
+            txt.push(`*قطاع العسكري:* ${val('aa_sec')}`);
+            txt.push(`*مدة الإجازة:* ${val('aa_dur')}`);
+            if(val('aa_d')) txt.push(`*تاريخ بداية الإجازة:* ${val('aa_d')}-${val('aa_mo')}-${val('aa_y')}`);
+            if(val('aa_h') || val('aa_m')) txt.push(`*وقت الإقلاع:* ${pad(val('aa_h'))}:${pad(val('aa_m'))}`);
+            if(val('aa_gh') || val('aa_gm')) txt.push(`*موعد فتح البوابة:* ${pad(val('aa_gh'))}:${pad(val('aa_gm'))}`);
+            txt.push(`*الملاحظة:* ${val('aa_note')}`);
+        }
+        else if(currentForm === 'askrycontery') {
+            txt.push(`*عسكري الى دولة ممنوعة*`);
+            txt.push(`*الاسم:* ${val('ac_name')}`);
+            txt.push(`*الجنسية:* ${val('ac_nat')}`);
+            txt.push(`*رقم الجواز:* ${val('ac_pass')}`);
+            txt.push(`*جهة المغادرة:* ${val('ac_dest')}`);
+            if(val('ac_h') || val('ac_m')) txt.push(`*وقت الإقلاع:* ${pad(val('ac_h'))}:${pad(val('ac_m'))}`);
+            if(val('ac_gh') || val('ac_gm')) txt.push(`*موعد فتح البوابة:* ${pad(val('ac_gh'))}:${pad(val('ac_gm'))}`);
+            txt.push(`*رقم الرحلة:* ${val('ac_flight')}`);
+            txt.push(`\n*الملاحظة:* ${val('ac_note')}`);
+            txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
+        }
+        else if(currentForm === 'askryd') {
+            txt.push(`*الاسم:* ${val('ad_name')}`);
+            txt.push(`*الجنسية:* ${val('ad_nat')}`);
+            txt.push(`*رقم الجواز:* ${val('ad_pass')}`);
+            txt.push(`*جهة المغادرة:* ${val('ad_dest')}`);
+            txt.push(`*رقم الرحلة:* ${val('ad_flight')}`);
+            txt.push(`*الخطوط:* ${val('ad_line')}`);
+            if(val('ad_h') || val('ad_m')) txt.push(`*وقت الإقلاع:* ${pad(val('ad_h'))}:${pad(val('ad_m'))}`);
+            if(val('ad_gh') || val('ad_gm')) txt.push(`*موعد فتح البوابة:* ${pad(val('ad_gh'))}:${pad(val('ad_gm'))}`);
+            txt.push(`*القطاع:* ${val('ad_sec')}`);
+            txt.push(`*مدة الإجازة:* ${val('ad_dur')}`);
+            txt.push(`*الملاحظة:* ${val('ad_note')}`);
+        }
+        else if(currentForm === 'defname') {
+            txt.push(`*الاسم:* ${val('dn_name')}`);
+            txt.push(`*الجنسية:* ${val('dn_nat')}`);
+            txt.push(`*رقم الجواز:* ${val('dn_pass')}`);
+            txt.push(`*جهة المغادرة:* ${val('dn_dest')}`);
+            txt.push(`*رقم الرحلة:* ${val('dn_flight')}`);
+            txt.push(`*الملاحظة:* ${val('dn_note')}`);
+        }
+        else if(currentForm === 'fingercon') {
+            txt.push(`*الاسم:* ${val('fc_name')}`);
+            txt.push(`*الجنسية:* ${val('fc_nat')}`);
+            txt.push(`*رقم الجواز:* ${val('fc_pass')}`);
+            txt.push(`*نوع التأشيرة:* ${val('fc_visa')}`);
+            txt.push(`*رقم الإقامة/الحدود:* ${val('fc_res')}`);
+            txt.push(`*الخطوط:* ${val('fc_air')}`);
+            txt.push(`*رقم الرحلة:* ${val('fc_flight')}`);
+            txt.push(`*والمتجهة:* ${val('fc_dest')}`);
+            txt.push(`\n*الملاحظة:*`);
+            txt.push(val('fc_note'));
+            txt.push('\n*بأمل اطلاع سعادتكم والتوجيه ابقائها نفسها*');
+        }
+        else if(currentForm === 'updut') {
+            txt.push(`*الاسم:* ${val('up_name')}`);
+            txt.push(`*الجنسية:* ${val('up_nat')}`);
+            txt.push(`*رقم الجواز الجديد:* ${val('up_new')}`);
+            txt.push(`*رقم الجواز القديم:* ${val('up_old')}`);
+            txt.push(`*رقم الإقامة:* ${val('up_res')}`);
+            txt.push(`*المهنة:* ${val('up_job')}`);
+            txt.push(`*اسم الكفيل:* ${val('up_sponsor')}`);
+            txt.push(`*رقم الرحلة:* ${val('up_flight')}`);
+            if(val('up_h') || val('up_m')) txt.push(`*وقت الإقلاع:* ${pad(val('up_h'))}:${pad(val('up_m'))}`);
+            txt.push(`*الملاحظة:* ${val('up_note')}`);
+            txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
+        }
+
+        window.location.href = `https://wa.me/?text=${encodeURIComponent(txt.join('\n'))}`;
+    }
+</script>
 
 </body>
 </html>
