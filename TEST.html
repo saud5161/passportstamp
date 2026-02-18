@@ -3,298 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MRZ Pro Reader</title>
+    <title>MRZ Auto-Scanner</title>
+    
     <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root { --main: #2563eb; --success: #198754; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', monospace; margin: 0; padding: 0; overflow-x: hidden; }
+        :root { --primary: #0d6efd; --dark: #1a1a1a; --light: #ffffff; }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f2f5; height: 100vh; display: flex; flex-direction: column; }
 
-        /* منطقة الكاميرا */
-        .scanner-container { position: relative; width: 100%; height: 60vh; background: black; overflow: hidden; }
+        /* الشاشة الرئيسية (زر البدء) */
+        .start-screen {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; text-align: center;
+        }
+        .icon-box {
+            width: 100px; height: 100px; background: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 30px;
+        }
+        .icon-box i { font-size: 40px; color: var(--primary); }
+        .btn-start {
+            background: var(--primary); color: white; border: none; padding: 15px 40px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3); transition: 0.2s;
+        }
+        .btn-start:active { transform: scale(0.95); }
+
+        /* شاشة الكاميرا (تظهر عند النقر) */
+        .scanner-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 100; display: none;
+        }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* دليل التوجيه (Overlay) */
-        .overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        /* إطار التوجيه */
+        .scan-guide {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; height: 25%; /* ارتفاع مناسب لمنطقة MRZ */
+            border: 2px solid #00ff00; border-radius: 10px;
+            box-shadow: 0 0 0 100vmax rgba(0,0,0,0.7); /* تعتيم الخلفية */
+            overflow: hidden;
         }
-        .mrz-box {
-            width: 90%; height: 15vh; /* ارتفاع مناسب لسطرين */
-            border: 2px solid #00ff00;
-            background: rgba(0, 255, 0, 0.1);
-            box-shadow: 0 0 0 100vmax rgba(0,0,0,0.7); /* تعتيم ما حول الصندوق */
-            position: relative;
-            margin-top: 10vh;
-        }
-        .mrz-box::after {
-            content: "ضع الرموز السفلية <<<< هنا";
-            position: absolute; bottom: -30px; width: 100%; text-align: center;
-            color: #00ff00; font-weight: bold; font-size: 0.9rem;
-            text-shadow: 0 1px 2px black;
-        }
-        
-        /* خط المسح المتحرك */
         .scan-line {
-            width: 100%; height: 2px; background: #00ff00;
-            position: absolute; top: 0;
-            animation: scan 2s infinite linear;
-            box-shadow: 0 0 10px #00ff00;
+            width: 100%; height: 2px; background: #00ff00; position: absolute; top: 0;
+            box-shadow: 0 0 10px #00ff00; animation: scanAnim 2s infinite linear;
         }
-        @keyframes scan { 0% {top:0} 50% {top:100%} 100% {top:0} }
+        @keyframes scanAnim { 0% {top:0} 50% {top:100%} 100% {top:0} }
+        
+        .scan-text {
+            position: absolute; bottom: 15%; width: 100%; text-align: center; color: white;
+            font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 101;
+        }
+        .btn-close-cam {
+            position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.2);
+            border: none; color: white; padding: 10px 20px; border-radius: 20px; z-index: 102;
+        }
 
-        /* الأزرار */
-        .controls {
-            position: absolute; bottom: 20px; width: 100%;
-            display: flex; justify-content: center; gap: 20px; z-index: 10;
+        /* شاشة النتائج */
+        .result-screen {
+            display: none; padding: 20px; background: white; border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1); margin-top: auto; height: 70vh;
+            animation: slideUp 0.3s ease-out;
         }
-        .btn-shot {
-            width: 70px; height: 70px; border-radius: 50%;
-            background: white; border: 4px solid rgba(255,255,255,0.3);
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-        }
-        .btn-shot:active { transform: scale(0.9); background: var(--main); }
+        @keyframes slideUp { from {transform: translateY(100%)} to {transform: translateY(0)} }
 
-        /* بطاقة النتيجة */
-        .result-panel {
-            background: var(--card); padding: 20px; border-radius: 20px 20px 0 0;
-            min-height: 40vh; position: relative; margin-top: -20px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.5); transform: translateY(100%);
-            transition: transform 0.3s ease-out;
-        }
-        .result-panel.active { transform: translateY(0); }
+        .field-group { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .lbl { font-size: 0.85rem; color: #888; display: block; margin-bottom: 5px; }
+        .val { font-size: 1.1rem; font-weight: bold; color: #333; display: block; }
+        .val.mono { font-family: monospace; letter-spacing: 1px; color: var(--primary); }
 
-        .data-row {
-            display: flex; justify-content: space-between; border-bottom: 1px solid #333;
-            padding: 12px 0; align-items: center;
-        }
-        .data-label { font-size: 0.8rem; color: #888; }
-        .data-value { font-size: 1.1rem; font-weight: bold; color: white; letter-spacing: 1px; }
-        .data-value.mono { font-family: 'Courier New', monospace; color: var(--success); }
-
-        /* شاشة التحميل */
+        /* لودر التحميل */
         .loader {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.9); z-index: 999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white;
+            z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .spinner { width:40px; height:40px; border:4px solid #333; border-top-color:var(--main); border-radius:50%; animation:s 1s infinite linear; }
-        @keyframes s { to { transform: rotate(360deg); } }
-
     </style>
 </head>
 <body>
 
 <div id="loader" class="loader">
-    <div class="spinner"></div>
-    <p style="margin-top:10px; color:#aaa;">جاري تحميل محرك MRZ...</p>
+    <i class="fas fa-cog fa-spin" style="font-size: 30px; color: var(--primary);"></i>
+    <p style="margin-top:15px; color:#666;">تجهيز النظام...</p>
 </div>
 
-<div class="scanner-container">
-    <video id="video" playsinline autoplay muted></video>
-    <div class="overlay">
-        <div class="mrz-box">
-            <div class="scan-line"></div>
-        </div>
-    </div>
-    <div class="controls">
-        <div class="btn-shot" onclick="captureAndScan()">
-            <i class="fas fa-camera" style="font-size: 24px; color: #333;"></i>
-        </div>
-    </div>
+<div class="start-screen" id="startScreen">
+    <div class="icon-box"><i class="fas fa-passport"></i></div>
+    <h2>قارئ الجوازات الآلي</h2>
+    <p style="color:#666; margin-bottom:30px;">اضغط الزر، وجه الكاميرا، وسيقوم النظام بالباقي.</p>
+    <button class="btn-start" onclick="openCamera()"><i class="fas fa-camera"></i> ابدأ المسح</button>
 </div>
 
-<canvas id="c" style="display:none"></canvas>
+<div class="scanner-overlay" id="scannerOverlay">
+    <video id="video" playsinline muted autoplay></video>
+    <div class="scan-guide">
+        <div class="scan-line"></div>
+    </div>
+    <div class="scan-text">ضع الرموز السفلية <<<< داخل الإطار الأخضر</div>
+    <button class="btn-close-cam" onclick="closeCamera()">إلغاء</button>
+    <canvas id="hiddenCanvas" style="display:none;"></canvas>
+</div>
 
-<div id="resultPanel" class="result-panel">
-    <div style="text-align:center; margin-bottom:15px; color:var(--success);">
-        <i class="fas fa-check-circle"></i> تم القراءة بنجاح
-    </div>
-
-    <div class="data-row">
-        <span class="data-label">الاسم (English)</span>
-        <span class="data-value" id="res_name">--</span>
-    </div>
-    <div class="data-row">
-        <span class="data-label">رقم الجواز</span>
-        <span class="data-value mono" id="res_doc">--</span>
-    </div>
-    <div class="data-row">
-        <span class="data-label">الجنسية</span>
-        <span class="data-value" id="res_nat">--</span>
-    </div>
-    <div class="data-row">
-        <span class="data-label">تاريخ الميلاد</span>
-        <span class="data-value mono" id="res_dob">--</span>
-    </div>
-    <div class="data-row">
-        <span class="data-label">الجنس</span>
-        <span class="data-value" id="res_sex">--</span>
-    </div>
-    <div class="data-row">
-        <span class="data-label">تاريخ الانتهاء</span>
-        <span class="data-value mono" id="res_exp">--</span>
+<div class="result-screen" id="resultScreen">
+    <div style="text-align:center; color:green; margin-bottom:20px;">
+        <i class="fas fa-check-circle" style="font-size:40px;"></i>
+        <h3>تمت القراءة بنجاح</h3>
     </div>
 
-    <button onclick="resetScanner()" style="width:100%; padding:15px; background:#333; color:white; border:none; margin-top:20px; border-radius:10px; font-weight:bold;">
-        مسح جديد
-    </button>
+    <div class="field-group">
+        <span class="lbl">الاسم (English)</span>
+        <span class="val" id="res_name">--</span>
+    </div>
+    <div class="field-group">
+        <span class="lbl">رقم الجواز</span>
+        <span class="val mono" id="res_doc">--</span>
+    </div>
+    <div class="field-group">
+        <span class="lbl">الجنسية</span>
+        <span class="val" id="res_nat">--</span>
+    </div>
+    <div class="field-group">
+        <span class="lbl">تاريخ الانتهاء</span>
+        <span class="val mono" id="res_exp">--</span>
+    </div>
+
+    <button class="btn-start" style="width:100%; margin-top:10px; background:#6c757d;" onclick="resetApp()">مسح جديد</button>
 </div>
 
 <script>
     const video = document.getElementById('video');
-    const canvas = document.getElementById('c');
+    const canvas = document.getElementById('hiddenCanvas');
     const ctx = canvas.getContext('2d');
-    const loader = document.getElementById('loader');
-    const resultPanel = document.getElementById('resultPanel');
     let worker = null;
+    let stream = null;
+    let isScanning = false;
+    let scanInterval = null;
 
-    // تهيئة المحرك
-    async function init() {
+    // === تهيئة المحرك مرة واحدة عند الفتح ===
+    async function initWorker() {
         try {
             worker = Tesseract.createWorker();
             await worker.load();
             await worker.loadLanguage('eng');
             await worker.initialize('eng');
-            // إعدادات احترافية: السماح فقط بالحروف والأرقام والرمز <
+            // إجبار المحرك على قراءة الحروف والأرقام و < فقط لزيادة السرعة والدقة
             await worker.setParameters({
                 tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
             });
-            
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } 
-            });
-            video.srcObject = stream;
-            loader.style.display = 'none';
+            document.getElementById('loader').style.display = 'none';
         } catch (e) {
-            alert("خطأ: " + e.message);
+            alert('فشل تحميل المكتبة، تأكد من الإنترنت');
         }
     }
 
-    // التقاط ومعالجة
-    async function captureAndScan() {
-        loader.style.display = 'flex';
-        document.querySelector('#loader p').innerText = "جاري التحليل والمعالجة...";
+    // === تشغيل الكاميرا ===
+    async function openCamera() {
+        if (!worker) return;
+        document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('resultScreen').style.display = 'none';
+        document.getElementById('scannerOverlay').style.display = 'block';
 
-        // 1. تحديد منطقة MRZ فقط من الفيديو (الصندوق الأخضر)
-        // حساب النسب بناء على حجم الفيديو الفعلي
-        const vidW = video.videoWidth;
-        const vidH = video.videoHeight;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                isScanning = true;
+                processFrame(); // بدء حلقة المعالجة
+            };
+        } catch (err) {
+            alert("لا يمكن الوصول للكاميرا");
+            closeCamera();
+        }
+    }
+
+    // === إغلاق الكاميرا ===
+    function closeCamera() {
+        isScanning = false;
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        document.getElementById('scannerOverlay').style.display = 'none';
+        if(document.getElementById('resultScreen').style.display === 'none') {
+            document.getElementById('startScreen').style.display = 'flex';
+        }
+    }
+
+    // === معالجة الإطار (Loop) ===
+    async function processFrame() {
+        if (!isScanning) return;
+
+        // 1. التقاط الصورة الحالية
+        const w = video.videoWidth;
+        const h = video.videoHeight;
         
-        // الصندوق الأخضر يقع تقريبا في النصف السفلي
-        // سنقص الجزء السفلي والوسطي بدقة
-        const cropW = vidW * 0.90; // عرض 90%
-        const cropH = vidH * 0.25; // ارتفاع 25% (يكفي لسطرين)
-        const cropX = (vidW - cropW) / 2;
-        const cropY = (vidH * 0.4); // تموضع تقريبي للمنتصف/الأسفل
+        // قص منطقة الإطار الأخضر فقط (الوسط)
+        // الإطار ارتفاعه 25% وفي المنتصف
+        const cropW = w * 0.9;
+        const cropH = h * 0.25;
+        const cropX = (w - cropW) / 2;
+        const cropY = (h - cropH) / 2;
 
         canvas.width = cropW;
         canvas.height = cropH;
 
-        // رسم الجزء المقتطع
+        // رسم الجزء المقصوص
         ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
 
-        // 2. معالجة الصورة (Binarization) لزيادة دقة الحروف
-        let imgData = ctx.getImageData(0,0, cropW, cropH);
+        // 2. معالجة الصورة (زيادة التباين)
+        // تحويل لأسود وأبيض ليسهل على النظام قراءة الحروف
+        let imgData = ctx.getImageData(0, 0, cropW, cropH);
         let d = imgData.data;
-        for (let i=0; i<d.length; i+=4) {
-            let v = 0.2126*d[i] + 0.7152*d[i+1] + 0.0722*d[i+2];
-            v = (v > 110) ? 255 : 0; // تحويل لأبيض وأسود صارم
-            d[i] = d[i+1] = d[i+2] = v;
+        for (let i = 0; i < d.length; i += 4) {
+            let avg = (d[i] + d[i + 1] + d[i + 2]) / 3;
+            let val = avg < 100 ? 0 : 255; // عتبة اللون
+            d[i] = d[i + 1] = d[i + 2] = val;
         }
         ctx.putImageData(imgData, 0, 0);
 
-        // 3. تحليل النص
+        // 3. التحليل
         const { data: { text } } = await worker.recognize(canvas);
-        const success = parseMRZ(text);
+        
+        // 4. التحقق من النتيجة
+        const result = parseMRZ(text);
 
-        loader.style.display = 'none';
-        if(success) {
-            resultPanel.classList.add('active');
+        if (result) {
+            // == نجاح! ==
+            if(navigator.vibrate) navigator.vibrate(200); // اهتزاز
+            displayResults(result); // عرض النتائج
+            closeCamera(); // إغلاق الكاميرا فوراً
         } else {
-            alert("لم يتم العثور على رموز واضحة. حاول تثبيت اليد وتوجيه الإضاءة.");
+            // إعادة المحاولة بعد وقت قصير
+            requestAnimationFrame(processFrame);
         }
     }
 
-    // خوارزمية تحليل MRZ (عقل النظام)
-    function parseMRZ(fullText) {
-        console.log(fullText);
-        // تنظيف النص: إزالة المسافات والفراغات
-        const lines = fullText.split('\n').map(l => l.replace(/ /g, '').trim()).filter(l => l.length > 30);
+    // === خوارزمية تحليل MRZ ===
+    function parseMRZ(text) {
+        // تنظيف النص
+        const lines = text.split('\n').map(l => l.replace(/ /g, '').trim());
+        
+        // البحث عن سطر يبدأ بـ P< (الجواز)
+        const line1 = lines.find(l => l.startsWith('P') && l.includes('<<'));
+        // البحث عن سطر يبدأ برقم او حرف ويحتوي ارقام كثيرة
+        const line2 = lines.find(l => l !== line1 && l.length > 20 && l.match(/[0-9]/));
 
-        // البحث عن السطر الأول (يبدأ بـ P)
-        const line1 = lines.find(l => l.startsWith('P'));
-        // البحث عن السطر الثاني (يحتوي أرقام)
-        const line2 = lines.find(l => l !== line1 && l.match(/[0-9]/));
+        if (line1 && line2) {
+            try {
+                // استخراج البيانات
+                const nat = line1.substring(2, 5).replace(/</g, '');
+                const rawName = line1.substring(5).split('<<');
+                const surname = rawName[0].replace(/</g, ' ').trim();
+                const given = rawName.length > 1 ? rawName[1].split('<')[0].replace(/</g, ' ').trim() : '';
+                
+                const docNum = line2.substring(0, 9).replace(/</g, '');
+                
+                // تاريخ الانتهاء (تنسيق بسيط)
+                let expY = line2.substring(21, 23);
+                let expM = line2.substring(23, 25);
+                let expD = line2.substring(25, 27);
+                const expDate = `20${expY}-${expM}-${expD}`;
 
-        if (!line1 || !line2) return false;
+                // شرط الجودة: يجب ان يكون رقم الجواز 6 خانات على الاقل
+                if (docNum.length < 6) return null;
 
-        try {
-            // 1. الدولة
-            const country = line1.substring(2, 5).replace(/</g, '');
-            // 2. الاسم
-            const rawName = line1.substring(5);
-            const names = rawName.split('<<');
-            const surname = names[0].replace(/</g, ' ').trim();
-            const given = names.length > 1 ? names[1].split('<')[0].replace(/</g, ' ').trim() : '';
-            
-            // 3. رقم الوثيقة
-            const docNum = line2.substring(0, 9).replace(/</g, '');
-            
-            // 4. الجنسية
-            const nat = line2.substring(10, 13).replace(/</g, '');
-            
-            // 5. تاريخ الميلاد (YYMMDD)
-            let dob = line2.substring(13, 19);
-            dob = formatDate(dob);
-
-            // 6. الجنس
-            const sex = line2.substring(20, 21).replace(/</g, '');
-
-            // 7. تاريخ الانتهاء
-            let exp = line2.substring(21, 27);
-            exp = formatExp(exp);
-
-            // عرض النتائج
-            document.getElementById('res_name').innerText = surname + " " + given;
-            document.getElementById('res_doc').innerText = docNum;
-            document.getElementById('res_nat').innerText = country; // أو nat
-            document.getElementById('res_dob').innerText = dob;
-            document.getElementById('res_sex').innerText = sex;
-            document.getElementById('res_exp').innerText = exp;
-
-            return true;
-        } catch (e) {
-            console.error(e);
-            return false;
+                return {
+                    name: surname + " " + given,
+                    doc: docNum,
+                    nat: nat,
+                    exp: expDate
+                };
+            } catch (e) { return null; }
         }
+        return null;
     }
 
-    function formatDate(str) {
-        if(str.length !== 6) return str;
-        // تخمين السنة (إذا أكبر من 26 فهي 1900، وإلا 2000)
-        let y = parseInt(str.substring(0,2));
-        let m = str.substring(2,4);
-        let d = str.substring(4,6);
-        let fullY = (y > 30) ? "19"+y : "20"+y;
-        return `${fullY}-${m}-${d}`;
+    function displayResults(data) {
+        document.getElementById('res_name').innerText = data.name;
+        document.getElementById('res_doc').innerText = data.doc;
+        document.getElementById('res_nat').innerText = data.nat;
+        document.getElementById('res_exp').innerText = data.exp;
+        
+        document.getElementById('resultScreen').style.display = 'block';
     }
 
-    function formatExp(str) {
-        if(str.length !== 6) return str;
-        let y = parseInt(str.substring(0,2));
-        let m = str.substring(2,4);
-        let d = str.substring(4,6);
-        return `20${y}-${m}-${d}`;
+    function resetApp() {
+        document.getElementById('resultScreen').style.display = 'none';
+        document.getElementById('startScreen').style.display = 'flex';
     }
 
-    function resetScanner() {
-        resultPanel.classList.remove('active');
-    }
-
-    window.onload = init;
+    window.onload = initWorker;
 </script>
 
 </body>
