@@ -3,312 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>قارئ الجوازات الآلي (MRZ)</title>
+    <title>ماسح الجوازات الاحترافي (Pro MRZ)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
 
     <style>
         :root {
-            --primary: #198754;
-            --primary-dark: #0f3d28;
-            --gold: #c5a059;
-            --bg: #f8f9fa;
-            --white: #ffffff;
-            --text: #2c3e50;
-            --radius: 12px;
+            --primary: #198754; --gold: #c5a059; --bg: #f0f2f5; --text: #1f2937;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding-bottom: 50px;
-            -webkit-tap-highlight-color: transparent;
+            background-color: var(--bg); color: var(--text);
+            margin: 0; padding: 20px 10px;
         }
 
-        header {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 4px solid var(--gold);
-            border-bottom-left-radius: 25px;
-            border-bottom-right-radius: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            margin-bottom: 20px;
+        .header {
+            text-align: center; margin-bottom: 20px;
         }
-        header h1 { margin: 0; font-size: 1.4rem; font-weight: 800; }
+        .header h2 { color: var(--primary); margin: 0; font-weight: 800; }
+        .header p { color: #666; font-size: 0.9rem; margin-top: 5px; }
 
-        .container { max-width: 600px; margin: 0 auto; padding: 0 15px; }
-
-        .scan-box {
-            background: #000;
-            border-radius: var(--radius);
-            overflow: hidden;
+        /* منطقة الكاميرا */
+        .camera-container {
             position: relative;
-            height: 250px;
-            margin-bottom: 20px;
-            display: none; /* مخفي افتراضياً */
-            border: 2px solid var(--gold);
+            width: 100%; max-width: 500px; height: 300px;
+            margin: 0 auto 20px auto;
+            background: #000; border-radius: 15px; overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            display: none;
         }
 
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        video { width: 100%; height: 100%; object-fit: cover; }
 
-        .scan-overlay {
+        /* إطار التوجيه (المنطقة الحمراء) */
+        .scan-guide {
             position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            height: 60px;
-            border: 2px dashed rgba(255, 255, 255, 0.7);
-            background: rgba(255, 255, 255, 0.1);
-            pointer-events: none;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; height: 60px;
+            border: 2px solid rgba(255, 0, 0, 0.7);
+            background: rgba(255, 0, 0, 0.1);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); /* تعتيم المناطق الخارجية */
+            z-index: 10;
         }
-        
-        .scan-status {
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
-            text-align: center;
-            color: white;
-            font-weight: bold;
-            background: rgba(0,0,0,0.5);
-            padding: 5px;
+        .scan-guide::after {
+            content: 'ضع الرموز <<< هنا';
+            position: absolute; top: -25px; left: 0; width: 100%;
+            text-align: center; color: white; font-weight: bold; font-size: 0.8rem;
+            text-shadow: 1px 1px 2px black;
         }
 
-        .form-section {
-            background: var(--white);
-            padding: 20px;
-            border-radius: var(--radius);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        .status-bar {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: rgba(0,0,0,0.8); color: white;
+            padding: 8px; text-align: center; font-size: 0.85rem;
+            z-index: 20;
+        }
+
+        /* النموذج والنتائج */
+        .result-card {
+            background: white; border-radius: 15px; padding: 20px;
+            max-width: 500px; margin: 0 auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             border-top: 4px solid var(--gold);
         }
 
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: 700; color: #444; }
-        input {
-            width: 100%; padding: 12px; border: 1px solid #e0e0e0;
-            border-radius: 10px; font-size: 1rem; background-color: #fcfcfc;
-            box-sizing: border-box; transition: 0.3s;
+        .field { margin-bottom: 15px; position: relative; }
+        .field label { display: block; font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 5px; }
+        .field input {
+            width: 100%; padding: 12px 10px 12px 40px; 
+            border: 1px solid #ddd; border-radius: 8px;
+            font-size: 1rem; font-family: monospace; font-weight: bold;
+            background: #fcfcfc; box-sizing: border-box;
         }
-        input:focus { outline: none; border-color: var(--gold); background-color: #fff; }
+        .field i { position: absolute; left: 12px; top: 38px; color: #999; }
 
+        /* الأزرار */
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         .btn {
-            width: 100%; padding: 14px; border: none; border-radius: 50px;
-            font-weight: bold; font-size: 1rem; color: white; cursor: pointer;
-            margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: 0.2s;
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            font-weight: bold; cursor: pointer; color: white;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .btn:active { transform: scale(0.98); }
-        .btn-scan { background: var(--primary); }
+        .btn-start { background: var(--primary); }
         .btn-stop { background: #dc3545; display: none; }
-        .btn-clear { background: #6c757d; }
+        .btn-copy { background: #6c757d; }
 
-        /* Loader */
-        .loader {
-            display: none;
-            border: 4px solid #f3f3f3; border-top: 4px solid var(--gold);
-            border-radius: 50%; width: 20px; height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
+        /* معاينة المعالجة (للمطور/للتأكد) - اجعلها مخفية */
+        #debugCanvas { display: none; max-width: 100%; border: 1px solid red; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>قارئ الجوازات الآلي</h1>
-</header>
-
-<div class="container">
-
-    <div id="cameraBox" class="scan-box">
-        <video id="video" playsinline></video>
-        <div class="scan-overlay"></div> <div class="scan-status" id="scanStatus">جاري تهيئة الكاميرا...</div>
-    </div>
-
-    <button id="startBtn" class="btn btn-scan" onclick="startCamera()">
-        <i class="fas fa-camera"></i> تشغيل الكاميرا والمسح
-    </button>
-    <button id="stopBtn" class="btn btn-stop" onclick="stopCamera()">
-        <i class="fas fa-stop-circle"></i> إيقاف الكاميرا
-        <div class="loader" id="loadingIcon"></div>
-    </button>
-
-    <div class="form-section">
-        <div class="input-group">
-            <label>الاسم (كما في الجواز)</label>
-            <input type="text" id="p_name" placeholder="الاسم اللاتيني" style="direction: ltr; text-align: right;">
-        </div>
-        <div class="input-group">
-            <label>رقم الجواز</label>
-            <input type="text" id="p_number" class="en-num" style="direction: ltr;" placeholder="Passport Number">
-        </div>
-        <div class="input-group">
-            <label>الجنسية (رمز الدولة)</label>
-            <input type="text" id="p_nat" style="direction: ltr; text-align: right;" placeholder="SAU">
-        </div>
-
-        <button class="btn btn-clear" onclick="clearFields()">
-            <i class="fas fa-eraser"></i> تفريغ الحقول
-        </button>
-    </div>
-
+<div class="header">
+    <h2><i class="fas fa-passport"></i> ماسح الجوازات الاحترافي</h2>
+    <p>ضع سطر الرموز (MRZ) داخل الإطار الأحمر بدقة</p>
 </div>
 
-<canvas id="canvas" style="display:none;"></canvas>
+<div id="cameraContainer" class="camera-container">
+    <video id="video" playsinline muted autoplay></video>
+    <div class="scan-guide"></div>
+    <div class="status-bar" id="status">جاري تشغيل الكاميرا...</div>
+</div>
+
+<div class="result-card">
+    <div class="field">
+        <label>الاسم الكامل (Latin Name)</label>
+        <input type="text" id="mrz_name" placeholder="ALHAJJI SAUD" readonly>
+        <i class="fas fa-user"></i>
+    </div>
+    
+    <div class="field">
+        <label>رقم الجواز (Passport Number)</label>
+        <input type="text" id="mrz_number" placeholder="X12345678" readonly>
+        <i class="fas fa-id-card"></i>
+    </div>
+
+    <div class="field">
+        <label>الجنسية (Nationality)</label>
+        <input type="text" id="mrz_nat" placeholder="SAU" readonly>
+        <i class="fas fa-flag"></i>
+    </div>
+
+    <div class="btn-group">
+        <button id="btnStart" class="btn btn-start" onclick="startScan()">
+            <i class="fas fa-camera"></i> تشغيل المسح
+        </button>
+        <button id="btnStop" class="btn btn-stop" onclick="stopScan()">
+            <i class="fas fa-stop"></i> إيقاف
+        </button>
+        <button class="btn btn-copy" onclick="copyData()">
+            <i class="fas fa-copy"></i> نسخ
+        </button>
+    </div>
+</div>
+
+<canvas id="processingCanvas" style="display:none;"></canvas>
 
 <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const statusText = document.getElementById('scanStatus');
-    let stream = null;
+    let videoStream = null;
+    let worker = null;
     let isScanning = false;
-    let scanInterval = null;
+    const video = document.getElementById('video');
+    const statusEl = document.getElementById('status');
+    const canvas = document.getElementById('processingCanvas');
+    const ctx = canvas.getContext('2d');
 
-    // === تشغيل الكاميرا ===
-    async function startCamera() {
+    // === 1. إعداد محرك Tesseract بدقة عالية ===
+    async function initWorker() {
+        statusEl.innerText = "جاري تحميل محرك الذكاء الاصطناعي...";
+        worker = Tesseract.createWorker({
+            logger: m => {
+                if(m.status === 'recognizing text') {
+                    statusEl.innerText = `جاري التحليل: ${Math.round(m.progress * 100)}%`;
+                }
+            }
+        });
+        
+        await worker.load();
+        await worker.loadLanguage('eng');
+        await worker.initialize('eng');
+        
+        // **السر هنا**: إجبار المحرك على قراءة الحروف والأرقام و < فقط
+        await worker.setParameters({
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
+        });
+        statusEl.innerText = "المحرك جاهز. وجه الكاميرا.";
+    }
+
+    // === 2. تشغيل الكاميرا ===
+    async function startScan() {
+        if (!worker) await initWorker();
+
+        document.getElementById('cameraContainer').style.display = 'block';
+        document.getElementById('btnStart').style.display = 'none';
+        document.getElementById('btnStop').style.display = 'flex';
+        
         try {
-            document.getElementById('cameraBox').style.display = 'block';
-            document.getElementById('startBtn').style.display = 'none';
-            document.getElementById('stopBtn').style.display = 'flex';
-            document.getElementById('loadingIcon').style.display = 'block';
-            statusText.innerText = "يرجى توجيه الكاميرا على الرموز أسفل الجواز";
-
-            stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "environment" } // استخدام الكاميرا الخلفية
-            });
-            video.srcObject = stream;
-            video.play();
+            const constraints = { 
+                video: { 
+                    facingMode: "environment",
+                    width: { ideal: 1920 }, // طلب دقة عالية
+                    height: { ideal: 1080 }
+                } 
+            };
+            videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = videoStream;
             
             isScanning = true;
-            // بدء عملية المسح الدوري كل 1.5 ثانية
-            scanInterval = setInterval(processFrame, 1500);
-
+            requestAnimationFrame(processFrame);
+            
         } catch (err) {
-            alert("لا يمكن الوصول للكاميرا. تأكد من السماح بالأذونات وأن الموقع يعمل عبر HTTPS.");
-            stopCamera();
+            alert("لا يمكن الوصول للكاميرا. تأكد من استخدام HTTPS.");
+            stopScan();
         }
     }
 
-    // === إيقاف الكاميرا ===
-    function stopCamera() {
+    // === 3. إيقاف المسح ===
+    function stopScan() {
         isScanning = false;
-        clearInterval(scanInterval);
-        
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
         }
-        
-        document.getElementById('cameraBox').style.display = 'none';
-        document.getElementById('startBtn').style.display = 'flex';
-        document.getElementById('stopBtn').style.display = 'none';
-        document.getElementById('loadingIcon').style.display = 'none';
+        document.getElementById('cameraContainer').style.display = 'none';
+        document.getElementById('btnStart').style.display = 'flex';
+        document.getElementById('btnStop').style.display = 'none';
     }
 
-    // === معالجة الإطار الحالي ===
-    function processFrame() {
+    // === 4. معالجة الصور (Image Processing Pipeline) ===
+    async function processFrame() {
         if (!isScanning) return;
 
-        // رسم الصورة الحالية من الفيديو على الكانفاس
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            // أبعاد الفيديو
+            const w = video.videoWidth;
+            const h = video.videoHeight;
+            
+            // تحديد منطقة القص (المنتصف فقط حيث يوجد الإطار الأحمر)
+            // نقص العرض بنسبة 80% والارتفاع بنسبة 20% من المنتصف
+            const cropW = w * 0.9;
+            const cropH = h * 0.25; 
+            const cropX = (w - cropW) / 2;
+            const cropY = (h - cropH) / 2;
 
-        // قص الجزء السفلي فقط (مكان MRZ عادة) لتحسين السرعة والدقة
-        // أو إرسال الصورة كاملة. لنجرب الصورة كاملة أولاً.
+            canvas.width = cropW;
+            canvas.height = cropH;
+
+            // 1. رسم المنطقة المقصوصة فقط
+            ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+            // 2. تحويل الصورة إلى تباين عالي (High Contrast Binarization)
+            // هذا يجعل النص أسود والخلفية بيضاء تماماً
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                // تحويل لرمادي
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                // تطبيق Threshold (عتبة): إذا كان غامق اجعله أسود، فاتح اجعله أبيض
+                const threshold = 100; // قيمة تجريبية لتباين الجوازات
+                const color = avg < threshold ? 0 : 255;
+                data[i] = color;     // R
+                data[i + 1] = color; // G
+                data[i + 2] = color; // B
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            // 3. إرسال الصورة المعالجة للمحرك
+            // ملاحظة: نقوم بذلك كل ثانية تقريباً وليس كل إطار لتخفيف الضغط
+            if (!video.paused) {
+                const { data: { text } } = await worker.recognize(canvas);
+                parseMRZ(text);
+            }
+        }
         
-        statusText.innerText = "جاري قراءة النصوص...";
-
-        // استخدام Tesseract للتعرف على النص
-        Tesseract.recognize(
-            canvas,
-            'eng', // اللغة الإنجليزية لأن MRZ إنجليزي
-            { logger: m => console.log(m) } // لمتابعة التقدم في الكونسول
-        ).then(({ data: { text } }) => {
-            console.log("Text Detected:\n", text);
-            parseMRZ(text);
-        });
+        // إعادة التكرار (ولكن ببطء قليلاً لتوفير الموارد)
+        if(isScanning) setTimeout(() => requestAnimationFrame(processFrame), 500); 
     }
 
-    // === تحليل النص واستخراج MRZ ===
+    // === 5. تحليل البيانات بدقة (Regex & Parsing) ===
     function parseMRZ(text) {
-        // تنظيف النص
-        const lines = text.split('\n').map(l => l.replace(/\s/g, '').toUpperCase());
-        
-        let foundLine1 = null;
-        let foundLine2 = null;
+        // تنظيف النص: إزالة المسافات والأسطر الفارغة
+        const lines = text.split('\n')
+            .map(l => l.replace(/[^A-Z0-9<]/g, '')) // حذف أي رمز ليس من القائمة
+            .filter(l => l.length > 30); // أسطر MRZ طويلة عادة (44 حرف)
 
-        // البحث عن نمط MRZ للجوازات (سطرين، 44 حرف)
-        // السطر الأول يبدأ بـ P<
-        // السطر الثاني يبدأ بأرقام وحروف
-        
-        for (let line of lines) {
-            if (line.length > 30) { // طول تقريبي
-                if (line.startsWith('P')) {
-                    foundLine1 = line;
-                } else if (line.match(/^[A-Z0-9]/) && line.includes('<')) {
-                    // سطر ثاني محتمل يحتوي على أرقام و <
-                    foundLine2 = line;
-                }
-            }
-        }
+        // البحث عن سطر الجواز (الذي يبدأ بـ P)
+        const line1 = lines.find(l => l.startsWith('P') || l.startsWith('I')); // جوازات أو هويات
+        // البحث عن السطر الثاني (يحتوي أرقام كثيرة)
+        const line2 = lines.find(l => l !== line1 && l.match(/[0-9]/) && l.length === line1?.length);
 
-        if (foundLine1 && foundLine2) {
-            // محاولة الاستخراج
+        if (line1 && line2) {
             try {
-                // 1. الجنسية (من السطر الأول بعد P<XXX)
-                // عادة تكون الأحرف 3 و 4 و 5
-                // مثال: P<SAU...
-                const typeCode = foundLine1.substring(0, 2); // P<
-                let country = foundLine1.substring(2, 5).replace(/</g, '');
+                // استخراج الدولة (الأحرف 3-5)
+                const country = line1.substring(2, 5).replace(/</g, '');
                 
-                // 2. الاسم (من السطر الأول بعد كود الدولة)
-                // يأتي الاسم مفصولاً بـ <<
-                let rawName = foundLine1.substring(5);
-                let nameParts = rawName.split('<<');
-                let surname = nameParts[0].replace(/</g, ' ');
-                let givenNames = nameParts.length > 1 ? nameParts[1].split('<')[0] : '';
-                let fullName = (surname + " " + givenNames).trim();
+                // استخراج الاسم (بعد الدولة حتى نهاية السطر)
+                const nameSection = line1.substring(5);
+                const names = nameSection.split('<<');
+                const surname = names[0].replace(/</g, ' ').trim();
+                const givenname = names.length > 1 ? names[1].split('<')[0].replace(/</g, ' ').trim() : '';
+                
+                // استخراج الرقم (أول 9 خانات من السطر الثاني)
+                const number = line2.substring(0, 9).replace(/</g, '');
 
-                // 3. رقم الجواز (من السطر الثاني، أول 9 خانات)
-                let passportNum = foundLine2.substring(0, 9).replace(/</g, '');
-
-                // التأكد من أن البيانات تبدو منطقية قبل التعبئة
-                if (passportNum.length > 5 && country.length === 3) {
+                // **التحقق النهائي**: هل الرقم منطقي؟
+                if (number.length >= 6 && /^[A-Z0-9]+$/.test(number)) {
+                    // نجاح!
+                    document.getElementById('mrz_name').value = surname + " " + givenname;
+                    document.getElementById('mrz_number').value = number;
+                    document.getElementById('mrz_nat').value = country;
                     
-                    // تعبئة الحقول
-                    document.getElementById('p_name').value = fullName;
-                    document.getElementById('p_nat').value = country;
-                    document.getElementById('p_number').value = passportNum;
-
-                    // نجاح! إيقاف الكاميرا
-                    stopCamera();
-                    alert("تم قراءة البيانات بنجاح!");
+                    // تنبيه صوتي
+                    if(navigator.vibrate) navigator.vibrate(200);
                     
-                    // اهتزاز للتنبيه (لأجهزة الجوال)
-                    if (navigator.vibrate) navigator.vibrate(200);
+                    // إيقاف
+                    stopScan();
+                    statusEl.innerText = "تمت القراءة بنجاح";
                 }
-
             } catch (e) {
-                console.log("Error parsing MRZ", e);
+                console.log("Parsing error", e);
             }
         }
     }
 
-    function clearFields() {
-        document.getElementById('p_name').value = '';
-        document.getElementById('p_number').value = '';
-        document.getElementById('p_nat').value = '';
+    function copyData() {
+        const txt = `الاسم: ${document.getElementById('mrz_name').value}\nرقم الجواز: ${document.getElementById('mrz_number').value}\nالجنسية: ${document.getElementById('mrz_nat').value}`;
+        navigator.clipboard.writeText(txt).then(() => alert("تم النسخ!"));
     }
+
+    // تجهيز المحرك عند فتح الصفحة
+    initWorker();
+
 </script>
 
 </body>
