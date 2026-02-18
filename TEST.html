@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MRZ Pro Reader</title>
+    <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root { --main: #2563eb; --success: #198754; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', monospace; margin: 0; padding: 0; overflow-x: hidden; }
+
+        /* منطقة الكاميرا */
+        .scanner-container { position: relative; width: 100%; height: 60vh; background: black; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* دليل التوجيه (Overlay) */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .mrz-box {
+            width: 90%; height: 15vh; /* ارتفاع مناسب لسطرين */
+            border: 2px solid #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 0 100vmax rgba(0,0,0,0.7); /* تعتيم ما حول الصندوق */
+            position: relative;
+            margin-top: 10vh;
+        }
+        .mrz-box::after {
+            content: "ضع الرموز السفلية <<<< هنا";
+            position: absolute; bottom: -30px; width: 100%; text-align: center;
+            color: #00ff00; font-weight: bold; font-size: 0.9rem;
+            text-shadow: 0 1px 2px black;
+        }
+        
+        /* خط المسح المتحرك */
+        .scan-line {
+            width: 100%; height: 2px; background: #00ff00;
+            position: absolute; top: 0;
+            animation: scan 2s infinite linear;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        @keyframes scan { 0% {top:0} 50% {top:100%} 100% {top:0} }
+
+        /* الأزرار */
+        .controls {
+            position: absolute; bottom: 20px; width: 100%;
+            display: flex; justify-content: center; gap: 20px; z-index: 10;
+        }
+        .btn-shot {
+            width: 70px; height: 70px; border-radius: 50%;
+            background: white; border: 4px solid rgba(255,255,255,0.3);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .btn-shot:active { transform: scale(0.9); background: var(--main); }
+
+        /* بطاقة النتيجة */
+        .result-panel {
+            background: var(--card); padding: 20px; border-radius: 20px 20px 0 0;
+            min-height: 40vh; position: relative; margin-top: -20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5); transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+        }
+        .result-panel.active { transform: translateY(0); }
+
+        .data-row {
+            display: flex; justify-content: space-between; border-bottom: 1px solid #333;
+            padding: 12px 0; align-items: center;
+        }
+        .data-label { font-size: 0.8rem; color: #888; }
+        .data-value { font-size: 1.1rem; font-weight: bold; color: white; letter-spacing: 1px; }
+        .data-value.mono { font-family: 'Courier New', monospace; color: var(--success); }
+
+        /* شاشة التحميل */
+        .loader {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.9); z-index: 999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner { width:40px; height:40px; border:4px solid #333; border-top-color:var(--main); border-radius:50%; animation:s 1s infinite linear; }
+        @keyframes s { to { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+<div id="loader" class="loader">
+    <div class="spinner"></div>
+    <p style="margin-top:10px; color:#aaa;">جاري تحميل محرك MRZ...</p>
+</div>
+
+<div class="scanner-container">
+    <video id="video" playsinline autoplay muted></video>
+    <div class="overlay">
+        <div class="mrz-box">
+            <div class="scan-line"></div>
+        </div>
+    </div>
+    <div class="controls">
+        <div class="btn-shot" onclick="captureAndScan()">
+            <i class="fas fa-camera" style="font-size: 24px; color: #333;"></i>
+        </div>
+    </div>
+</div>
+
+<canvas id="c" style="display:none"></canvas>
+
+<div id="resultPanel" class="result-panel">
+    <div style="text-align:center; margin-bottom:15px; color:var(--success);">
+        <i class="fas fa-check-circle"></i> تم القراءة بنجاح
+    </div>
+
+    <div class="data-row">
+        <span class="data-label">الاسم (English)</span>
+        <span class="data-value" id="res_name">--</span>
+    </div>
+    <div class="data-row">
+        <span class="data-label">رقم الجواز</span>
+        <span class="data-value mono" id="res_doc">--</span>
+    </div>
+    <div class="data-row">
+        <span class="data-label">الجنسية</span>
+        <span class="data-value" id="res_nat">--</span>
+    </div>
+    <div class="data-row">
+        <span class="data-label">تاريخ الميلاد</span>
+        <span class="data-value mono" id="res_dob">--</span>
+    </div>
+    <div class="data-row">
+        <span class="data-label">الجنس</span>
+        <span class="data-value" id="res_sex">--</span>
+    </div>
+    <div class="data-row">
+        <span class="data-label">تاريخ الانتهاء</span>
+        <span class="data-value mono" id="res_exp">--</span>
+    </div>
+
+    <button onclick="resetScanner()" style="width:100%; padding:15px; background:#333; color:white; border:none; margin-top:20px; border-radius:10px; font-weight:bold;">
+        مسح جديد
+    </button>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    const loader = document.getElementById('loader');
+    const resultPanel = document.getElementById('resultPanel');
+    let worker = null;
+
+    // تهيئة المحرك
+    async function init() {
+        try {
+            worker = Tesseract.createWorker();
+            await worker.load();
+            await worker.loadLanguage('eng');
+            await worker.initialize('eng');
+            // إعدادات احترافية: السماح فقط بالحروف والأرقام والرمز <
+            await worker.setParameters({
+                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
+            });
+            
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } 
+            });
+            video.srcObject = stream;
+            loader.style.display = 'none';
+        } catch (e) {
+            alert("خطأ: " + e.message);
+        }
+    }
+
+    // التقاط ومعالجة
+    async function captureAndScan() {
+        loader.style.display = 'flex';
+        document.querySelector('#loader p').innerText = "جاري التحليل والمعالجة...";
+
+        // 1. تحديد منطقة MRZ فقط من الفيديو (الصندوق الأخضر)
+        // حساب النسب بناء على حجم الفيديو الفعلي
+        const vidW = video.videoWidth;
+        const vidH = video.videoHeight;
+        
+        // الصندوق الأخضر يقع تقريبا في النصف السفلي
+        // سنقص الجزء السفلي والوسطي بدقة
+        const cropW = vidW * 0.90; // عرض 90%
+        const cropH = vidH * 0.25; // ارتفاع 25% (يكفي لسطرين)
+        const cropX = (vidW - cropW) / 2;
+        const cropY = (vidH * 0.4); // تموضع تقريبي للمنتصف/الأسفل
+
+        canvas.width = cropW;
+        canvas.height = cropH;
+
+        // رسم الجزء المقتطع
+        ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+        // 2. معالجة الصورة (Binarization) لزيادة دقة الحروف
+        let imgData = ctx.getImageData(0,0, cropW, cropH);
+        let d = imgData.data;
+        for (let i=0; i<d.length; i+=4) {
+            let v = 0.2126*d[i] + 0.7152*d[i+1] + 0.0722*d[i+2];
+            v = (v > 110) ? 255 : 0; // تحويل لأبيض وأسود صارم
+            d[i] = d[i+1] = d[i+2] = v;
+        }
+        ctx.putImageData(imgData, 0, 0);
+
+        // 3. تحليل النص
+        const { data: { text } } = await worker.recognize(canvas);
+        const success = parseMRZ(text);
+
+        loader.style.display = 'none';
+        if(success) {
+            resultPanel.classList.add('active');
+        } else {
+            alert("لم يتم العثور على رموز واضحة. حاول تثبيت اليد وتوجيه الإضاءة.");
+        }
+    }
+
+    // خوارزمية تحليل MRZ (عقل النظام)
+    function parseMRZ(fullText) {
+        console.log(fullText);
+        // تنظيف النص: إزالة المسافات والفراغات
+        const lines = fullText.split('\n').map(l => l.replace(/ /g, '').trim()).filter(l => l.length > 30);
+
+        // البحث عن السطر الأول (يبدأ بـ P)
+        const line1 = lines.find(l => l.startsWith('P'));
+        // البحث عن السطر الثاني (يحتوي أرقام)
+        const line2 = lines.find(l => l !== line1 && l.match(/[0-9]/));
+
+        if (!line1 || !line2) return false;
+
+        try {
+            // 1. الدولة
+            const country = line1.substring(2, 5).replace(/</g, '');
+            // 2. الاسم
+            const rawName = line1.substring(5);
+            const names = rawName.split('<<');
+            const surname = names[0].replace(/</g, ' ').trim();
+            const given = names.length > 1 ? names[1].split('<')[0].replace(/</g, ' ').trim() : '';
+            
+            // 3. رقم الوثيقة
+            const docNum = line2.substring(0, 9).replace(/</g, '');
+            
+            // 4. الجنسية
+            const nat = line2.substring(10, 13).replace(/</g, '');
+            
+            // 5. تاريخ الميلاد (YYMMDD)
+            let dob = line2.substring(13, 19);
+            dob = formatDate(dob);
+
+            // 6. الجنس
+            const sex = line2.substring(20, 21).replace(/</g, '');
+
+            // 7. تاريخ الانتهاء
+            let exp = line2.substring(21, 27);
+            exp = formatExp(exp);
+
+            // عرض النتائج
+            document.getElementById('res_name').innerText = surname + " " + given;
+            document.getElementById('res_doc').innerText = docNum;
+            document.getElementById('res_nat').innerText = country; // أو nat
+            document.getElementById('res_dob').innerText = dob;
+            document.getElementById('res_sex').innerText = sex;
+            document.getElementById('res_exp').innerText = exp;
+
+            return true;
+        } catch (e) {
+            console.error(e);
+            return false;
+        }
+    }
+
+    function formatDate(str) {
+        if(str.length !== 6) return str;
+        // تخمين السنة (إذا أكبر من 26 فهي 1900، وإلا 2000)
+        let y = parseInt(str.substring(0,2));
+        let m = str.substring(2,4);
+        let d = str.substring(4,6);
+        let fullY = (y > 30) ? "19"+y : "20"+y;
+        return `${fullY}-${m}-${d}`;
+    }
+
+    function formatExp(str) {
+        if(str.length !== 6) return str;
+        let y = parseInt(str.substring(0,2));
+        let m = str.substring(2,4);
+        let d = str.substring(4,6);
+        return `20${y}-${m}-${d}`;
+    }
+
+    function resetScanner() {
+        resultPanel.classList.remove('active');
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
