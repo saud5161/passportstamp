@@ -3,282 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>قارئ الجوازات الذكي (AI Full Page)</title>
+    <title>قارئ الجوازات (التقاط دقيق)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
 
     <style>
-        :root { --primary: #2c3e50; --accent: #c5a059; --bg: #e9ecef; }
+        :root { --primary: #0d6efd; --bg: #f3f4f6; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px 10px; }
 
-        .header { text-align: center; margin-bottom: 15px; }
-        .header h2 { margin: 0; color: var(--primary); }
-        .header p { font-size: 0.9rem; color: #666; margin-top: 5px; }
-
-        /* حاوية الكاميرا */
-        .cam-wrapper {
-            position: relative; width: 100%; max-width: 500px; margin: 0 auto;
-            border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            background: #000; height: 350px;
+        .container { max-width: 500px; margin: 0 auto; }
+        
+        /* منطقة الكاميرا */
+        .camera-box {
+            position: relative; width: 100%; height: 300px;
+            background: #000; border-radius: 15px; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;
         }
         video { width: 100%; height: 100%; object-fit: cover; }
         
         /* إطار التوجيه */
-        .overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            border: 2px solid var(--accent);
-            box-sizing: border-box;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.3) 100%);
+        .guide-box {
+            position: absolute; top: 10%; left: 5%; width: 90%; height: 80%;
+            border: 2px dashed rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.5);
+            z-index: 10; pointer-events: none;
         }
-        .overlay::after {
-            content: 'التقط صورة واضحة للجواز كاملاً';
+        .guide-text {
             position: absolute; bottom: 10px; left: 0; width: 100%;
-            text-align: center; color: white; text-shadow: 0 1px 3px black;
+            text-align: center; color: white; text-shadow: 0 1px 3px black; font-size: 0.9rem;
         }
 
-        /* زر الالتقاط */
-        .capture-btn {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 60px; height: 60px; background: white; border: 4px solid rgba(0,0,0,0.2);
-            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            z-index: 10; transition: 0.2s;
+        /* الأزرار */
+        .btn-capture {
+            width: 70px; height: 70px; background: white; border-radius: 50%;
+            border: 5px solid rgba(255,255,255,0.3); margin: -50px auto 20px auto;
+            position: relative; z-index: 20; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
-        .capture-btn:active { transform: translateX(-50%) scale(0.9); background: var(--accent); }
-        .capture-btn i { font-size: 24px; color: var(--primary); }
+        .btn-capture:active { transform: scale(0.95); background: var(--primary); color: white; }
+        .btn-capture i { font-size: 24px; color: #333; }
 
         /* النتائج */
-        .result-box {
-            background: white; border-radius: 15px; padding: 20px; max-width: 500px;
-            margin: 20px auto; border-top: 4px solid var(--accent); display: none;
+        .result-card {
+            background: white; border-radius: 12px; padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: none;
         }
-        .field-row { margin-bottom: 15px; display: flex; flex-direction: column; }
-        .field-row label { font-size: 0.8rem; color: #777; font-weight: bold; margin-bottom: 5px; }
-        .field-row input {
-            padding: 10px; border: 1px solid #ddd; border-radius: 8px;
-            font-size: 1.1rem; font-weight: bold; width: 100%; box-sizing: border-box;
+        .field { margin-bottom: 15px; }
+        .field label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 5px; font-weight: bold; }
+        .field input {
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 1rem; font-weight: bold; background: #fafafa;
         }
-        .ar-text { font-family: 'Segoe UI', Tahoma, sans-serif; text-align: right; }
-        .en-text { font-family: monospace; direction: ltr; text-align: left; }
 
         /* شاشة التحميل */
-        .loading {
+        .loader-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); z-index: 999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.9); z-index: 999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
         }
         .spinner {
-            width: 40px; height: 40px; border: 4px solid #ddd; border-top-color: var(--primary);
-            border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 15px;
+            width: 40px; height: 40px; border: 4px solid #eee; border-top: 4px solid var(--primary);
+            border-radius: 50%; animation: spin 1s infinite linear;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
     </style>
 </head>
 <body>
 
-<div id="loadingScreen" class="loading">
+<div id="loader" class="loader-overlay">
     <div class="spinner"></div>
-    <div id="loadingText" style="font-weight:bold;">جاري تحميل نماذج الذكاء الاصطناعي (العربية/الإنجليزية)...</div>
-    <div style="font-size:0.8rem; color:red; margin-top:10px;">(قد يستغرق وقتاً في أول تشغيل فقط)</div>
+    <p id="statusText" style="margin-top:15px; font-weight:bold; color:#333;">جاري تهيئة النظام...</p>
 </div>
 
-<div class="header">
-    <h2>قارئ الجوازات الشامل</h2>
-    <p>يدعم استخراج البيانات العربية والإنجليزية</p>
-</div>
+<div class="container">
+    <h3 style="text-align:center; color:#333;">القارئ الدقيق (Snapshot)</h3>
 
-<div class="cam-wrapper">
-    <video id="video" playsinline autoplay muted></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <div class="overlay"></div>
-    <div class="capture-btn" onclick="captureAndProcess()">
+    <div class="camera-box">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="guide-box">
+            <div class="guide-text">ضع الجواز كاملاً هنا ثم التقط</div>
+        </div>
+        <canvas id="canvas" style="display:none;"></canvas>
+    </div>
+
+    <div class="btn-capture" onclick="captureImage()">
         <i class="fas fa-camera"></i>
     </div>
-</div>
 
-<div id="resultSection" class="result-box">
-    <div class="field-row">
-        <label>الاسم (عربي / تحليل AI)</label>
-        <input type="text" id="res_name_ar" class="ar-text" placeholder="جاري البحث...">
+    <div id="results" class="result-card">
+        <div class="field">
+            <label>الاسم (عربي / انجليزي)</label>
+            <input type="text" id="res_name">
+        </div>
+        <div class="field">
+            <label>رقم الجواز</label>
+            <input type="text" id="res_passport" style="direction:ltr; text-align:right;">
+        </div>
+        <div class="field">
+            <label>الجنسية</label>
+            <input type="text" id="res_nat" style="direction:ltr; text-align:right;">
+        </div>
+        <button onclick="location.reload()" style="width:100%; padding:12px; background:#6c757d; color:white; border:none; border-radius:8px;">مسح جديد</button>
     </div>
-    <div class="field-row">
-        <label>الاسم (إنجليزي / من الكود)</label>
-        <input type="text" id="res_name_en" class="en-text">
-    </div>
-    <div class="field-row">
-        <label>رقم الجواز</label>
-        <input type="text" id="res_passport" class="en-text">
-    </div>
-    <div class="field-row">
-        <label>الجنسية</label>
-        <input type="text" id="res_nat" class="en-text">
-    </div>
-    <button onclick="location.reload()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">
-        مسح جديد
-    </button>
 </div>
 
 <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const loader = document.getElementById('loader');
+    const statusText = document.getElementById('statusText');
     let worker = null;
 
-    // 1. إعداد Tesseract مع دعم اللغتين
-    async function initTesseract() {
+    // تهيئة Tesseract عند التحميل
+    async function init() {
+        loader.style.display = 'flex';
+        statusText.innerText = "تحميل ملفات الذكاء الاصطناعي...";
+        
         try {
             worker = Tesseract.createWorker({
                 logger: m => {
                     if (m.status === 'recognizing text') {
-                        document.getElementById('loadingText').innerText = `جاري التحليل: ${Math.round(m.progress * 100)}%`;
+                        statusText.innerText = `جاري التحليل: ${Math.round(m.progress * 100)}%`;
                     }
                 }
             });
             await worker.load();
-            // تحميل اللغة العربية والانجليزية
-            await worker.loadLanguage('ara+eng'); 
-            await worker.initialize('ara+eng');
+            await worker.loadLanguage('eng+ara'); // تحميل العربية والانجليزية
+            await worker.initialize('eng+ara');
             
-            document.getElementById('loadingScreen').style.display = 'none';
-            startCamera();
-        } catch (e) {
-            alert("حدث خطأ في تحميل ملفات اللغة. تأكد من الاتصال بالإنترنت.");
-            console.error(e);
-        }
-    }
-
-    // 2. تشغيل الكاميرا
-    async function startCamera() {
-        try {
+            // بدء الكاميرا
             const stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } 
             });
             video.srcObject = stream;
-        } catch (err) {
-            alert("لا يمكن الوصول للكاميرا");
+            
+            loader.style.display = 'none';
+        } catch (e) {
+            alert("خطأ: " + e.message);
+            loader.style.display = 'none';
         }
     }
 
-    // 3. التقاط الصورة والمعالجة
-    function captureAndProcess() {
-        if(!worker) return;
+    // زر الالتقاط
+    async function captureImage() {
+        if (!worker) return;
 
-        // إظهار شاشة التحميل مرة أخرى
-        const loader = document.getElementById('loadingScreen');
         loader.style.display = 'flex';
-        document.getElementById('loadingText').innerText = "جاري معالجة الصورة وتحليل البيانات...";
+        statusText.innerText = "جاري معالجة الصورة...";
 
-        // رسم الفيديو في الكانفاس
+        // 1. رسم الفيديو في الكانفاس
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0);
 
-        // تحسين الصورة (زيادة التباين) لتحسين قراءة العربية
+        // 2. تحسين الصورة (Image Pre-processing) لزيادة الدقة
         preprocessImage();
 
-        // بدء التعرف
-        worker.recognize(canvas).then(({ data: { text } }) => {
-            console.log(text); // للمطور: رؤية النص الخام
-            analyzeData(text);
-            loader.style.display = 'none';
-            document.getElementById('resultSection').style.display = 'block';
-            window.scrollTo(0, document.body.scrollHeight);
-        });
+        // 3. تحليل النص
+        const { data: { text } } = await worker.recognize(canvas);
+        
+        // 4. استخراج البيانات
+        parseData(text);
+        
+        loader.style.display = 'none';
+        document.getElementById('results').style.display = 'block';
     }
 
-    // فلتر لتحسين الصورة قبل القراءة (أسود وأبيض)
+    // دالة تحسين الصورة (تحويل لأسود وأبيض عالي التباين)
     function preprocessImage() {
         let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         let d = imageData.data;
         for (let i = 0; i < d.length; i += 4) {
-            let r = d[i], g = d[i + 1], b = d[i + 2];
             // تحويل للرمادي
-            let v = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-            // زيادة التباين (Thresholding)
-            v = (v >= 100) ? 255 : 0; 
-            d[i] = d[i+1] = d[i+2] = v;
+            let v = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+            // تطبيق Threshold (عتبة) لإزالة الخلفيات الرمادية
+            v = (v >= 100) ? 255 : 0;
+            d[i] = d[i + 1] = d[i + 2] = v;
         }
         ctx.putImageData(imageData, 0, 0);
     }
 
-    // 4. خوارزمية تحليل النص (قلب النظام)
-    function analyzeData(fullText) {
+    // دالة تحليل النصوص المستخرجة
+    function parseData(fullText) {
+        console.log("Raw Text:", fullText); // للمعاينة في الكونسول
         const lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        
-        // أ. استخراج MRZ (الأدق للرقم والاسم الانجليزي)
-        const mrzLines = lines.filter(l => l.includes('<<') && (l.startsWith('P') || l.startsWith('I') || l.match(/[0-9]/)));
-        
-        let extractedEnName = "";
-        let extractedPassport = "";
-        let extractedNat = "";
 
-        // محاولة تحليل MRZ
-        if (mrzLines.length >= 2) {
-            // البحث عن سطر الجواز P<
-            const line1 = mrzLines.find(l => l.startsWith('P') || l.startsWith('I'));
-            // البحث عن سطر الرقم
-            const line2 = mrzLines.find(l => l !== line1 && l.match(/[0-9]/) && l.length > 20);
+        let passport = "", nat = "", nameEn = "", nameAr = "";
 
-            if (line1) {
-                // استخراج الدولة
-                extractedNat = line1.substring(2, 5).replace(/</g, '');
-                // استخراج الاسم الانجليزي
-                const rawName = line1.substring(5);
-                const parts = rawName.split('<<');
-                const surname = parts[0].replace(/</g, ' ').trim();
-                const given = parts.length > 1 ? parts[1].split('<')[0].replace(/</g, ' ').trim() : '';
-                extractedEnName = `${surname} ${given}`;
-            }
+        // أ. استخراج MRZ (الادق دائماً)
+        // البحث عن سطر يبدأ بـ P< ويحتوي على <<
+        const mrzLine1 = lines.find(l => l.startsWith('P') && l.includes('<<'));
+        // البحث عن سطر يحتوي ارقام كثيرة (السطر الثاني)
+        const mrzLine2 = lines.find(l => l.match(/[0-9]{5,}/) && l.length > 20 && l !== mrzLine1);
 
-            if (line2) {
-                extractedPassport = line2.substring(0, 9).replace(/</g, '');
-            }
+        if (mrzLine1) {
+            nat = mrzLine1.substring(2, 5).replace(/</g, '');
+            const rawName = mrzLine1.substring(5).split('<<');
+            const surname = rawName[0].replace(/</g, ' ').trim();
+            const given = rawName.length > 1 ? rawName[1].split('<')[0].replace(/</g, ' ').trim() : '';
+            nameEn = surname + " " + given;
         }
 
-        // ب. البحث عن الاسم العربي (Visual Inspection)
-        // نبحث عن سطر يحتوي أحرف عربية
-        let arabicNameCandidate = "";
-        
-        // طريقة البحث: غالباً الاسم العربي يكون في سطر لوحده أو بعد كلمة "الاسم"
-        const arabicLines = lines.filter(l => /[\u0600-\u06FF]/.test(l));
-        
-        for (let line of arabicLines) {
-            // تنظيف السطر من الرموز الانجليزية والارقام
-            let cleanLine = line.replace(/[a-zA-Z0-9<]/g, '').trim();
-            
-            // تجاهل الكلمات الشائعة في الجوازات
-            if (cleanLine.includes('المملكة') || cleanLine.includes('جواز') || cleanLine.includes('سفر') || cleanLine.includes('الجنسية') || cleanLine.length < 4) {
-                continue;
-            }
-
-            // إذا وجدنا كلمة "الاسم" نأخذ ما بعدها
-            if (cleanLine.includes('الاسم')) {
-                arabicNameCandidate = cleanLine.replace('الاسم', '').replace(':', '').trim();
-                break;
-            } else {
-                // إذا لم نجد كلمة "الاسم"، نأخذ أطول سطر عربي وجدناه (تخمين)
-                if (cleanLine.length > arabicNameCandidate.length) {
-                    arabicNameCandidate = cleanLine;
-                }
-            }
+        if (mrzLine2) {
+            // الرقم غالباً اول 9 خانات
+            passport = mrzLine2.substring(0, 9).replace(/</g, '');
         }
 
-        // تعبئة البيانات
-        document.getElementById('res_passport').value = extractedPassport;
-        document.getElementById('res_nat').value = extractedNat;
-        document.getElementById('res_name_en').value = extractedEnName;
-        
-        if (arabicNameCandidate) {
-            document.getElementById('res_name_ar').value = arabicNameCandidate;
-        } else {
-            // إذا لم يجد اسم عربي، والاسم الانجليزي موجود، نكتب "لم يتم التعرف"
-            document.getElementById('res_name_ar').value = "لم يتم التعرف عليه بوضوح";
+        // ب. محاولة استخراج الاسم العربي
+        // نبحث عن سطر يحتوي حروف عربية ولا يحتوي كلمات "الجواز" او "المملكة"
+        const arabicLine = lines.find(l => {
+            return /[\u0600-\u06FF]/.test(l) && 
+                   !l.includes('المملكة') && 
+                   !l.includes('جواز') && 
+                   !l.includes('وزارة') &&
+                   l.length > 5;
+        });
+
+        if (arabicLine) {
+            // تنظيف السطر من الرموز والارقام
+            nameAr = arabicLine.replace(/[0-9a-zA-Z:<]/g, '').trim();
         }
+
+        // تعبئة الحقول
+        document.getElementById('res_passport').value = passport;
+        document.getElementById('res_nat').value = nat;
+        
+        // دمج الاسمين اذا وجدا
+        if (nameAr && nameEn) document.getElementById('res_name').value = `${nameAr} / ${nameEn}`;
+        else if (nameEn) document.getElementById('res_name').value = nameEn;
+        else document.getElementById('res_name').value = nameAr || "لم يتم التعرف بوضوح";
     }
 
-    // بدء التشغيل
-    initTesseract();
+    // تشغيل عند الفتح
+    window.onload = init;
 
 </script>
 
