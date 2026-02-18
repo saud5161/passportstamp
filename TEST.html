@@ -2,299 +2,244 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MRZ Auto-Scanner</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ماسح الجوازات الذكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root { --primary: #0d6efd; --dark: #1a1a1a; --light: #ffffff; }
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f2f5; height: 100vh; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { margin: 0; background: #000; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
 
-        /* الشاشة الرئيسية (زر البدء) */
-        .start-screen {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; text-align: center;
+        /* حاوية الفيديو */
+        .camera-container {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
         }
-        .icon-box {
-            width: 100px; height: 100px; background: white; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 30px;
-        }
-        .icon-box i { font-size: 40px; color: var(--primary); }
-        .btn-start {
-            background: var(--primary); color: white; border: none; padding: 15px 40px;
-            font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3); transition: 0.2s;
-        }
-        .btn-start:active { transform: scale(0.95); }
 
-        /* شاشة الكاميرا (تظهر عند النقر) */
-        .scanner-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: black; z-index: 100; display: none;
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* إطار التوجيه */
-        .scan-guide {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 90%; height: 25%; /* ارتفاع مناسب لمنطقة MRZ */
-            border: 2px solid #00ff00; border-radius: 10px;
-            box-shadow: 0 0 0 100vmax rgba(0,0,0,0.7); /* تعتيم الخلفية */
-            overflow: hidden;
+
+        /* طبقة التراكب (Overlay) لرسم مربع التوجيه */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5); /* تعتيم الخلفية */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
         }
-        .scan-line {
-            width: 100%; height: 2px; background: #00ff00; position: absolute; top: 0;
-            box-shadow: 0 0 10px #00ff00; animation: scanAnim 2s infinite linear;
+
+        /* المربع الشفاف الذي يوضع فيه الجواز */
+        .scan-box {
+            width: 85%;
+            height: 250px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5); /* حيلة لجعل ما حول المربع معتم */
+            border-radius: 12px;
+            position: relative;
+            background: transparent;
         }
-        @keyframes scanAnim { 0% {top:0} 50% {top:100%} 100% {top:0} }
-        
+
+        /* زوايا المربع لتظهر بشكل احترافي */
+        .scan-box::before, .scan-box::after {
+            content: ''; position: absolute; width: 30px; height: 30px;
+            border-color: #2563eb; border-style: solid;
+        }
+        .scan-box::before { top: -2px; left: -2px; border-width: 4px 0 0 4px; }
+        .scan-box::after { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; }
+
         .scan-text {
-            position: absolute; bottom: 15%; width: 100%; text-align: center; color: white;
-            font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 101;
-        }
-        .btn-close-cam {
-            position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.2);
-            border: none; color: white; padding: 10px 20px; border-radius: 20px; z-index: 102;
+            position: absolute;
+            top: -40px;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
-        /* شاشة النتائج */
-        .result-screen {
-            display: none; padding: 20px; background: white; border-radius: 20px 20px 0 0;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1); margin-top: auto; height: 70vh;
-            animation: slideUp 0.3s ease-out;
+        /* أزرار التحكم في الأسفل */
+        .controls {
+            height: 120px;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            border-radius: 20px 20px 0 0;
         }
-        @keyframes slideUp { from {transform: translateY(100%)} to {transform: translateY(0)} }
 
-        .field-group { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .lbl { font-size: 0.85rem; color: #888; display: block; margin-bottom: 5px; }
-        .val { font-size: 1.1rem; font-weight: bold; color: #333; display: block; }
-        .val.mono { font-family: monospace; letter-spacing: 1px; color: var(--primary); }
+        .capture-btn {
+            width: 70px;
+            height: 70px;
+            background: #fff;
+            border: 6px solid #2563eb;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .capture-btn:active { transform: scale(0.9); background: #2563eb; }
 
-        /* لودر التحميل */
+        /* شاشة التحميل والنتائج */
+        #result-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
         .loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white;
-            z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 5px solid #f3f3f3; border-top: 5px solid #2563eb;
+            border-radius: 50%; width: 50px; height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .data-box {
+            background: #f3f4f6; padding: 15px; border-radius: 8px;
+            width: 100%; max-width: 400px; margin-top: 10px;
+            text-align: left; dir: ltr; font-family: monospace;
+            max-height: 200px; overflow-y: auto;
+        }
+        
+        .close-btn {
+            margin-top: 20px; padding: 10px 30px;
+            background: #dc2626; color: white; border: none;
+            border-radius: 5px; font-size: 1rem; cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loader">
-    <i class="fas fa-cog fa-spin" style="font-size: 30px; color: var(--primary);"></i>
-    <p style="margin-top:15px; color:#666;">تجهيز النظام...</p>
-</div>
-
-<div class="start-screen" id="startScreen">
-    <div class="icon-box"><i class="fas fa-passport"></i></div>
-    <h2>قارئ الجوازات الآلي</h2>
-    <p style="color:#666; margin-bottom:30px;">اضغط الزر، وجه الكاميرا، وسيقوم النظام بالباقي.</p>
-    <button class="btn-start" onclick="openCamera()"><i class="fas fa-camera"></i> ابدأ المسح</button>
-</div>
-
-<div class="scanner-overlay" id="scannerOverlay">
-    <video id="video" playsinline muted autoplay></video>
-    <div class="scan-guide">
-        <div class="scan-line"></div>
-    </div>
-    <div class="scan-text">ضع الرموز السفلية <<<< داخل الإطار الأخضر</div>
-    <button class="btn-close-cam" onclick="closeCamera()">إلغاء</button>
-    <canvas id="hiddenCanvas" style="display:none;"></canvas>
-</div>
-
-<div class="result-screen" id="resultScreen">
-    <div style="text-align:center; color:green; margin-bottom:20px;">
-        <i class="fas fa-check-circle" style="font-size:40px;"></i>
-        <h3>تمت القراءة بنجاح</h3>
+    <div class="camera-container">
+        <video id="video" autoplay playsinline></video>
+        <div class="overlay">
+            <div class="scan-box">
+                <div class="scan-text">ضع صفحة الجواز داخل الإطار</div>
+            </div>
+        </div>
+        <canvas id="canvas" style="display:none;"></canvas>
     </div>
 
-    <div class="field-group">
-        <span class="lbl">الاسم (English)</span>
-        <span class="val" id="res_name">--</span>
-    </div>
-    <div class="field-group">
-        <span class="lbl">رقم الجواز</span>
-        <span class="val mono" id="res_doc">--</span>
-    </div>
-    <div class="field-group">
-        <span class="lbl">الجنسية</span>
-        <span class="val" id="res_nat">--</span>
-    </div>
-    <div class="field-group">
-        <span class="lbl">تاريخ الانتهاء</span>
-        <span class="val mono" id="res_exp">--</span>
+    <div class="controls">
+        <button class="capture-btn" id="snapBtn" title="التقاط"></button>
     </div>
 
-    <button class="btn-start" style="width:100%; margin-top:10px; background:#6c757d;" onclick="resetApp()">مسح جديد</button>
-</div>
-
-<script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('hiddenCanvas');
-    const ctx = canvas.getContext('2d');
-    let worker = null;
-    let stream = null;
-    let isScanning = false;
-    let scanInterval = null;
-
-    // === تهيئة المحرك مرة واحدة عند الفتح ===
-    async function initWorker() {
-        try {
-            worker = Tesseract.createWorker();
-            await worker.load();
-            await worker.loadLanguage('eng');
-            await worker.initialize('eng');
-            // إجبار المحرك على قراءة الحروف والأرقام و < فقط لزيادة السرعة والدقة
-            await worker.setParameters({
-                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
-            });
-            document.getElementById('loader').style.display = 'none';
-        } catch (e) {
-            alert('فشل تحميل المكتبة، تأكد من الإنترنت');
-        }
-    }
-
-    // === تشغيل الكاميرا ===
-    async function openCamera() {
-        if (!worker) return;
-        document.getElementById('startScreen').style.display = 'none';
-        document.getElementById('resultScreen').style.display = 'none';
-        document.getElementById('scannerOverlay').style.display = 'block';
-
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }
-            });
-            video.srcObject = stream;
-            video.onloadedmetadata = () => {
-                isScanning = true;
-                processFrame(); // بدء حلقة المعالجة
-            };
-        } catch (err) {
-            alert("لا يمكن الوصول للكاميرا");
-            closeCamera();
-        }
-    }
-
-    // === إغلاق الكاميرا ===
-    function closeCamera() {
-        isScanning = false;
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-        document.getElementById('scannerOverlay').style.display = 'none';
-        if(document.getElementById('resultScreen').style.display === 'none') {
-            document.getElementById('startScreen').style.display = 'flex';
-        }
-    }
-
-    // === معالجة الإطار (Loop) ===
-    async function processFrame() {
-        if (!isScanning) return;
-
-        // 1. التقاط الصورة الحالية
-        const w = video.videoWidth;
-        const h = video.videoHeight;
+    <div id="result-modal">
+        <div id="loading-ui">
+            <div class="loader"></div>
+            <h3>جاري تحليل البيانات...</h3>
+            <p>يرجى الانتظار، يتم استخدام الذكاء الاصطناعي لقراءة النصوص.</p>
+        </div>
         
-        // قص منطقة الإطار الأخضر فقط (الوسط)
-        // الإطار ارتفاعه 25% وفي المنتصف
-        const cropW = w * 0.9;
-        const cropH = h * 0.25;
-        const cropX = (w - cropW) / 2;
-        const cropY = (h - cropH) / 2;
+        <div id="result-ui" style="display:none;">
+            <h2 style="color: #059669;">تم التحليل بنجاح! <i class="fa-solid fa-check-circle"></i></h2>
+            <div class="data-box" id="ocr-result">
+                </div>
+            <button class="close-btn" onclick="resetScanner()">مسح جديد</button>
+        </div>
+    </div>
 
-        canvas.width = cropW;
-        canvas.height = cropH;
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snapBtn = document.getElementById('snapBtn');
+        const resultModal = document.getElementById('result-modal');
+        const loadingUi = document.getElementById('loading-ui');
+        const resultUi = document.getElementById('result-ui');
+        const resultText = document.getElementById('ocr-result');
 
-        // رسم الجزء المقصوص
-        ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-
-        // 2. معالجة الصورة (زيادة التباين)
-        // تحويل لأسود وأبيض ليسهل على النظام قراءة الحروف
-        let imgData = ctx.getImageData(0, 0, cropW, cropH);
-        let d = imgData.data;
-        for (let i = 0; i < d.length; i += 4) {
-            let avg = (d[i] + d[i + 1] + d[i + 2]) / 3;
-            let val = avg < 100 ? 0 : 255; // عتبة اللون
-            d[i] = d[i + 1] = d[i + 2] = val;
-        }
-        ctx.putImageData(imgData, 0, 0);
-
-        // 3. التحليل
-        const { data: { text } } = await worker.recognize(canvas);
-        
-        // 4. التحقق من النتيجة
-        const result = parseMRZ(text);
-
-        if (result) {
-            // == نجاح! ==
-            if(navigator.vibrate) navigator.vibrate(200); // اهتزاز
-            displayResults(result); // عرض النتائج
-            closeCamera(); // إغلاق الكاميرا فوراً
-        } else {
-            // إعادة المحاولة بعد وقت قصير
-            requestAnimationFrame(processFrame);
-        }
-    }
-
-    // === خوارزمية تحليل MRZ ===
-    function parseMRZ(text) {
-        // تنظيف النص
-        const lines = text.split('\n').map(l => l.replace(/ /g, '').trim());
-        
-        // البحث عن سطر يبدأ بـ P< (الجواز)
-        const line1 = lines.find(l => l.startsWith('P') && l.includes('<<'));
-        // البحث عن سطر يبدأ برقم او حرف ويحتوي ارقام كثيرة
-        const line2 = lines.find(l => l !== line1 && l.length > 20 && l.match(/[0-9]/));
-
-        if (line1 && line2) {
+        // 1. تشغيل الكاميرا الخلفية
+        async function startCamera() {
             try {
-                // استخراج البيانات
-                const nat = line1.substring(2, 5).replace(/</g, '');
-                const rawName = line1.substring(5).split('<<');
-                const surname = rawName[0].replace(/</g, ' ').trim();
-                const given = rawName.length > 1 ? rawName[1].split('<')[0].replace(/</g, ' ').trim() : '';
-                
-                const docNum = line2.substring(0, 9).replace(/</g, '');
-                
-                // تاريخ الانتهاء (تنسيق بسيط)
-                let expY = line2.substring(21, 23);
-                let expM = line2.substring(23, 25);
-                let expD = line2.substring(25, 27);
-                const expDate = `20${expY}-${expM}-${expD}`;
-
-                // شرط الجودة: يجب ان يكون رقم الجواز 6 خانات على الاقل
-                if (docNum.length < 6) return null;
-
-                return {
-                    name: surname + " " + given,
-                    doc: docNum,
-                    nat: nat,
-                    exp: expDate
-                };
-            } catch (e) { return null; }
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: "environment", // الكاميرا الخلفية
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    } 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                alert("يرجى السماح بالوصول للكاميرا لعمل الماسح الضوئي.");
+                console.error("Error accessing camera:", err);
+            }
         }
-        return null;
-    }
 
-    function displayResults(data) {
-        document.getElementById('res_name').innerText = data.name;
-        document.getElementById('res_doc').innerText = data.doc;
-        document.getElementById('res_nat').innerText = data.nat;
-        document.getElementById('res_exp').innerText = data.exp;
-        
-        document.getElementById('resultScreen').style.display = 'block';
-    }
+        startCamera();
 
-    function resetApp() {
-        document.getElementById('resultScreen').style.display = 'none';
-        document.getElementById('startScreen').style.display = 'flex';
-    }
+        // 2. التقاط الصورة عند الضغط
+        snapBtn.addEventListener('click', () => {
+            // تجميد الفيديو لحظياً لإعطاء شعور الالتقاط
+            video.pause();
+            
+            // ضبط حجم الكانفاس ليطابق الفيديو
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // رسم الصورة الحالية على الكانفاس
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // البدء في التحليل
+            processImage();
+        });
 
-    window.onload = initWorker;
-</script>
+        // 3. تحليل الصورة باستخدام Tesseract.js
+        function processImage() {
+            resultModal.style.display = 'flex';
+            loadingUi.style.display = 'block';
+            resultUi.style.display = 'none';
 
+            const image = canvas.toDataURL('image/png');
+
+            Tesseract.recognize(
+                image,
+                'eng', // الجوازات عادة باللغة الإنجليزية في المنطقة المقروءة آلياً
+                { logger: m => console.log(m) }
+            ).then(({ data: { text } }) => {
+                showResult(text);
+            }).catch(err => {
+                alert("حدث خطأ أثناء التحليل");
+                resetScanner();
+            });
+        }
+
+        // 4. عرض النتائج
+        function showResult(text) {
+            loadingUi.style.display = 'none';
+            resultUi.style.display = 'block';
+            
+            // تنظيف النص قليلاً
+            resultText.innerText = text.trim();
+            
+            // يمكنك هنا إضافة كود لاستخراج رقم الجواز باستخدام Regex
+            // مثال: const passportNumber = text.match(/[A-Z0-9]{9}/);
+        }
+
+        // 5. إعادة تعيين الماسح
+        function resetScanner() {
+            resultModal.style.display = 'none';
+            video.play();
+        }
+    </script>
 </body>
 </html>
