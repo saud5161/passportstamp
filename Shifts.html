@@ -42,6 +42,7 @@
       color:#fff;
       padding:8px;
       box-shadow:0 6px 14px rgba(0,0,0,.16);
+      transition:.18s ease;
     }
 
     .header-top{
@@ -50,6 +51,7 @@
       justify-content:space-between;
       gap:6px;
       margin-bottom:8px;
+      transition:.18s ease;
     }
 
     .app-title{
@@ -57,9 +59,10 @@
       font-size:.95rem;
       font-weight:800;
       line-height:1.2;
+      transition:.18s ease;
     }
 
-    .header-actions{display:flex;gap:6px}
+    .header-actions{display:flex;gap:6px;align-items:center}
 
     .icon-btn{
       border:none;
@@ -76,6 +79,7 @@
       justify-content:center;
       line-height:1;
       gap:4px;
+      transition:.15s ease;
     }
 
     .btn-reset{
@@ -90,6 +94,7 @@
       grid-template-columns:1fr 1fr;
       gap:6px;
       margin-bottom:8px;
+      transition:.18s ease;
     }
 
     .field{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -142,13 +147,26 @@
     }
     .mini-green{ background:#16a34a; color:#fff; }
 
-    /* ===== معاينة سريعة فوق اختيار الكاونتر ===== */
+    .app-header.compact{ padding:6px 8px; }
+    .app-header.compact .header-top{ margin-bottom:4px; }
+    .app-header.compact .app-title{ font-size:.82rem; }
+    .app-header.compact .icon-btn{
+      min-width:30px;
+      min-height:30px;
+      padding:5px 7px;
+      font-size:.72rem;
+      border-radius:8px;
+    }
+    .app-header.compact .top-controls{ display:none; }
+    .app-header.compact .counter-strip{ margin-bottom:0; }
+
     .quick-preview-wrap{
       background:rgba(255,255,255,.94);
       border:1px solid #e7ebf1;
       border-radius:12px;
       padding:7px;
       margin-bottom:7px;
+      transition:.15s ease;
     }
     .quick-preview-head{
       display:flex;
@@ -160,29 +178,53 @@
       font-size:.74rem;
       font-weight:800;
     }
-    .quick-preview-grid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
+    .quick-preview-head .quick-actions{
+      display:flex;
+      align-items:center;
       gap:6px;
-      max-height:116px;
-      overflow:auto;
-      padding-left:1px;
-      -webkit-overflow-scrolling:touch;
     }
+    .tiny-toggle{
+      border:none;
+      background:#eef2f7;
+      color:#334155;
+      border-radius:8px;
+      height:24px;
+      min-width:24px;
+      padding:0 6px;
+      font-family:var(--font);
+      font-size:.68rem;
+      font-weight:800;
+      cursor:pointer;
+      line-height:1;
+    }
+
+    .quick-preview-grid{
+      display:flex;
+      gap:6px;
+      overflow-x:auto;
+      overflow-y:hidden;
+      padding-bottom:2px;
+      -webkit-overflow-scrolling:touch;
+      scroll-snap-type:x proximity;
+      max-height:none;
+    }
+
     .mini-counter-card{
+      flex:0 0 156px;
       border:1px solid #e5e7eb;
       background:#fff;
       border-radius:10px;
-      padding:6px;
+      padding:6px 7px;
       min-height:46px;
       display:flex;
       flex-direction:column;
       justify-content:center;
       gap:2px;
       box-shadow:0 1px 2px rgba(0,0,0,.02);
+      scroll-snap-align:start;
     }
     .mini-counter-card.empty{
-      opacity:.7;
+      opacity:.75;
       background:#fafafa;
       border-style:dashed;
     }
@@ -191,15 +233,20 @@
       font-weight:800;
       color:var(--primary);
       line-height:1.1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
     .mini-counter-names{
-      font-size:.68rem;
+      font-size:.66rem;
       color:#374151;
-      line-height:1.25;
-      word-break:break-word;
+      line-height:1.2;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
     .quick-preview-empty{
-      grid-column:1/-1;
+      min-width:100%;
       text-align:center;
       color:#9ca3af;
       font-weight:700;
@@ -210,13 +257,16 @@
       background:#fff;
     }
 
-    /* ===== الشريط ===== */
+    .quick-preview-wrap.collapsed .quick-preview-grid{ display:none; }
+    .quick-preview-wrap.collapsed .quick-preview-head{ margin-bottom:0; }
+
     .counter-strip{
       background:rgba(255,255,255,.92);
       border:1px solid #e7ebf1;
       border-radius:12px;
       padding:7px;
       margin-bottom:7px;
+      transition:.15s ease;
     }
 
     .strip-title{
@@ -299,7 +349,6 @@
     .btn-single{background:var(--success)}
     .btn-merge{background:var(--warn)}
 
-    /* ===== لوحة الأفراد ===== */
     .people-panel{
       background:#fff;
       border:1px solid var(--line);
@@ -382,8 +431,8 @@
       border:1px solid var(--line);
       border-radius:10px;
       background:#fff;
-      min-height:170px;
-      max-height:260px;
+      min-height:110px;
+      max-height:180px;
       overflow:auto;
       padding:6px;
       display:flex;
@@ -392,22 +441,6 @@
       -webkit-overflow-scrolling:touch;
     }
 
-    .person-item{
-      width:100%;
-      border:1px solid #e5e7eb;
-      background:#fff;
-      color:#111827;
-      border-radius:9px;
-      padding:9px 10px;
-      font-family:var(--font);
-      font-size:.84rem;
-      font-weight:700;
-      text-align:right;
-      cursor:pointer;
-      line-height:1.2;
-    }
-    .person-item:hover{background:#f8fafc;border-color:#cfd8e3}
-    .person-item:active{transform:scale(.997)}
     .person-empty{
       text-align:center;
       color:#9ca3af;
@@ -416,15 +449,6 @@
       font-size:.78rem;
     }
 
-    .helper{
-      margin-top:6px;
-      font-size:.72rem;
-      color:var(--muted);
-      line-height:1.4;
-    }
-    .helper strong{color:var(--primary)}
-
-    /* ===== الكاونترات ===== */
     .workspace{
       padding:0 8px 8px;
       display:grid;
@@ -513,20 +537,83 @@
     .slot-move{background:#eef2ff;color:#3730a3}
     .slot-del{background:#fee2e2;color:#b91c1c}
 
-    /* ===== المهام الإضافية ===== */
+    .inline-people-picker{
+      margin-top:8px;
+      border-top:1px dashed #dbe2ea;
+      padding-top:8px;
+    }
+
+    .inline-people-picker-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:6px;
+      margin-bottom:6px;
+      font-size:.72rem;
+      font-weight:800;
+      color:#334155;
+    }
+
+    .inline-people-picker-close{
+      border:none;
+      background:#eef2f7;
+      color:#334155;
+      border-radius:8px;
+      height:26px;
+      padding:0 8px;
+      font-family:var(--font);
+      font-size:.68rem;
+      font-weight:800;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+
+    .inline-people-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:5px;
+      max-height:180px;
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+
+    .inline-person-btn{
+      border:1px solid #e5e7eb;
+      background:#fff;
+      color:#111827;
+      border-radius:8px;
+      padding:7px 8px;
+      font-family:var(--font);
+      font-size:.70rem;
+      font-weight:700;
+      text-align:right;
+      line-height:1.15;
+      cursor:pointer;
+      min-height:38px;
+      width:100%;
+    }
+
+    .inline-person-btn:hover{
+      background:#f8fafc;
+      border-color:#cfd8e3;
+    }
+
+    .inline-people-empty{
+      border:1px dashed #e5e7eb;
+      border-radius:8px;
+      padding:10px 8px;
+      text-align:center;
+      color:#9ca3af;
+      font-size:.72rem;
+      font-weight:700;
+      grid-column:1 / -1;
+    }
+
     .extras-grid{
       padding:0 8px 8px;
       display:grid;
       grid-template-columns:1fr;
       gap:8px;
-    }
-
-    .plus{
-      color:var(--success);
-      cursor:pointer;
-      font-size:1rem;
-      line-height:1;
-      padding:2px 4px;
     }
 
     .task-card{
@@ -639,20 +726,108 @@
     }
 
     /* ===== PDF ===== */
-    #pdf-report{display:none;background:#fff;color:#000;font-family:'Tajawal',sans-serif;padding:20px;direction:rtl}
-    .pdf-header{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;border-bottom:3px solid #2c3e50;padding-bottom:10px;margin-bottom:15px}
-    .pdf-title{font-size:24px;font-weight:800;color:#2c3e50;margin:0}
-    .pdf-date{font-size:14px;font-weight:700;color:#555}
-    .pdf-meta-box{background:#f8fafc;border:1px solid #dbe2ea;border-radius:8px;padding:6px 10px;font-size:12px;min-width:170px}
-    .pdf-container{display:flex;gap:15px;align-items:flex-start}
-    .pdf-column{flex:1;width:49%}
-    .pdf-section-head{background:#34495e;color:#fff;padding:6px;font-size:12px;font-weight:800;text-align:center;border-radius:4px 4px 0 0}
-    .pdf-table,.pdf-extra-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px;border:1px solid #bdc3c7}
-    .pdf-table th,.pdf-table td,.pdf-extra-table td{border:1px solid #bdc3c7;padding:6px 8px;vertical-align:middle}
-    .pdf-table th{background:#2c3e50;color:#fff;font-weight:800;text-align:center;font-size:12px}
-    .pdf-table tr:nth-child(even){background:#f9f9f9}
-    .pdf-cnt-badge{background:#ecf0f1;color:#2c3e50;padding:4px 8px;border-radius:4px;font-weight:800;display:block;width:fit-content;margin:0 auto;border:1px solid #bdc3c7}
+    #pdf-report{
+      display:none;
+      background:#fff;
+      color:#000;
+      font-family:'Tajawal',sans-serif;
+      padding:18px;
+      direction:rtl;
+    }
+
+    .pdf-header{
+      display:flex;
+      flex-direction:row-reverse;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      border-bottom:3px solid #2c3e50;
+      padding-bottom:10px;
+      margin-bottom:12px;
+    }
+    .pdf-title{font-size:22px;font-weight:800;color:#2c3e50;margin:0 0 4px 0}
+    .pdf-date{font-size:13px;font-weight:700;color:#555}
+    .pdf-meta-box{
+      background:#f8fafc;
+      border:1px solid #dbe2ea;
+      border-radius:8px;
+      padding:8px 10px;
+      font-size:12px;
+      min-width:185px;
+      line-height:1.7;
+      text-align:right;
+    }
+
+    .pdf-section-head{
+      background:#34495e;
+      color:#fff;
+      padding:6px;
+      font-size:12px;
+      font-weight:800;
+      text-align:center;
+      border-radius:4px 4px 0 0;
+      margin-top:0;
+    }
+
+    .pdf-table,.pdf-extra-table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:11px;
+      margin-bottom:10px;
+      border:1px solid #bdc3c7;
+      table-layout:fixed;
+    }
+
+    .pdf-table th,.pdf-table td,.pdf-extra-table th,.pdf-extra-table td{
+      border:1px solid #bdc3c7;
+      padding:6px 6px;
+      vertical-align:middle;
+    }
+
+    .pdf-table th,.pdf-extra-table th{
+      background:#2c3e50;
+      color:#fff;
+      font-weight:800;
+      text-align:center;
+      font-size:12px;
+    }
+
+    .pdf-table tr:nth-child(even), .pdf-extra-table tr:nth-child(even){background:#f9f9f9}
     .pdf-extra-label{background:#ecf0f1;font-weight:800;width:25%;color:#2c3e50;text-align:center}
+    .pdf-task-names-list div{ margin:2px 0; }
+
+    /* الجدول العرضي المطلوب */
+    .pdf-horizontal-counters td.row-label{
+      background:#ecf0f1;
+      font-weight:800;
+      color:#2c3e50;
+      width:110px;
+      text-align:center;
+      white-space:nowrap;
+    }
+    .pdf-horizontal-counters td.counter-head{
+      text-align:center;
+      font-weight:800;
+      background:#f8fafc;
+    }
+    .pdf-horizontal-counters td.name-cell{
+      text-align:center;
+      font-weight:700;
+      word-break:break-word;
+      line-height:1.25;
+    }
+
+    @media (max-width:420px){
+      .cnt-btn{
+        flex:0 0 38px;
+        width:38px;
+        height:38px;
+        border-radius:10px;
+        font-size:.82rem;
+      }
+      .counter-scroll{gap:6px;padding-bottom:4px}
+      .mini-counter-card{flex-basis:145px}
+    }
 
     @media (min-width:700px){
       .app-header{padding:10px}
@@ -662,17 +837,22 @@
       .extras-grid{grid-template-columns:repeat(2,minmax(280px,1fr))}
       .app-title{font-size:1.05rem}
       .counter-strip,.people-panel,.task-adder,.quick-preview-wrap{margin-left:10px;margin-right:10px}
-      .people-list{max-height:320px}
-      .quick-preview-grid{grid-template-columns:repeat(4,minmax(0,1fr));max-height:140px}
+      .people-list{max-height:220px}
       .meta-grid{grid-template-columns:repeat(4,1fr)}
+      .inline-people-grid{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        max-height:220px;
+      }
+      .mini-counter-card{flex-basis:170px}
     }
   </style>
 </head>
 <body>
-  <div class="app-header">
+  <div id="appHeader" class="app-header">
     <div class="header-top">
       <h1 class="app-title">توزيع الكاونترات</h1>
       <div class="header-actions">
+        <button id="toggleTopBtn" class="icon-btn btn-reset" onclick="toggleTopCompact()" title="تصغير/تكبير الجزء العلوي">▾</button>
         <button class="icon-btn btn-reset" onclick="resetSchedule()" title="إعادة تعيين">↻</button>
         <button class="icon-btn btn-pdf" onclick="downloadPDF()" title="PDF">PDF</button>
       </div>
@@ -705,18 +885,20 @@
       <div class="field" style="grid-column:1 / -1;">
         <label for="personSearch">بحث بالاسم</label>
         <div class="search-row">
-          <input id="personSearch" type="text" placeholder="اكتب جزء من الاسم..." oninput="renderPeopleList()" />
+          <input id="personSearch" type="text" placeholder="اكتب جزء من الاسم..." oninput="renderAll()" />
           <button class="mini-action mini-secondary" onclick="clearActiveCard()">إلغاء التحديد</button>
           <button class="mini-action mini-green" onclick="addCustomStaffPrompt()">+ اسم</button>
         </div>
       </div>
     </div>
 
-    <!-- ✅ معاينة سريعة للكونترات -->
-    <div class="quick-preview-wrap">
+    <div id="quickPreviewWrap" class="quick-preview-wrap">
       <div class="quick-preview-head">
         <span>معاينة سريعة للكاونترات</span>
-        <span id="quickPreviewCount" style="color:#64748b;font-weight:700">0</span>
+        <div class="quick-actions">
+          <span id="quickPreviewCount" style="color:#64748b;font-weight:700">0</span>
+          <button id="togglePreviewBtn" class="tiny-toggle" onclick="toggleQuickPreview()" title="تصغير/تكبير المعاينة">−</button>
+        </div>
       </div>
       <div id="quickPreviewGrid" class="quick-preview-grid"></div>
     </div>
@@ -758,7 +940,7 @@
       <div class="meta-box" style="grid-column:1 / -1;">
         <label>إرشاد الاستخدام</label>
         <div id="dbInfoText" style="font-size:.74rem;color:#6b7280;line-height:1.4;">
-          اختر الصالة والمناوبة → أنشئ كاونتر أو حدّد مهمة → اختر الاسم من القائمة.
+          اختر الصالة والمناوبة → أنشئ كاونتر أو حدّد مهمة → اختر الاسم من القائمة داخل الكارد.
         </div>
       </div>
     </div>
@@ -766,7 +948,6 @@
     <div id="peopleList" class="people-list"></div>
   </div>
 
-  <!-- إضافة مهام مخصصة -->
   <div class="task-adder">
     <div class="task-adder-row">
       <input id="customTaskInput" type="text" placeholder="أضف مهمة مخصصة (مثال: مسؤول عن التدريب)" />
@@ -775,52 +956,35 @@
   </div>
 
   <div class="workspace" id="workspace"></div>
-
-  <!-- ✅ مهام ثابتة + البوابة -->
   <div class="extras-grid" id="extrasGrid"></div>
 
   <!-- PDF -->
   <div id="pdf-report">
     <div class="pdf-header">
-      <div>
+      <div class="pdf-header-left">
         <div class="pdf-title">جدول توزيع الكاونترات</div>
         <div class="pdf-date" id="pdfDateStr"></div>
       </div>
       <div class="pdf-meta-box" id="pdfFilterInfo"></div>
     </div>
 
-    <div class="pdf-container">
-      <div class="pdf-column">
-        <div class="pdf-section-head">القائمة الأولى</div>
-        <table class="pdf-table">
-          <thead>
-            <tr>
-              <th width="20%">الكاونتر</th>
-              <th width="80%">الموظف / التغطية</th>
-            </tr>
-          </thead>
-          <tbody id="pdf-table-1"></tbody>
-        </table>
-      </div>
+    <!-- الكونترات بالعرض (مطلوبك) -->
+    <div class="pdf-section-head">جدول الكاونترات</div>
+    <table class="pdf-table pdf-horizontal-counters">
+      <tbody id="pdf-counters-horizontal-body"></tbody>
+    </table>
 
-      <div class="pdf-column">
-        <div class="pdf-section-head">القائمة الثانية</div>
-        <table class="pdf-table">
-          <thead>
-            <tr>
-              <th width="20%">الكاونتر</th>
-              <th width="80%">الموظف / التغطية</th>
-            </tr>
-          </thead>
-          <tbody id="pdf-table-2"></tbody>
-        </table>
-
-        <div class="pdf-section-head" style="margin-top:15px; background:#2c3e50;">المهام</div>
-        <table class="pdf-extra-table">
-          <tbody id="pdf-tasks-body"></tbody>
-        </table>
-      </div>
-    </div>
+    <!-- المهام أسفلهم -->
+    <div class="pdf-section-head" style="margin-top:12px; background:#2c3e50;">المهام الإضافية</div>
+    <table class="pdf-extra-table">
+      <thead>
+        <tr>
+          <th width="30%">المهمة</th>
+          <th width="70%">الأسماء</th>
+        </tr>
+      </thead>
+      <tbody id="pdf-tasks-body"></tbody>
+    </table>
   </div>
 
   <script>
@@ -872,15 +1036,17 @@
       cards: [],
       slots: {},
       customTasks: [],
-      taskCounters: {},       // { taskId: count }
+      taskCounters: {},
       forceCount: '',
-      extrasCounter: { self: 1, guide: 1 } // legacy (موجود للتوافق فقط)
+      extrasCounter: { self: 1, guide: 1 }
     };
 
     let ui = {
       selectedCounterNums: [],
-      activeTarget: null, // { type:'card', id } أو { type:'task', id }
-      filters: { hall: '', shift: '', search: '' }
+      activeTarget: null,
+      filters: { hall: '', shift: '', search: '' },
+      topCompact: false,
+      quickPreviewCollapsed: false
     };
 
     let currentVisiblePeople = [];
@@ -890,18 +1056,18 @@
       normalizeState();
       loadPreferencesToUI();
       restoreFilterControls();
+      applyHeaderModes();
       renderAll();
+      autoCompactIfFiltersReady();
     };
 
     function normalizeState() {
       if (!Array.isArray(state.customTasks)) state.customTasks = [];
       if (!state.taskCounters || typeof state.taskCounters !== 'object') state.taskCounters = {};
       if (typeof state.forceCount === 'undefined') state.forceCount = '';
-      // تأكد وجود العدادات للمهام الثابتة
       for (const t of DEFAULT_FIXED_TASKS) {
         if (!state.taskCounters[t.id]) state.taskCounters[t.id] = 1;
       }
-      // تأكد وجود العدادات للمهام المخصصة
       for (const t of state.customTasks) {
         if (!state.taskCounters[t.id]) state.taskCounters[t.id] = 1;
       }
@@ -955,11 +1121,19 @@
         ui.filters.hall = parsed.hall || '';
         ui.filters.shift = parsed.shift || '';
         ui.filters.search = parsed.search || '';
+        ui.topCompact = !!parsed.topCompact;
+        ui.quickPreviewCollapsed = !!parsed.quickPreviewCollapsed;
       } catch (e) { console.warn(e); }
     }
 
     function savePreferences() {
-      localStorage.setItem(PREFS_KEY, JSON.stringify(ui.filters));
+      localStorage.setItem(PREFS_KEY, JSON.stringify({
+        hall: ui.filters.hall || '',
+        shift: ui.filters.shift || '',
+        search: ui.filters.search || '',
+        topCompact: !!ui.topCompact,
+        quickPreviewCollapsed: !!ui.quickPreviewCollapsed
+      }));
     }
 
     function restoreFilterControls() {
@@ -978,24 +1152,62 @@
       state.forceCount = el ? el.value : '';
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       updateInfoPanels();
-      populateQuickPreview(); // ليس ضرورياً لكن لا يضر
+      populateQuickPreview();
+    }
+
+    function autoCompactIfFiltersReady() {
+      if (ui.filters.hall && ui.filters.shift) {
+        ui.topCompact = true;
+        savePreferences();
+        applyHeaderModes();
+      }
     }
 
     function onHallChange() {
       ui.filters.hall = document.getElementById('hallSelect').value;
+      autoCompactIfFiltersReady();
       savePreferences();
       renderAll();
     }
 
     function onShiftChange() {
       ui.filters.shift = document.getElementById('shiftSelect').value;
+      autoCompactIfFiltersReady();
       savePreferences();
       renderAll();
     }
 
-    /* =========================
-       الأسماء: إخفاء المستخدم + ترتيب أبجدي
-    ========================= */
+    function toggleTopCompact() {
+      ui.topCompact = !ui.topCompact;
+      savePreferences();
+      applyHeaderModes();
+    }
+
+    function toggleQuickPreview() {
+      ui.quickPreviewCollapsed = !ui.quickPreviewCollapsed;
+      savePreferences();
+      applyHeaderModes();
+    }
+
+    function applyHeaderModes() {
+      const header = document.getElementById('appHeader');
+      const btn = document.getElementById('toggleTopBtn');
+      const previewWrap = document.getElementById('quickPreviewWrap');
+      const previewBtn = document.getElementById('togglePreviewBtn');
+
+      if (header) header.classList.toggle('compact', !!ui.topCompact);
+      if (btn) {
+        btn.textContent = ui.topCompact ? '▴' : '▾';
+        btn.title = ui.topCompact ? 'تكبير الجزء العلوي' : 'تصغير الجزء العلوي';
+      }
+
+      if (previewWrap) previewWrap.classList.toggle('collapsed', !!ui.quickPreviewCollapsed);
+      if (previewBtn) {
+        previewBtn.textContent = ui.quickPreviewCollapsed ? '+' : '−';
+        previewBtn.title = ui.quickPreviewCollapsed ? 'تكبير المعاينة' : 'تصغير المعاينة';
+      }
+    }
+
     function getAssignedFullNamesSet() {
       const set = new Set();
       Object.values(state.slots || {}).forEach(v => {
@@ -1062,22 +1274,18 @@
       }
 
       if (!ui.activeTarget) {
-        container.innerHTML = `<div class="person-empty">حدّد كاونتر أو مهمة أولاً</div>`;
+        container.innerHTML = `<div class="person-empty">حدّد كاونتر أو مهمة، وستظهر الأسماء داخل العنصر المحدد</div>`;
         updateInfoPanels();
         return;
       }
 
-      if (!list.length) {
-        container.innerHTML = `<div class="person-empty">لا توجد أسماء متاحة</div>`;
-        updateInfoPanels();
-        return;
-      }
-
-      container.innerHTML = list.map((p, idx) => `
-        <button class="person-item" type="button" onclick="assignPersonByIndex(${idx})">
-          ${escapeHtml(p.name)}
-        </button>
-      `).join('');
+      const targetTxt = ui.activeTarget.type === 'card' ? 'الكاونتر' : 'المهمة';
+      container.innerHTML = `
+        <div class="person-empty" style="padding:14px 8px;">
+          قائمة الأسماء ظهرت داخل ${targetTxt} المحدد بالأسفل
+          <div style="margin-top:6px;font-size:.72rem;color:#94a3b8;">المتاح الآن: ${list.length}</div>
+        </div>
+      `;
 
       updateInfoPanels();
     }
@@ -1088,9 +1296,6 @@
       assignPersonToActiveTarget(item);
     }
 
-    /* =========================
-       تحديد الهدف (كاونتر/مهمة)
-    ========================= */
     function setActiveCard(cardId) {
       if (ui.activeTarget && ui.activeTarget.type === 'card' && ui.activeTarget.id === cardId) {
         ui.activeTarget = null;
@@ -1119,10 +1324,7 @@
     }
 
     function getAllTasks() {
-      return [
-        ...DEFAULT_FIXED_TASKS,
-        ...(state.customTasks || [])
-      ];
+      return [...DEFAULT_FIXED_TASKS, ...(state.customTasks || [])];
     }
 
     function getTaskById(taskId) {
@@ -1203,14 +1405,7 @@
         source: item.source || 'static'
       };
 
-      // إلغاء التحديد عند الاكتمال
-      if (ui.activeTarget?.type === 'card' && isCardFullyFilled(ui.activeTarget.id)) {
-        ui.activeTarget = null;
-      }
-      if (ui.activeTarget?.type === 'task' && isTaskFullyFilled(ui.activeTarget.id)) {
-        ui.activeTarget = null;
-      }
-
+      ui.activeTarget = null;
       saveState();
     }
 
@@ -1221,9 +1416,6 @@
       badge.textContent = text;
     }
 
-    /* =========================
-       شريط الكاونترات
-    ========================= */
     function renderCounters() {
       const container = document.getElementById('counterContainer');
       if (!container) return;
@@ -1286,9 +1478,6 @@
       saveState();
     }
 
-    /* =========================
-       الخلايا داخل الكاونتر
-    ========================= */
     function getSlotLabelById(slotId) {
       const c = state.cards.find(card => slotId.startsWith(card.id + '_'));
       if (!c) return '';
@@ -1320,12 +1509,10 @@
       restoreFilterControls();
       savePreferences();
 
-      // إذا الخلية داخل كاونتر
       const card = state.cards.find(c => slotId.startsWith(c.id + '_'));
       if (card) {
         ui.activeTarget = { type:'card', id: card.id };
       } else {
-        // إذا داخل مهمة
         const task = getAllTasks().find(t => slotId.startsWith(t.id + '__'));
         if (task) ui.activeTarget = { type:'task', id: task.id };
       }
@@ -1353,9 +1540,42 @@
       `;
     }
 
-    /* =========================
-       ترتيب الكاونترات
-    ========================= */
+    function buildInlinePeoplePickerHtml() {
+      if (!ui.filters.hall || !ui.filters.shift) return '';
+      if (!ui.activeTarget) return '';
+
+      const list = getCombinedPersonList();
+      currentVisiblePeople = list;
+
+      let targetTitle = 'العنصر المحدد';
+      if (ui.activeTarget.type === 'card') {
+        targetTitle = getCardDisplayTitle(getCardById(ui.activeTarget.id)) || 'كاونتر';
+      } else if (ui.activeTarget.type === 'task') {
+        targetTitle = getTaskDisplayTitle(getTaskById(ui.activeTarget.id)) || 'مهمة';
+      }
+
+      let body = '';
+      if (!list.length) {
+        body = `<div class="inline-people-empty">لا توجد أسماء متاحة</div>`;
+      } else {
+        body = list.map((p, idx) => `
+          <button class="inline-person-btn" type="button" onclick="event.stopPropagation(); assignPersonByIndex(${idx})">
+            ${escapeHtml(p.name)}
+          </button>
+        `).join('');
+      }
+
+      return `
+        <div class="inline-people-picker" onclick="event.stopPropagation()">
+          <div class="inline-people-picker-head">
+            <span>اختيار اسم لـ ${escapeHtml(targetTitle)}</span>
+            <button class="inline-people-picker-close" type="button" onclick="clearActiveCard()">إخفاء</button>
+          </div>
+          <div class="inline-people-grid">${body}</div>
+        </div>
+      `;
+    }
+
     function getCardSortWeight(card) {
       const stats = getCardFillStats(card.id);
       if (stats.filled === 0) return 0;
@@ -1388,6 +1608,8 @@
         let slotsHtml = '';
         getCardSlotIds(c).forEach(id => { slotsHtml += makeSlot(id); });
 
+        const pickerHtml = active ? buildInlinePeoplePickerHtml() : '';
+
         const el = document.createElement('div');
         el.className = `card ${c.type === 'merged' ? 'merged' : ''} ${active ? 'active-card' : ''}`;
         el.onclick = () => setActiveCard(c.id);
@@ -1396,15 +1618,15 @@
             <span>كاونتر ${escapeHtml(title)} (${stats.filled}/${stats.total})</span>
             <span class="delete" onclick="event.stopPropagation(); deleteCard('${c.id}')">✕</span>
           </div>
-          <div class="card-body">${slotsHtml}</div>
+          <div class="card-body">
+            ${slotsHtml}
+            ${pickerHtml}
+          </div>
         `;
         ws.appendChild(el);
       });
     }
 
-    /* =========================
-       المهام (ثابتة + مخصصة)
-    ========================= */
     function renderTasks() {
       const grid = document.getElementById('extrasGrid');
       if (!grid) return;
@@ -1443,6 +1665,8 @@
         `;
       });
 
+      const pickerHtml = active ? buildInlinePeoplePickerHtml() : '';
+
       el.innerHTML = `
         <div class="task-head">
           <div class="task-title-wrap">
@@ -1454,7 +1678,10 @@
             ${isCustom ? `<button class="task-icon-btn delete" onclick="event.stopPropagation(); deleteCustomTask('${task.id}')">✕</button>` : ''}
           </div>
         </div>
-        <div class="task-body">${slotsHtml}</div>
+        <div class="task-body">
+          ${slotsHtml}
+          ${pickerHtml}
+        </div>
       `;
       return el;
     }
@@ -1500,7 +1727,6 @@
       if (!t || t.kind !== 'custom') return;
       if (!confirm(`حذف المهمة "${t.title}"؟`)) return;
 
-      // حذف الخلايا المرتبطة
       Object.keys(state.slots).forEach(k => {
         if (k.startsWith(taskId + '__')) delete state.slots[k];
       });
@@ -1512,10 +1738,6 @@
       saveState();
     }
 
-    /* =========================
-       معاينة سريعة للكاونترات
-       مثال: كاونتر 1: أحمد + خالد
-    ========================= */
     function getCardPreviewNames(card) {
       const ids = getCardSlotIds(card);
       const names = ids
@@ -1530,7 +1752,13 @@
       const countEl = document.getElementById('quickPreviewCount');
       if (!grid || !countEl) return;
 
-      const cards = [...state.cards].sort((a,b)=>(a.nums[0]||0)-(b.nums[0]||0));
+      const cards = [...state.cards].sort((a, b) => {
+        const wa = getCardSortWeight(a);
+        const wb = getCardSortWeight(b);
+        if (wa !== wb) return wa - wb;
+        return (a.nums[0] || 0) - (b.nums[0] || 0);
+      });
+
       countEl.textContent = `${cards.length} كاونتر`;
 
       if (!cards.length) {
@@ -1554,9 +1782,6 @@
       }).join('');
     }
 
-    /* =========================
-       معلومات بجانب الأفراد
-    ========================= */
     function getCardDisplayTitle(card) {
       if (!card) return 'لا يوجد';
       return card.type === 'merged'
@@ -1606,7 +1831,7 @@
       if (helper) {
         const hall = ui.filters.hall || '—';
         const shift = ui.filters.shift || '—';
-        const count = (ui.filters.hall && ui.filters.shift && ui.activeTarget) ? getCombinedPersonList().length : 0;
+        const count = (ui.filters.hall && ui.filters.shift) ? getCombinedPersonList().length : 0;
         const force = state.forceCount || '—';
         helper.innerHTML = `
           الصالة: <strong>${escapeHtml(hall)}</strong> | المناوبة: <strong>${escapeHtml(shift)}</strong> | عدد القوة: <strong>${escapeHtml(force)}</strong><br>
@@ -1652,9 +1877,6 @@
       restoreFilterControls();
     }
 
-    /* =========================
-       PDF
-    ========================= */
     function downloadPDF() {
       if (typeof html2pdf === 'undefined') {
         alert('مكتبة PDF غير محملة');
@@ -1680,13 +1902,20 @@
         .catch(() => { element.style.display = 'none'; });
     }
 
+    /* ====== التعديل المطلوب: جدول الكونترات بالعرض ======
+       صف 1: رقم الكونتر | 1 | 2 | 3 ...
+       صف 2: الفرد الأول | أحمد | ...
+       صف 3: الفرد الثاني | خالد | ...
+       صف 4: فرد التغطية | ...
+       وإذا الكونتر مدموج: يتم دمج الخليتين الخاصة برقمَي الكونتر + دمج خلايا الأسماء تحتها
+    ====================================================== */
     function populatePDF() {
       const dateEl = document.getElementById('pdfDateStr');
       const infoEl = document.getElementById('pdfFilterInfo');
-      const tb1 = document.getElementById('pdf-table-1');
-      const tb2 = document.getElementById('pdf-table-2');
+      const countersBody = document.getElementById('pdf-counters-horizontal-body');
       const tasksBody = document.getElementById('pdf-tasks-body');
-      if (!dateEl || !infoEl || !tb1 || !tb2 || !tasksBody) return;
+
+      if (!dateEl || !infoEl || !countersBody || !tasksBody) return;
 
       dateEl.innerText = `التاريخ: ${new Date().toLocaleDateString('ar-SA')}`;
       infoEl.innerHTML = `
@@ -1695,53 +1924,132 @@
         <div><strong>عدد القوة:</strong> ${escapeHtml(state.forceCount || '-')}</div>
       `;
 
-      tb1.innerHTML = '';
-      tb2.innerHTML = '';
+      countersBody.innerHTML = '';
       tasksBody.innerHTML = '';
 
       const sortedCards = [...state.cards].sort((a,b)=>(a.nums[0]||0)-(b.nums[0]||0));
-      const mid = Math.ceil(sortedCards.length / 2);
-      const left = sortedCards.slice(0, mid);
-      const right = sortedCards.slice(mid);
 
-      const makeCardRow = (c) => {
-        const tr = document.createElement('tr');
-        const cntBadge = `<span class="pdf-cnt-badge">${c.nums.join(' & ')}</span>`;
-        const ids = getCardSlotIds(c);
-
-        const content = ids.map(id => {
-          const p = state.slots[id];
-          return `<div><strong>${escapeHtml(getSlotLabelById(id))}:</strong> ${escapeHtml(p?.name || '-')}</div>`;
-        }).join('');
-
-        tr.innerHTML = `<td>${cntBadge}</td><td>${content}</td>`;
-        return tr;
-      };
-
-      left.forEach(c => tb1.appendChild(makeCardRow(c)));
-      right.forEach(c => tb2.appendChild(makeCardRow(c)));
-
-      if (!left.length) tb1.innerHTML = `<tr><td colspan="2" style="text-align:center;">لا يوجد</td></tr>`;
-      if (!right.length) tb2.innerHTML = `<tr><td colspan="2" style="text-align:center;">لا يوجد</td></tr>`;
-
-      // المهام
-      for (const task of getAllTasks()) {
-        const ids = getTaskSlotIds(task.id);
-        const names = ids.map(id => state.slots[id]?.name).filter(Boolean);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="pdf-extra-label">${escapeHtml(task.title)}</td>
-          <td>${names.length ? names.map(n => `<div>${escapeHtml(n)}</div>`).join('') : '-'}</td>
+      if (!sortedCards.length) {
+        countersBody.innerHTML = `
+          <tr><td class="row-label">رقم الكونتر</td><td colspan="10" style="text-align:center;">لا يوجد</td></tr>
+          <tr><td class="row-label">الفرد الأول</td><td colspan="10" style="text-align:center;">-</td></tr>
+          <tr><td class="row-label">الفرد الثاني</td><td colspan="10" style="text-align:center;">-</td></tr>
+          <tr><td class="row-label">فرد التغطية</td><td colspan="10" style="text-align:center;">-</td></tr>
         `;
-        tasksBody.appendChild(tr);
+      } else {
+        const trCounters = document.createElement('tr');
+        const trFirst   = document.createElement('tr');
+        const trSecond  = document.createElement('tr');
+        const trCover   = document.createElement('tr');
+
+        trCounters.innerHTML = `<td class="row-label">رقم الكونتر</td>`;
+        trFirst.innerHTML    = `<td class="row-label">الفرد الأول</td>`;
+        trSecond.innerHTML   = `<td class="row-label">الفرد الثاني</td>`;
+        trCover.innerHTML    = `<td class="row-label">فرد التغطية</td>`;
+
+        sortedCards.forEach(card => {
+          if (card.type === 'single') {
+            // فردي = عمود واحد
+            const first = state.slots[`${card.id}_m`]?.name || '-';
+            const second = '-';
+            const cover = state.slots[`${card.id}_r`]?.name || '-';
+
+            const tdCounter = document.createElement('td');
+            tdCounter.className = 'counter-head';
+            tdCounter.textContent = String(card.nums[0]);
+
+            const tdFirst = document.createElement('td');
+            tdFirst.className = 'name-cell';
+            tdFirst.textContent = first;
+
+            const tdSecond = document.createElement('td');
+            tdSecond.className = 'name-cell';
+            tdSecond.textContent = second;
+
+            const tdCover = document.createElement('td');
+            tdCover.className = 'name-cell';
+            tdCover.textContent = cover;
+
+            trCounters.appendChild(tdCounter);
+            trFirst.appendChild(tdFirst);
+            trSecond.appendChild(tdSecond);
+            trCover.appendChild(tdCover);
+          } else {
+            // مدمج = عمودان (رقمان) لكن الأسماء تكون خلية واحدة span=2
+            const first = state.slots[`${card.id}_m1`]?.name || '-';
+            const second = state.slots[`${card.id}_m2`]?.name || '-';
+            const cover = state.slots[`${card.id}_sh`]?.name || '-';
+
+            const tdCounter1 = document.createElement('td');
+            tdCounter1.className = 'counter-head';
+            tdCounter1.textContent = String(card.nums[0]);
+
+            const tdCounter2 = document.createElement('td');
+            tdCounter2.className = 'counter-head';
+            tdCounter2.textContent = String(card.nums[1]);
+
+            trCounters.appendChild(tdCounter1);
+            trCounters.appendChild(tdCounter2);
+
+            const tdFirst = document.createElement('td');
+            tdFirst.className = 'name-cell';
+            tdFirst.colSpan = 2;
+            tdFirst.textContent = first;
+
+            const tdSecond = document.createElement('td');
+            tdSecond.className = 'name-cell';
+            tdSecond.colSpan = 2;
+            tdSecond.textContent = second;
+
+            const tdCover = document.createElement('td');
+            tdCover.className = 'name-cell';
+            tdCover.colSpan = 2;
+            tdCover.textContent = cover;
+
+            trFirst.appendChild(tdFirst);
+            trSecond.appendChild(tdSecond);
+            trCover.appendChild(tdCover);
+          }
+        });
+
+        countersBody.appendChild(trCounters);
+        countersBody.appendChild(trFirst);
+        countersBody.appendChild(trSecond);
+        countersBody.appendChild(trCover);
+      }
+
+      // المهام الإضافية
+      const tasks = getAllTasks();
+      if (!tasks.length) {
+        tasksBody.innerHTML = `
+          <tr>
+            <td colspan="2" style="text-align:center;">لا توجد مهام إضافية</td>
+          </tr>
+        `;
+      } else {
+        for (const task of tasks) {
+          const ids = getTaskSlotIds(task.id);
+          const names = ids.map(id => state.slots[id]?.name).filter(Boolean);
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="pdf-extra-label">${escapeHtml(task.title)}</td>
+            <td class="name-cell" style="text-align:right;">
+              ${
+                names.length
+                  ? `<div class="pdf-task-names-list">${names.map(n => `<div>${escapeHtml(n)}</div>`).join('')}</div>`
+                  : '-'
+              }
+            </td>
+          `;
+          tasksBody.appendChild(tr);
+        }
       }
     }
 
-    /* =========================
-       رندر عام
-    ========================= */
     function renderAll() {
       restoreFilterControls();
+      applyHeaderModes();
       renderCounters();
       renderWorkspace();
       renderTasks();
