@@ -855,6 +855,7 @@
         <button id="toggleTopBtn" class="icon-btn btn-reset" onclick="toggleTopCompact()" title="تصغير/تكبير الجزء العلوي">▾</button>
         <button class="icon-btn btn-reset" onclick="resetSchedule()" title="إعادة تعيين">↻</button>
         <button class="icon-btn btn-pdf" onclick="downloadPDF()" title="PDF">PDF</button>
+        <button class="icon-btn btn-reset" type="button" onclick="goBackPage()" title="رجوع">←</button>
       </div>
     </div>
 
@@ -2067,6 +2068,9 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
     }
+     function goBackPage() {
+    window.location.href = 'https://saud5161.github.io/passportstamp/indexhh.html';
+  }
   </script>
 </body>
 </html>
