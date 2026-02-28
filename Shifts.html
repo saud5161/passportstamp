@@ -22,829 +22,121 @@
       --violet:#7c3aed;
       --teal:#0f766e;
       --font:'Tajawal',sans-serif;
-      --shadow:0 6px 18px rgba(0,0,0,.06);
     }
 
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     body{
-      margin:0;
-      background:var(--bg);
-      color:#111827;
-      font-family:var(--font);
-      padding-bottom:70px;
+      margin:0; background:var(--bg); color:#111827;
+      font-family:var(--font); padding-bottom:70px;
     }
 
     .app-header{
-      position:sticky;
-      top:0;
-      z-index:1000;
+      position:sticky; top:0; z-index:1000;
       background:linear-gradient(135deg,var(--primary2),#35577a);
-      color:#fff;
-      padding:8px;
-      box-shadow:0 6px 14px rgba(0,0,0,.16);
-      transition:.18s ease;
+      color:#fff; padding:8px; box-shadow:0 6px 14px rgba(0,0,0,.16);
     }
-
-    .header-top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:6px;
-      margin-bottom:8px;
-      transition:.18s ease;
-    }
-
-    .app-title{
-      margin:0;
-      font-size:.95rem;
-      font-weight:800;
-      line-height:1.2;
-      transition:.18s ease;
-    }
-
-    .header-actions{display:flex;gap:6px;align-items:center}
-
+    .header-top{ display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:8px; }
+    .app-title{ margin:0; font-size:.95rem; font-weight:800; }
+    .header-actions{ display:flex; gap:6px; align-items:center; }
     .icon-btn{
-      border:none;
-      border-radius:9px;
-      padding:7px 9px;
-      min-height:34px;
-      min-width:34px;
-      font-family:var(--font);
-      font-size:.78rem;
-      font-weight:800;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      line-height:1;
-      gap:4px;
-      transition:.15s ease;
+      border:none; border-radius:9px; padding:7px 9px; min-height:34px; min-width:34px;
+      font-family:var(--font); font-size:.78rem; font-weight:800; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.18);
     }
+    .btn-pdf{ background:var(--accent); color:#1f2937; border:none; }
 
-    .btn-reset{
-      background:rgba(255,255,255,.12);
-      color:#fff;
-      border:1px solid rgba(255,255,255,.18);
+    .top-controls{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:8px; }
+    .field{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .field label{ font-size:.72rem; font-weight:700; color:rgba(255,255,255,.92); line-height:1; }
+    .field select, .field input{
+      width:100%; height:36px; border-radius:9px; border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.12); color:#fff; padding:0 10px; font-family:var(--font);
+      font-size:.83rem; outline:none;
     }
-    .btn-pdf{ background:var(--accent); color:#1f2937; }
-
-    .top-controls{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:6px;
-      margin-bottom:8px;
-      transition:.18s ease;
-    }
-
-    .field{display:flex;flex-direction:column;gap:4px;min-width:0}
-    .field label{
-      font-size:.72rem;
-      font-weight:700;
-      color:rgba(255,255,255,.92);
-      line-height:1;
-    }
-
-    .field select,
-    .field input{
-      width:100%;
-      height:36px;
-      border-radius:9px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(255,255,255,.12);
-      color:#fff;
-      padding:0 10px;
-      font-family:var(--font);
-      font-size:.83rem;
-      outline:none;
-    }
-
     .field select option{color:#111;background:#fff}
     .field input::placeholder{color:rgba(255,255,255,.75)}
 
-    .search-row{
-      display:grid;
-      grid-template-columns:1fr auto auto;
-      gap:6px;
-      align-items:end;
-    }
-
-    .mini-action{
-      height:36px;
-      border:none;
-      border-radius:9px;
-      padding:0 10px;
-      font-family:var(--font);
-      font-weight:800;
-      font-size:.76rem;
-      cursor:pointer;
-      white-space:nowrap;
-    }
-    .mini-secondary{
-      background:rgba(255,255,255,.12);
-      color:#fff;
-      border:1px solid rgba(255,255,255,.18);
-    }
-    .mini-green{ background:#16a34a; color:#fff; }
-
-    .app-header.compact{ padding:6px 8px; }
-    .app-header.compact .header-top{ margin-bottom:4px; }
-    .app-header.compact .app-title{ font-size:.82rem; }
-    .app-header.compact .icon-btn{
-      min-width:30px;
-      min-height:30px;
-      padding:5px 7px;
-      font-size:.72rem;
-      border-radius:8px;
-    }
-    .app-header.compact .top-controls{ display:none; }
-    .app-header.compact .counter-strip{ margin-bottom:0; }
-
-    .quick-preview-wrap{
-      background:rgba(255,255,255,.94);
-      border:1px solid #e7ebf1;
-      border-radius:12px;
-      padding:7px;
-      margin-bottom:7px;
-      transition:.15s ease;
-    }
-    .quick-preview-head{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:6px;
-      margin-bottom:6px;
-      color:#334155;
-      font-size:.74rem;
-      font-weight:800;
-    }
-    .quick-preview-head .quick-actions{
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-    .tiny-toggle{
-      border:none;
-      background:#eef2f7;
-      color:#334155;
-      border-radius:8px;
-      height:24px;
-      min-width:24px;
-      padding:0 6px;
-      font-family:var(--font);
-      font-size:.68rem;
-      font-weight:800;
-      cursor:pointer;
-      line-height:1;
-    }
-
-    .quick-preview-grid{
-      display:flex;
-      gap:6px;
-      overflow-x:auto;
-      overflow-y:hidden;
-      padding-bottom:2px;
-      -webkit-overflow-scrolling:touch;
-      scroll-snap-type:x proximity;
-      max-height:none;
-    }
-
+    /* المعاينة السريعة */
+    .quick-preview-wrap{ background:rgba(255,255,255,.94); border:1px solid #e7ebf1; border-radius:12px; padding:7px; margin:8px; }
+    .quick-preview-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; color:#334155; font-size:.74rem; font-weight:800; }
+    .quick-preview-grid{ display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; scrollbar-width: none; }
+    .quick-preview-grid::-webkit-scrollbar { display: none; }
     .mini-counter-card{
-      flex:0 0 156px;
-      border:1px solid #e5e7eb;
-      background:#fff;
-      border-radius:10px;
-      padding:6px 7px;
-      min-height:46px;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      gap:2px;
-      box-shadow:0 1px 2px rgba(0,0,0,.02);
-      scroll-snap-align:start;
+      flex:0 0 140px; border:1px solid #e5e7eb; background:#fff; border-radius:8px; padding:6px; min-height:46px;
+      display:flex; flex-direction:column; justify-content:center;
     }
-    .mini-counter-card.empty{
-      opacity:.75;
-      background:#fafafa;
-      border-style:dashed;
-    }
-    .mini-counter-title{
-      font-size:.69rem;
-      font-weight:800;
-      color:var(--primary);
-      line-height:1.1;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .mini-counter-names{
-      font-size:.66rem;
-      color:#374151;
-      line-height:1.2;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .quick-preview-empty{
-      min-width:100%;
-      text-align:center;
-      color:#9ca3af;
-      font-weight:700;
-      padding:10px 6px;
-      font-size:.75rem;
-      border:1px dashed #e5e7eb;
-      border-radius:10px;
-      background:#fff;
-    }
+    .mini-counter-title{ font-size:.7rem; font-weight:800; color:var(--primary); }
+    .mini-counter-names{ font-size:.66rem; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-    .quick-preview-wrap.collapsed .quick-preview-grid{ display:none; }
-    .quick-preview-wrap.collapsed .quick-preview-head{ margin-bottom:0; }
-
-    .counter-strip{
-      background:rgba(255,255,255,.92);
-      border:1px solid #e7ebf1;
-      border-radius:12px;
-      padding:7px;
-      margin-bottom:7px;
-      transition:.15s ease;
-    }
-
-    .strip-title{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:6px;
-      margin-bottom:6px;
-      font-size:.75rem;
-      font-weight:800;
-      color:#334155;
-    }
-
-    .strip-note{
-      color:var(--muted);
-      font-weight:700;
-      font-size:.68rem;
-    }
-
-    .counter-scroll{
-      display:flex;
-      gap:5px;
-      overflow-x:auto;
-      padding-bottom:2px;
-      -webkit-overflow-scrolling:touch;
-    }
-
+    /* شريط الكاونترات */
+    .counter-strip{ background:#fff; border:1px solid #e7ebf1; border-radius:12px; padding:8px; margin:0 8px 8px; }
+    .strip-title{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:.75rem; font-weight:800; color:#334155; }
+    .counter-scroll{ display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; scrollbar-width: none; }
+    .counter-scroll::-webkit-scrollbar { display: none; }
+    
     .cnt-btn{
-      flex:0 0 34px;
-      width:34px;
-      height:34px;
-      border-radius:9px;
-      border:1.8px solid #dbe2ea;
-      background:#fff;
-      color:var(--primary);
-      font-size:.8rem;
-      font-weight:800;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      user-select:none;
-      transition:.12s ease;
+      flex:0 0 36px; width:36px; height:36px; border-radius:9px; border:1.8px solid #dbe2ea;
+      background:#f8fafc; color:var(--primary2); font-size:.85rem; font-weight:800;
+      display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.15s ease; white-space:nowrap;
     }
-    .cnt-btn.active{
-      background:var(--primary);
-      color:#fff;
-      border-color:var(--primary);
+    .task-cnt-btn { width: auto !important; padding: 0 12px; font-size: 0.78rem; flex-basis: auto; }
+    
+    .cnt-btn.filled {
+      background: rgba(22, 163, 74, 0.15) !important;
+      border-color: rgba(22, 163, 74, 0.4) !important;
+      color: #15803d !important;
     }
-    .cnt-btn.used{
-      background:#f3f4f6;
-      color:#bcc4cf;
-      border-color:#edf1f5;
-      pointer-events:none;
-    }
+    .cnt-btn.active { background:var(--primary) !important; color:#fff !important; border-color:var(--primary) !important; }
+    .cnt-btn.add-task-btn { background:var(--violet); color:#fff; border-color:var(--violet); }
 
-    .counter-actions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:6px;
-      margin-top:7px;
+    /* التوزيع والقوائم */
+    .transfer-area { display: flex; gap: 8px; margin: 0 8px 8px; }
+    .list-panel {
+      flex: 1; display: flex; flex-direction: column; background: #fff;
+      border: 1px solid var(--line); border-radius: 12px; overflow: hidden; height: 350px;
     }
+    .panel-header {
+      background: #f8fafc; padding: 8px 10px; font-weight: 800; font-size: 0.75rem;
+      color: var(--primary2); border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center;
+    }
+    .search-row { display:grid; grid-template-columns:1fr auto auto; gap:6px; padding:6px; background:#f8fafc; border-bottom:1px solid var(--line); }
+    .search-input { width: 100%; border:1px solid #dbe2ea; border-radius:6px; padding:6px; font-family: var(--font); font-size: 0.75rem; outline: none; }
+    
+    .mini-action { border:none; border-radius:6px; padding:0 8px; font-family:var(--font); font-weight:800; font-size:.7rem; cursor:pointer; }
+    .mini-green { background:var(--success); color:#fff; }
+    
+    .list-box { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 4px; background: #fcfcfc; }
+    .list-item {
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;
+      font-size: 0.75rem; font-weight: 700; color: #1e293b; cursor: pointer; display: flex; flex-direction: column; gap: 4px; transition: .1s;
+    }
+    .list-item:active { transform: scale(0.98); }
+    .list-item.selected { border-color: var(--success); background: #f0fdf4; }
+    .emp-meta { font-size: 0.65rem; color: var(--muted); }
+    .task-badge { font-size: 0.65rem; background: var(--primary); color: #fff; padding: 2px 6px; border-radius: 4px; align-self: flex-start; }
+    .task-badge.absent-badge { background: var(--danger); }
 
-    .small-main-btn{
-      border:none;
-      border-radius:9px;
-      height:35px;
-      font-family:var(--font);
-      font-weight:800;
-      font-size:.78rem;
-      color:#fff;
-      opacity:.45;
-      pointer-events:none;
-    }
-    .small-main-btn.ready{
-      opacity:1;
-      pointer-events:auto;
-      cursor:pointer;
-    }
-    .btn-single{background:var(--success)}
-    .btn-merge{background:var(--warn)}
-
-    .people-panel{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:12px;
-      margin:0 8px 8px;
-      padding:8px;
-      box-shadow:0 2px 8px rgba(0,0,0,.03);
-    }
-
-    .panel-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:6px;
-      margin-bottom:6px;
-      flex-wrap:wrap;
-    }
-
-    .panel-head-title{
-      font-size:.82rem;
-      font-weight:800;
-      color:#374151;
-      margin:0;
-    }
-
-    .badge{
-      background:#eef4ff;
-      border:1px solid #dbeafe;
-      color:#1d4ed8;
-      border-radius:999px;
-      padding:4px 8px;
-      font-size:.68rem;
-      font-weight:800;
-      white-space:nowrap;
-      max-width:66vw;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .badge.warn{
-      background:#fff7ed;
-      border-color:#fed7aa;
-      color:#9a3412;
-    }
-
-    .meta-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:6px;
-      margin-bottom:6px;
-    }
-
-    .meta-box{
-      border:1px solid #e5e7eb;
-      background:#fafcff;
-      border-radius:10px;
-      padding:7px 8px;
-    }
-    .meta-box label{
-      display:block;
-      font-size:.67rem;
-      color:#64748b;
-      font-weight:700;
-      margin-bottom:3px;
-      line-height:1;
-    }
-    .meta-box input{
-      width:100%;
-      height:32px;
-      border:1px solid #dbe2ea;
-      border-radius:8px;
-      padding:0 8px;
-      font-family:var(--font);
-      font-size:.82rem;
-      outline:none;
-      background:#fff;
-      color:#111827;
-    }
-
-    .people-list{
-      border:1px solid var(--line);
-      border-radius:10px;
-      background:#fff;
-      min-height:110px;
-      max-height:180px;
-      overflow:auto;
-      padding:6px;
-      display:flex;
-      flex-direction:column;
-      gap:5px;
-      -webkit-overflow-scrolling:touch;
-    }
-
-    .person-empty{
-      text-align:center;
-      color:#9ca3af;
-      font-weight:700;
-      padding:18px 8px;
-      font-size:.78rem;
-    }
-
-    .workspace{
-      padding:0 8px 8px;
-      display:grid;
-      grid-template-columns:1fr;
-      gap:8px;
-    }
-
-    .card{
-      background:#fff;
-      border-radius:12px;
-      box-shadow:var(--shadow);
-      border-top:3px solid var(--primary);
-      overflow:hidden;
-    }
-    .card.merged{border-top-color:var(--warn)}
-    .card.active-card{ outline:2px solid #2563eb; background:#f8fbff; }
-
-    .card-header{
-      background:#fbfcff;
-      border-bottom:1px solid #eef2f7;
-      padding:8px 10px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-      color:var(--primary);
-      font-weight:800;
-      font-size:.82rem;
-    }
-
-    .card-header .delete{
-      color:var(--danger);
-      cursor:pointer;
-      font-size:.9rem;
-      line-height:1;
-      padding:4px;
-    }
-
-    .card-body{padding:8px}
-
-    .slot{
-      border:1px dashed #cfd8e3;
-      border-radius:10px;
-      background:#fff;
-      padding:8px;
-      margin-bottom:6px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-      min-height:54px;
-    }
-    .slot:last-child{margin-bottom:0}
-    .slot.filled{background:#ecfdf5;border-style:solid;border-color:#b7ebcf}
-
-    .slot-main{min-width:0;flex:1}
-    .slot-sub{
-      display:block;
-      font-size:.68rem;
-      color:var(--muted);
-      margin-bottom:2px;
-      line-height:1.1;
-    }
-    .slot-text{
-      display:block;
-      font-size:.84rem;
-      font-weight:800;
-      color:#111827;
-      line-height:1.2;
-      word-break:break-word;
-    }
-
-    .slot-actions{display:flex;gap:4px;flex-shrink:0}
-    .mini-slot-btn{
-      border:none;
-      border-radius:8px;
-      min-width:28px;
-      height:28px;
-      padding:0 6px;
-      font-family:var(--font);
-      font-weight:800;
-      font-size:.68rem;
-      cursor:pointer;
-      line-height:1;
-    }
-    .slot-move{background:#eef2ff;color:#3730a3}
-    .slot-del{background:#fee2e2;color:#b91c1c}
-
-    .inline-people-picker{
-      margin-top:8px;
-      border-top:1px dashed #dbe2ea;
-      padding-top:8px;
-    }
-
-    .inline-people-picker-head{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:6px;
-      margin-bottom:6px;
-      font-size:.72rem;
-      font-weight:800;
-      color:#334155;
-    }
-
-    .inline-people-picker-close{
-      border:none;
-      background:#eef2f7;
-      color:#334155;
-      border-radius:8px;
-      height:26px;
-      padding:0 8px;
-      font-family:var(--font);
-      font-size:.68rem;
-      font-weight:800;
-      cursor:pointer;
-      white-space:nowrap;
-    }
-
-    .inline-people-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:5px;
-      max-height:180px;
-      overflow:auto;
-      -webkit-overflow-scrolling:touch;
-    }
-
-    .inline-person-btn{
-      border:1px solid #e5e7eb;
-      background:#fff;
-      color:#111827;
-      border-radius:8px;
-      padding:7px 8px;
-      font-family:var(--font);
-      font-size:.70rem;
-      font-weight:700;
-      text-align:right;
-      line-height:1.15;
-      cursor:pointer;
-      min-height:38px;
-      width:100%;
-    }
-
-    .inline-person-btn:hover{
-      background:#f8fafc;
-      border-color:#cfd8e3;
-    }
-
-    .inline-people-empty{
-      border:1px dashed #e5e7eb;
-      border-radius:8px;
-      padding:10px 8px;
-      text-align:center;
-      color:#9ca3af;
-      font-size:.72rem;
-      font-weight:700;
-      grid-column:1 / -1;
-    }
-
-    .extras-grid{
-      padding:0 8px 8px;
-      display:grid;
-      grid-template-columns:1fr;
-      gap:8px;
-    }
-
-    .task-card{
-      background:#fff;
-      border-radius:12px;
-      box-shadow:var(--shadow);
-      border-top:3px solid var(--teal);
-      overflow:hidden;
-    }
-
-    .task-card.custom{ border-top-color: var(--violet); }
-
-    .task-head{
-      background:#fbfcff;
-      border-bottom:1px solid #eef2f7;
-      padding:8px 10px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-      color:#0f172a;
-      font-weight:800;
-      font-size:.82rem;
-    }
-
-    .task-title-wrap{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      min-width:0;
-      flex:1;
-    }
-
-    .task-title{
-      min-width:0;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-
-    .task-actions{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      flex-shrink:0;
-    }
-
-    .task-icon-btn{
-      border:none;
-      background:#f1f5f9;
-      color:#334155;
-      border-radius:8px;
-      width:28px;
-      height:28px;
-      font-weight:800;
-      cursor:pointer;
-      font-family:var(--font);
-      line-height:1;
-    }
-    .task-icon-btn.delete{ background:#fee2e2; color:#b91c1c; }
-
-    .task-body{ padding:8px; }
-
-    .task-adder{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:12px;
-      margin:0 8px 8px;
-      padding:8px;
-      box-shadow:0 2px 8px rgba(0,0,0,.03);
-    }
-
-    .task-adder-row{
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:6px;
-      align-items:center;
-    }
-    .task-adder-row input{
-      width:100%;
-      height:36px;
-      border:1px solid #dbe2ea;
-      border-radius:9px;
-      padding:0 10px;
-      font-family:var(--font);
-      font-size:.84rem;
-      outline:none;
-      background:#fff;
-    }
-    .task-adder-row button{
-      border:none;
-      border-radius:9px;
-      height:36px;
-      padding:0 12px;
-      font-family:var(--font);
-      font-size:.78rem;
-      font-weight:800;
-      cursor:pointer;
-      background:var(--violet);
-      color:#fff;
-      white-space:nowrap;
-    }
-
-    .empty-note{
-      text-align:center;
-      color:#9ca3af;
-      font-weight:700;
-      padding:10px;
-      font-size:.8rem;
+    .current-target-banner {
+      background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca; padding: 8px 12px;
+      margin: 0 8px 8px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; text-align: center; transition: 0.2s;
     }
 
     /* ===== PDF ===== */
-    #pdf-report{
-      display:none;
-      background:#fff;
-      color:#000;
-      font-family:'Tajawal',sans-serif;
-      padding:18px;
-      direction:rtl;
-    }
-
-    .pdf-header{
-      display:flex;
-      flex-direction:row-reverse;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      border-bottom:3px solid #2c3e50;
-      padding-bottom:10px;
-      margin-bottom:12px;
-    }
+    #pdf-report{ display:none; background:#fff; color:#000; font-family:'Tajawal',sans-serif; padding:18px; direction:rtl; }
+    .pdf-header{ display:flex; flex-direction:row-reverse; justify-content:space-between; align-items:flex-start; gap:12px; border-bottom:3px solid #2c3e50; padding-bottom:10px; margin-bottom:12px; }
     .pdf-title{font-size:22px;font-weight:800;color:#2c3e50;margin:0 0 4px 0}
     .pdf-date{font-size:13px;font-weight:700;color:#555}
-    .pdf-meta-box{
-      background:#f8fafc;
-      border:1px solid #dbe2ea;
-      border-radius:8px;
-      padding:8px 10px;
-      font-size:12px;
-      min-width:185px;
-      line-height:1.7;
-      text-align:right;
-    }
-
-    .pdf-section-head{
-      background:#34495e;
-      color:#fff;
-      padding:6px;
-      font-size:12px;
-      font-weight:800;
-      text-align:center;
-      border-radius:4px 4px 0 0;
-      margin-top:0;
-    }
-
-    .pdf-table,.pdf-extra-table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:11px;
-      margin-bottom:10px;
-      border:1px solid #bdc3c7;
-      table-layout:fixed;
-    }
-
-    .pdf-table th,.pdf-table td,.pdf-extra-table th,.pdf-extra-table td{
-      border:1px solid #bdc3c7;
-      padding:6px 6px;
-      vertical-align:middle;
-    }
-
-    .pdf-table th,.pdf-extra-table th{
-      background:#2c3e50;
-      color:#fff;
-      font-weight:800;
-      text-align:center;
-      font-size:12px;
-    }
-
+    .pdf-meta-box{ background:#f8fafc; border:1px solid #dbe2ea; border-radius:8px; padding:8px 10px; font-size:12px; min-width:185px; line-height:1.7; text-align:right; }
+    .pdf-section-head{ background:#34495e; color:#fff; padding:6px; font-size:12px; font-weight:800; text-align:center; border-radius:4px 4px 0 0; margin-top:0; }
+    .pdf-table,.pdf-extra-table{ width:100%; border-collapse:collapse; font-size:11px; margin-bottom:10px; border:1px solid #bdc3c7; table-layout:fixed; }
+    .pdf-table th,.pdf-table td,.pdf-extra-table th,.pdf-extra-table td{ border:1px solid #bdc3c7; padding:6px 6px; vertical-align:middle; }
+    .pdf-table th,.pdf-extra-table th{ background:#2c3e50; color:#fff; font-weight:800; text-align:center; font-size:12px; }
     .pdf-table tr:nth-child(even), .pdf-extra-table tr:nth-child(even){background:#f9f9f9}
     .pdf-extra-label{background:#ecf0f1;font-weight:800;width:25%;color:#2c3e50;text-align:center}
-    .pdf-task-names-list div{ margin:2px 0; }
-
-    /* الجدول العرضي المطلوب */
-    .pdf-horizontal-counters td.row-label{
-      background:#ecf0f1;
-      font-weight:800;
-      color:#2c3e50;
-      width:110px;
-      text-align:center;
-      white-space:nowrap;
-    }
-    .pdf-horizontal-counters td.counter-head{
-      text-align:center;
-      font-weight:800;
-      background:#f8fafc;
-    }
-    .pdf-horizontal-counters td.name-cell{
-      text-align:center;
-      font-weight:700;
-      word-break:break-word;
-      line-height:1.25;
-    }
-
-    @media (max-width:420px){
-      .cnt-btn{
-        flex:0 0 38px;
-        width:38px;
-        height:38px;
-        border-radius:10px;
-        font-size:.82rem;
-      }
-      .counter-scroll{gap:6px;padding-bottom:4px}
-      .mini-counter-card{flex-basis:145px}
-    }
-
-    @media (min-width:700px){
-      .app-header{padding:10px}
-      .top-controls{grid-template-columns:repeat(4,1fr)}
-      .search-row{grid-template-columns:1fr auto auto}
-      .workspace{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-      .extras-grid{grid-template-columns:repeat(2,minmax(280px,1fr))}
-      .app-title{font-size:1.05rem}
-      .counter-strip,.people-panel,.task-adder,.quick-preview-wrap{margin-left:10px;margin-right:10px}
-      .people-list{max-height:220px}
-      .meta-grid{grid-template-columns:repeat(4,1fr)}
-      .inline-people-grid{
-        grid-template-columns:repeat(3,minmax(0,1fr));
-        max-height:220px;
-      }
-      .mini-counter-card{flex-basis:170px}
-    }
+    .pdf-horizontal-counters td.row-label{ background:#ecf0f1; font-weight:800; color:#2c3e50; width:110px; text-align:center; white-space:nowrap; }
+    .pdf-horizontal-counters td.counter-head{ text-align:center; font-weight:800; background:#f8fafc; }
+    .pdf-horizontal-counters td.name-cell{ text-align:center; font-weight:700; word-break:break-word; line-height:1.25; }
   </style>
 </head>
 <body>
@@ -852,29 +144,24 @@
     <div class="header-top">
       <h1 class="app-title">توزيع الكاونترات</h1>
       <div class="header-actions">
-        <button id="toggleTopBtn" class="icon-btn btn-reset" onclick="toggleTopCompact()" title="تصغير/تكبير الجزء العلوي">▾</button>
-        <button class="icon-btn btn-reset" onclick="resetSchedule()" title="إعادة تعيين">↻</button>
-        <button class="icon-btn btn-pdf" onclick="downloadPDF()" title="PDF">PDF</button>
-        <button class="icon-btn btn-reset" type="button" onclick="goBackPage()" title="رجوع">←</button>
+        <button class="icon-btn" onclick="resetSchedule()" title="تصفير التوزيع">↻</button>
+        <button class="icon-btn btn-pdf" onclick="downloadPDF()" title="طباعة PDF">PDF</button>
       </div>
     </div>
 
     <div class="top-controls">
       <div class="field">
-        <label for="hallSelect">الصالة</label>
-        <select id="hallSelect" onchange="onHallChange()">
+        <label>الصالة</label>
+        <select id="hallSelect" onchange="onFilterChange()">
           <option value="">اختر</option>
           <option value="1">1</option>
           <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
           <option value="5">5</option>
         </select>
       </div>
-
       <div class="field">
-        <label for="shiftSelect">المناوبة</label>
-        <select id="shiftSelect" onchange="onShiftChange()">
+        <label>المناوبة</label>
+        <select id="shiftSelect" onchange="onFilterChange()">
           <option value="">اختر</option>
           <option value="أ">أ</option>
           <option value="ب">ب</option>
@@ -882,84 +169,58 @@
           <option value="د">د</option>
         </select>
       </div>
-
-      <div class="field" style="grid-column:1 / -1;">
-        <label for="personSearch">بحث بالاسم</label>
-        <div class="search-row">
-          <input id="personSearch" type="text" placeholder="اكتب جزء من الاسم..." oninput="renderAll()" />
-          <button class="mini-action mini-secondary" onclick="clearActiveCard()">إلغاء التحديد</button>
-          <button class="mini-action mini-green" onclick="addCustomStaffPrompt()">+ اسم</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="quickPreviewWrap" class="quick-preview-wrap">
-      <div class="quick-preview-head">
-        <span>معاينة سريعة للكاونترات</span>
-        <div class="quick-actions">
-          <span id="quickPreviewCount" style="color:#64748b;font-weight:700">0</span>
-          <button id="togglePreviewBtn" class="tiny-toggle" onclick="toggleQuickPreview()" title="تصغير/تكبير المعاينة">−</button>
-        </div>
-      </div>
-      <div id="quickPreviewGrid" class="quick-preview-grid"></div>
-    </div>
-
-    <div class="counter-strip">
-      <div class="strip-title">
-        <span>اختيار الكاونتر</span>
-        <span class="strip-note">1 فردي / 2 دمج</span>
-      </div>
-
-      <div class="counter-scroll" id="counterContainer"></div>
-
-      <div class="counter-actions">
-        <button id="btnAdd" class="small-main-btn btn-single" onclick="createCard(false)">+ فردي</button>
-        <button id="btnMerge" class="small-main-btn btn-merge" onclick="createCard(true)">دمج</button>
+      <div class="field">
+        <label>عدد القوة</label>
+        <input id="forceCountInput" type="number" min="0" placeholder="تلقائي" oninput="savePrefs()" />
       </div>
     </div>
   </div>
 
-  <div class="people-panel">
-    <div class="panel-head">
-      <h3 class="panel-head-title">الأفراد</h3>
-      <span class="badge" id="selectionStatus">لا يوجد عنصر محدد</span>
+  <div class="counter-strip">
+    <div class="strip-title">
+      <span>1. اختر الكاونتر أو المهمة للتوزيع عليها</span>
     </div>
-
-    <div class="meta-grid">
-      <div class="meta-box">
-        <label for="forceCountInput">عدد القوة</label>
-        <input id="forceCountInput" type="number" min="0" inputmode="numeric" placeholder="مثال: 25" oninput="onForceCountInput()" />
-      </div>
-
-      <div class="meta-box" style="grid-column: span 1;">
-        <label>الهدف الحالي</label>
-        <div id="activeCardInfo" style="font-size:.78rem;font-weight:700;color:#334155;line-height:1.3;min-height:32px;display:flex;align-items:center;">
-          حدّد كاونتر أو مهمة أولاً
+    <div class="counter-scroll" id="counterContainer">
         </div>
-      </div>
-
-      <div class="meta-box" style="grid-column:1 / -1;">
-        <label>إرشاد الاستخدام</label>
-        <div id="dbInfoText" style="font-size:.74rem;color:#6b7280;line-height:1.4;">
-          اختر الصالة والمناوبة → أنشئ كاونتر أو حدّد مهمة → اختر الاسم من القائمة داخل الكارد.
-        </div>
-      </div>
-    </div>
-
-    <div id="peopleList" class="people-list"></div>
   </div>
 
-  <div class="task-adder">
-    <div class="task-adder-row">
-      <input id="customTaskInput" type="text" placeholder="أضف مهمة مخصصة (مثال: مسؤول عن التدريب)" />
-      <button onclick="addCustomTask()">+ مهمة</button>
+  <div class="current-target-banner" id="currentTargetBanner">
+      الهدف الحالي: (الرجاء التحديد من الشريط الأعلى)
+  </div>
+
+  <div class="transfer-area">
+    <div class="list-panel">
+      <div class="panel-header">
+          <span>المتاح</span>
+          <span style="background:var(--primary); color:#fff; padding:2px 6px; border-radius:10px;" id="c-pool">0</span>
+      </div>
+      <div class="search-row">
+        <input type="text" id="searchPool" class="search-input" placeholder="بحث..." onkeyup="renderTransferLists()">
+        <button class="mini-action mini-green" onclick="addNewName()">+ اسم</button>
+      </div>
+      <div class="list-box" id="list-pool"></div>
+    </div>
+
+    <div class="list-panel" style="border-color:var(--success)">
+      <div class="panel-header" style="color:var(--success)">
+          <span>تم التوزيع</span>
+          <span style="background:var(--success); color:#fff; padding:2px 6px; border-radius:10px;" id="c-chosen">0</span>
+      </div>
+      <div class="search-row">
+          <span style="font-size:0.65rem; color:var(--muted); padding:6px">انقر على الاسم للتراجع</span>
+      </div>
+      <div class="list-box" id="list-chosen"></div>
     </div>
   </div>
 
-  <div class="workspace" id="workspace"></div>
-  <div class="extras-grid" id="extrasGrid"></div>
+  <div class="quick-preview-wrap">
+    <div class="quick-preview-head">
+      <span>2. المعاينة السريعة</span>
+      <span id="quickPreviewCount" style="color:var(--muted)">0</span>
+    </div>
+    <div id="quickPreviewGrid" class="quick-preview-grid"></div>
+  </div>
 
-  <!-- PDF -->
   <div id="pdf-report">
     <div class="pdf-header">
       <div class="pdf-header-left">
@@ -968,930 +229,436 @@
       </div>
       <div class="pdf-meta-box" id="pdfFilterInfo"></div>
     </div>
-
-    <!-- الكونترات بالعرض (مطلوبك) -->
     <div class="pdf-section-head">جدول الكاونترات</div>
     <table class="pdf-table pdf-horizontal-counters">
       <tbody id="pdf-counters-horizontal-body"></tbody>
     </table>
-
-    <!-- المهام أسفلهم -->
     <div class="pdf-section-head" style="margin-top:12px; background:#2c3e50;">المهام الإضافية</div>
     <table class="pdf-extra-table">
-      <thead>
-        <tr>
-          <th width="30%">المهمة</th>
-          <th width="70%">الأسماء</th>
-        </tr>
-      </thead>
+      <thead><tr><th width="30%">المهمة</th><th width="70%">الأسماء</th></tr></thead>
       <tbody id="pdf-tasks-body"></tbody>
     </table>
   </div>
 
   <script>
-    const STORAGE_KEY = 'official_sched_mobile_v5';
-    const PREFS_KEY   = 'official_sched_mobile_v5_filters';
-
-    const STATIC_STAFF = [
-      { name: "محمد معيوض حمود العتيبي", rank: "رقيب أول", id: "" },
-      { name: "رامي شقير المطيري", rank: "وكيل رقيب", id: "" },
-      { name: "محمد تميم مضحي الدوسري", rank: "وكيل رقيب", id: "" },
-      { name: "مساعد صالح محمد الطوب", rank: "وكيل رقيب", id: "" },
-      { name: "محمد ضاوي المطيري", rank: "عريف", id: "" },
-      { name: "سعود عبدالله تركي السبيعي", rank: "عريف", id: "" },
-      { name: "طلال محمد بخيت العتيبي", rank: "عريف", id: "" },
-      { name: "غنيه ظافر سهلي", rank: "عريف", id: "" },
-      { name: "ابتهال معيض القحطاني", rank: "عريف", id: "" },
-      { name: "أريج يحيى معافا", rank: "عريف", id: "" },
-      { name: "شايع عبدالله غانم القحطاني", rank: "جندي أول", id: "" },
-      { name: "معاذ علي محمد الحبيب", rank: "جندي أول", id: "" },
-      { name: "سلطان عبدالله نفوع الرشيدي", rank: "جندي أول", id: "" },
-      { name: "مصعب حسن سعيد ال علوان", rank: "جندي أول", id: "" },
-      { name: "عبدالله ضحيان هجود الحارثي", rank: "جندي أول", id: "" },
-      { name: "مطلق فايز مطلق السلولي", rank: "جندي أول", id: "" },
-      { name: "هاجر فهد العنزي", rank: "جندي أول", id: "" },
-      { name: "منيفه صويلح العتيبي", rank: "جندي أول", id: "" },
-      { name: "نرجس عيسى الدوسري", rank: "جندي أول", id: "" },
-      { name: "بشائر محمد الفيفي", rank: "جندي أول", id: "" },
-      { name: "مريم عبدالله الزهراني", rank: "جندي أول", id: "" },
-      { name: "سامي ناشي ارضيان البقمي", rank: "جندي", id: "" },
-      { name: "عبدالسلام فرحان عبدالعالي الحربي", rank: "جندي", id: "" },
-      { name: "سالم علي سالم هليل", rank: "جندي", id: "" },
-      { name: "عبدالعزيز عبدالله إبراهيم العريني", rank: "جندي", id: "" },
-      { name: "محمد نياف موسم العتيبي", rank: "جندي", id: "" },
-      { name: "حسين صايل محمد العجلان", rank: "جندي", id: "" },
-      { name: "مقرن عبدالعزيز نور المطيري", rank: "جندي", id: "" },
-      { name: "علي أحمد عبدالله الشهري", rank: "جندي", id: "" },
-      { name: "عايد مساعد سعد المطيري", rank: "جندي", id: "" },
-      { name: "سلمان أحمد عبدالله السويح", rank: "جندي", id: "" }
-    ];
-
-    const DEFAULT_FIXED_TASKS = [
-      { id: 'task_self', title: 'الخدمة الذاتية', kind: 'fixed', color: 'teal' },
-      { id: 'task_guide', title: 'الإرشاد', kind: 'fixed', color: 'teal' },
-      { id: 'task_gate', title: 'البوابة', kind: 'fixed', color: 'teal' }
-    ];
-
-    let state = {
-      customStaff: [],
-      cards: [],
-      slots: {},
-      customTasks: [],
-      taskCounters: {},
-      forceCount: '',
-      extrasCounter: { self: 1, guide: 1 }
-    };
-
-    let ui = {
-      selectedCounterNums: [],
-      activeTarget: null,
-      filters: { hall: '', shift: '', search: '' },
-      topCompact: false,
-      quickPreviewCollapsed: false
-    };
-
-    let currentVisiblePeople = [];
+    const PREFS_KEY = 'official_sched_mobile_v12_transfer';
+    const DEFAULT_TASKS = ["إرشاد", "خدمة ذاتية", "بوابة", "بدون مهام/غياب"];
+    
+    let employeesData = {}; 
+    let savedCustomNames = [];
+    let customTasksList = [];
+    
+    let employees = []; 
+    let dailyPool = []; 
+    let chosen = [];    
+    
+    let currentTask = null; 
+    let selectedCountersForMerge = [];
 
     window.onload = () => {
-      loadLocalState();
-      normalizeState();
-      loadPreferencesToUI();
-      restoreFilterControls();
-      applyHeaderModes();
-      renderAll();
-      autoCompactIfFiltersReady();
+        loadDataAndInitialize();
     };
 
-    function normalizeState() {
-      if (!Array.isArray(state.customTasks)) state.customTasks = [];
-      if (!state.taskCounters || typeof state.taskCounters !== 'object') state.taskCounters = {};
-      if (typeof state.forceCount === 'undefined') state.forceCount = '';
-      for (const t of DEFAULT_FIXED_TASKS) {
-        if (!state.taskCounters[t.id]) state.taskCounters[t.id] = 1;
-      }
-      for (const t of state.customTasks) {
-        if (!state.taskCounters[t.id]) state.taskCounters[t.id] = 1;
-      }
-    }
-
-    function shortenPersonName(fullName) {
-      const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
-      if (parts.length <= 3) return parts.join(' ');
-      return `${parts[0]} ${parts[1]} ${parts[parts.length - 1]}`;
-    }
-
-    function firstNameOnly(name) {
-      return String(name || '').trim().split(/\s+/).filter(Boolean)[0] || '';
-    }
-
-    function normalizeArabicForSort(text) {
-      return String(text || '')
-        .replace(/[إأآٱ]/g, 'ا')
-        .replace(/ى/g, 'ي')
-        .trim();
-    }
-
-    function loadLocalState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          state = {
-            customStaff: Array.isArray(parsed.customStaff) ? parsed.customStaff : [],
-            cards: Array.isArray(parsed.cards) ? parsed.cards : [],
-            slots: parsed.slots && typeof parsed.slots === 'object' ? parsed.slots : {},
-            customTasks: Array.isArray(parsed.customTasks) ? parsed.customTasks : [],
-            taskCounters: parsed.taskCounters && typeof parsed.taskCounters === 'object' ? parsed.taskCounters : {},
-            forceCount: parsed.forceCount ?? '',
-            extrasCounter: parsed.extrasCounter || { self: 1, guide: 1 }
-          };
+    async function loadDataAndInitialize() {
+        try {
+            const response = await fetch('name.json');
+            if (!response.ok) throw new Error("لم يتم العثور على الملف");
+            employeesData = await response.json();
+        } catch (error) {
+            console.error(error);
+            alert("تعذر تحميل ملف الأسماء (name.json). تأكد من وجوده واستخدامك لخادم محلي (Localhost).");
         }
-      } catch (e) { console.warn(e); }
+        
+        loadPrefs();
+        generateEmployees();
+        renderCounterStrip();
+        onFilterChange();
     }
 
-    function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      renderAll();
+    function loadPrefs() {
+        try {
+            const raw = localStorage.getItem(PREFS_KEY);
+            if (raw) {
+                const p = JSON.parse(raw);
+                if(p.hall) document.getElementById('hallSelect').value = p.hall;
+                if(p.shift) document.getElementById('shiftSelect').value = p.shift;
+                if(p.force) document.getElementById('forceCountInput').value = p.force;
+                if(p.chosen) chosen = p.chosen;
+                if(p.savedCustomNames) savedCustomNames = p.savedCustomNames;
+                if(p.customTasksList) customTasksList = p.customTasksList;
+            }
+        } catch(e){}
     }
 
-    function loadPreferencesToUI() {
-      try {
-        const raw = localStorage.getItem(PREFS_KEY);
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-        ui.filters.hall = parsed.hall || '';
-        ui.filters.shift = parsed.shift || '';
-        ui.filters.search = parsed.search || '';
-        ui.topCompact = !!parsed.topCompact;
-        ui.quickPreviewCollapsed = !!parsed.quickPreviewCollapsed;
-      } catch (e) { console.warn(e); }
-    }
-
-    function savePreferences() {
-      localStorage.setItem(PREFS_KEY, JSON.stringify({
-        hall: ui.filters.hall || '',
-        shift: ui.filters.shift || '',
-        search: ui.filters.search || '',
-        topCompact: !!ui.topCompact,
-        quickPreviewCollapsed: !!ui.quickPreviewCollapsed
-      }));
-    }
-
-    function restoreFilterControls() {
-      const h = document.getElementById('hallSelect');
-      const s = document.getElementById('shiftSelect');
-      const p = document.getElementById('personSearch');
-      const f = document.getElementById('forceCountInput');
-      if (h) h.value = ui.filters.hall || '';
-      if (s) s.value = ui.filters.shift || '';
-      if (p) p.value = ui.filters.search || '';
-      if (f) f.value = state.forceCount ?? '';
-    }
-
-    function onForceCountInput() {
-      const el = document.getElementById('forceCountInput');
-      state.forceCount = el ? el.value : '';
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      updateInfoPanels();
-      populateQuickPreview();
-    }
-
-    function autoCompactIfFiltersReady() {
-      if (ui.filters.hall && ui.filters.shift) {
-        ui.topCompact = true;
-        savePreferences();
-        applyHeaderModes();
-      }
-    }
-
-    function onHallChange() {
-      ui.filters.hall = document.getElementById('hallSelect').value;
-      autoCompactIfFiltersReady();
-      savePreferences();
-      renderAll();
-    }
-
-    function onShiftChange() {
-      ui.filters.shift = document.getElementById('shiftSelect').value;
-      autoCompactIfFiltersReady();
-      savePreferences();
-      renderAll();
-    }
-
-    function toggleTopCompact() {
-      ui.topCompact = !ui.topCompact;
-      savePreferences();
-      applyHeaderModes();
-    }
-
-    function toggleQuickPreview() {
-      ui.quickPreviewCollapsed = !ui.quickPreviewCollapsed;
-      savePreferences();
-      applyHeaderModes();
-    }
-
-    function applyHeaderModes() {
-      const header = document.getElementById('appHeader');
-      const btn = document.getElementById('toggleTopBtn');
-      const previewWrap = document.getElementById('quickPreviewWrap');
-      const previewBtn = document.getElementById('togglePreviewBtn');
-
-      if (header) header.classList.toggle('compact', !!ui.topCompact);
-      if (btn) {
-        btn.textContent = ui.topCompact ? '▴' : '▾';
-        btn.title = ui.topCompact ? 'تكبير الجزء العلوي' : 'تصغير الجزء العلوي';
-      }
-
-      if (previewWrap) previewWrap.classList.toggle('collapsed', !!ui.quickPreviewCollapsed);
-      if (previewBtn) {
-        previewBtn.textContent = ui.quickPreviewCollapsed ? '+' : '−';
-        previewBtn.title = ui.quickPreviewCollapsed ? 'تكبير المعاينة' : 'تصغير المعاينة';
-      }
-    }
-
-    function getAssignedFullNamesSet() {
-      const set = new Set();
-      Object.values(state.slots || {}).forEach(v => {
-        if (v?.fullName) set.add(v.fullName);
-      });
-      return set;
-    }
-
-    function getBaseStaffForSelectedFilters() {
-      const hall = ui.filters.hall;
-      const shift = ui.filters.shift;
-      if (!hall || !shift) return [];
-
-      const fixed = STATIC_STAFF.map((p, idx) => ({
-        key: `static_${idx}_${p.name}`,
-        name: String(p.name || '').trim(),
-        rank: String(p.rank || '').trim(),
-        id: String(p.id || '').trim(),
-        hall,
-        shift,
-        source: 'static'
-      }));
-
-      const custom = (state.customStaff || []).map((name, idx) => ({
-        key: `custom_${idx}_${name}`,
-        name: String(name || '').trim(),
-        rank: '',
-        id: '',
-        hall,
-        shift,
-        source: 'custom'
-      }));
-
-      const assigned = getAssignedFullNamesSet();
-
-      return [...fixed, ...custom]
-        .filter(p => p.name && !assigned.has(p.name))
-        .sort((a, b) =>
-          normalizeArabicForSort(a.name).localeCompare(normalizeArabicForSort(b.name), 'ar')
-        );
-    }
-
-    function getCombinedPersonList() {
-      const q = (document.getElementById('personSearch')?.value || '').trim();
-      ui.filters.search = q;
-      savePreferences();
-
-      let list = getBaseStaffForSelectedFilters();
-      if (q) list = list.filter(p => (p.name || '').includes(q));
-      return list;
-    }
-
-    function renderPeopleList() {
-      const container = document.getElementById('peopleList');
-      if (!container) return;
-
-      const list = getCombinedPersonList();
-      currentVisiblePeople = list;
-
-      if (!ui.filters.hall || !ui.filters.shift) {
-        container.innerHTML = `<div class="person-empty">اختر الصالة والمناوبة أولاً</div>`;
-        updateInfoPanels();
-        return;
-      }
-
-      if (!ui.activeTarget) {
-        container.innerHTML = `<div class="person-empty">حدّد كاونتر أو مهمة، وستظهر الأسماء داخل العنصر المحدد</div>`;
-        updateInfoPanels();
-        return;
-      }
-
-      const targetTxt = ui.activeTarget.type === 'card' ? 'الكاونتر' : 'المهمة';
-      container.innerHTML = `
-        <div class="person-empty" style="padding:14px 8px;">
-          قائمة الأسماء ظهرت داخل ${targetTxt} المحدد بالأسفل
-          <div style="margin-top:6px;font-size:.72rem;color:#94a3b8;">المتاح الآن: ${list.length}</div>
-        </div>
-      `;
-
-      updateInfoPanels();
-    }
-
-    function assignPersonByIndex(index) {
-      const item = currentVisiblePeople[index];
-      if (!item) return;
-      assignPersonToActiveTarget(item);
-    }
-
-    function setActiveCard(cardId) {
-      if (ui.activeTarget && ui.activeTarget.type === 'card' && ui.activeTarget.id === cardId) {
-        ui.activeTarget = null;
-      } else {
-        ui.activeTarget = { type: 'card', id: cardId };
-      }
-      renderAll();
-    }
-
-    function setActiveTask(taskId) {
-      if (ui.activeTarget && ui.activeTarget.type === 'task' && ui.activeTarget.id === taskId) {
-        ui.activeTarget = null;
-      } else {
-        ui.activeTarget = { type: 'task', id: taskId };
-      }
-      renderAll();
-    }
-
-    function clearActiveCard() {
-      ui.activeTarget = null;
-      renderAll();
-    }
-
-    function getCardById(cardId) {
-      return (state.cards || []).find(c => c.id === cardId) || null;
-    }
-
-    function getAllTasks() {
-      return [...DEFAULT_FIXED_TASKS, ...(state.customTasks || [])];
-    }
-
-    function getTaskById(taskId) {
-      return getAllTasks().find(t => t.id === taskId) || null;
-    }
-
-    function getTaskSlotIds(taskId) {
-      const count = Math.max(1, Number(state.taskCounters[taskId] || 1));
-      return Array.from({ length: count }, (_, i) => `${taskId}__${i+1}`);
-    }
-
-    function getCardSlotIds(card) {
-      if (!card) return [];
-      if (card.type === 'single') return [`${card.id}_m`, `${card.id}_r`];
-      return [`${card.id}_m1`, `${card.id}_m2`, `${card.id}_sh`];
-    }
-
-    function getNextEmptySlotIdInCard(cardId) {
-      const card = getCardById(cardId);
-      if (!card) return null;
-      return getCardSlotIds(card).find(id => !state.slots[id]) || null;
-    }
-
-    function getNextEmptySlotIdInTask(taskId) {
-      return getTaskSlotIds(taskId).find(id => !state.slots[id]) || null;
-    }
-
-    function isCardFullyFilled(cardId) {
-      return !getNextEmptySlotIdInCard(cardId);
-    }
-
-    function isTaskFullyFilled(taskId) {
-      return !getNextEmptySlotIdInTask(taskId);
-    }
-
-    function getCardFillStats(cardId) {
-      const card = getCardById(cardId);
-      if (!card) return { filled: 0, total: 0 };
-      const ids = getCardSlotIds(card);
-      const filled = ids.filter(id => !!state.slots[id]).length;
-      return { filled, total: ids.length };
-    }
-
-    function getTaskFillStats(taskId) {
-      const ids = getTaskSlotIds(taskId);
-      const filled = ids.filter(id => !!state.slots[id]).length;
-      return { filled, total: ids.length };
-    }
-
-    function assignPersonToActiveTarget(item) {
-      if (!ui.activeTarget) {
-        markWarn('حدد كاونتر أو مهمة أولاً');
-        return;
-      }
-
-      let targetSlotId = null;
-
-      if (ui.activeTarget.type === 'card') {
-        targetSlotId = getNextEmptySlotIdInCard(ui.activeTarget.id);
-      } else if (ui.activeTarget.type === 'task') {
-        targetSlotId = getNextEmptySlotIdInTask(ui.activeTarget.id);
-      }
-
-      if (!targetSlotId) {
-        alert('العنصر المحدد مكتمل بالفعل.');
-        return;
-      }
-
-      const shortName = shortenPersonName(item.name);
-
-      state.slots[targetSlotId] = {
-        name: shortName,
-        fullName: item.name,
-        rank: item.rank || '',
-        id: item.id || '',
-        hall: ui.filters.hall || '',
-        shift: ui.filters.shift || '',
-        source: item.source || 'static'
-      };
-
-      ui.activeTarget = null;
-      saveState();
-    }
-
-    function markWarn(text) {
-      const badge = document.getElementById('selectionStatus');
-      if (!badge) return;
-      badge.classList.add('warn');
-      badge.textContent = text;
-    }
-
-    function renderCounters() {
-      const container = document.getElementById('counterContainer');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const assigned = state.cards.flatMap(c => c.nums);
-
-      for (let i = 1; i <= 20; i++) {
-        const div = document.createElement('div');
-        div.className = `cnt-btn ${assigned.includes(i) ? 'used' : ''} ${ui.selectedCounterNums.includes(i) ? 'active' : ''}`;
-        div.textContent = i;
-        div.onclick = () => {
-          if (ui.selectedCounterNums.includes(i)) {
-            ui.selectedCounterNums = ui.selectedCounterNums.filter(n => n !== i);
-          } else {
-            if (ui.selectedCounterNums.length >= 2) ui.selectedCounterNums.shift();
-            ui.selectedCounterNums.push(i);
-          }
-          renderAll();
+    function savePrefs() {
+        const p = {
+            hall: document.getElementById('hallSelect').value,
+            shift: document.getElementById('shiftSelect').value,
+            force: document.getElementById('forceCountInput').value,
+            chosen: chosen,
+            savedCustomNames: savedCustomNames,
+            customTasksList: customTasksList
         };
-        container.appendChild(div);
-      }
+        localStorage.setItem(PREFS_KEY, JSON.stringify(p));
     }
 
-    function updateActionButtons() {
-      const addBtn = document.getElementById('btnAdd');
-      const mergeBtn = document.getElementById('btnMerge');
-      if (!addBtn || !mergeBtn) return;
-      addBtn.className = `small-main-btn btn-single ${ui.selectedCounterNums.length === 1 ? 'ready' : ''}`;
-      mergeBtn.className = `small-main-btn btn-merge ${ui.selectedCounterNums.length === 2 ? 'ready' : ''}`;
-    }
-
-    function createCard(isMerge) {
-      const nums = [...ui.selectedCounterNums].sort((a,b)=>a-b);
-      if (!nums.length) return;
-      if (!isMerge && nums.length !== 1) return;
-      if (isMerge && nums.length !== 2) return;
-
-      const newCard = {
-        id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
-        nums,
-        type: isMerge ? 'merged' : 'single'
-      };
-
-      state.cards.push(newCard);
-      ui.selectedCounterNums = [];
-      ui.activeTarget = { type:'card', id:newCard.id };
-      saveState();
-    }
-
-    function deleteCard(cardId) {
-      if (!confirm('حذف الكاونتر؟')) return;
-
-      Object.keys(state.slots).forEach(k => {
-        if (k.startsWith(cardId + '_')) delete state.slots[k];
-      });
-
-      if (ui.activeTarget?.type === 'card' && ui.activeTarget.id === cardId) ui.activeTarget = null;
-      state.cards = state.cards.filter(c => c.id !== cardId);
-      saveState();
-    }
-
-    function getSlotLabelById(slotId) {
-      const c = state.cards.find(card => slotId.startsWith(card.id + '_'));
-      if (!c) return '';
-      if (c.type === 'single') {
-        if (slotId.endsWith('_m')) return 'المستلم الأساسي';
-        if (slotId.endsWith('_r')) return 'الراحة / الغطاء';
-      } else {
-        if (slotId.endsWith('_m1')) return `مستلم ${c.nums[0]}`;
-        if (slotId.endsWith('_m2')) return `مستلم ${c.nums[1]}`;
-        if (slotId.endsWith('_sh')) return 'مشترك / راحة';
-      }
-      return '';
-    }
-
-    function clearSlot(event, slotId) {
-      if (event) event.stopPropagation();
-      delete state.slots[slotId];
-      saveState();
-    }
-
-    function moveSlotPerson(slotId, event) {
-      if (event) event.stopPropagation();
-
-      const val = state.slots[slotId];
-      if (!val) return;
-
-      if (val.hall) ui.filters.hall = val.hall;
-      if (val.shift) ui.filters.shift = val.shift;
-      restoreFilterControls();
-      savePreferences();
-
-      const card = state.cards.find(c => slotId.startsWith(c.id + '_'));
-      if (card) {
-        ui.activeTarget = { type:'card', id: card.id };
-      } else {
-        const task = getAllTasks().find(t => slotId.startsWith(t.id + '__'));
-        if (task) ui.activeTarget = { type:'task', id: task.id };
-      }
-
-      delete state.slots[slotId];
-      saveState();
-    }
-
-    function makeSlot(slotId) {
-      const val = state.slots[slotId];
-      const title = val?.name || 'فارغ';
-      const sub = getSlotLabelById(slotId);
-
-      return `
-        <div class="slot ${val ? 'filled' : ''}">
-          <div class="slot-main">
-            <span class="slot-sub">${escapeHtml(sub)}</span>
-            <span class="slot-text">${escapeHtml(title)}</span>
-          </div>
-          <div class="slot-actions">
-            ${val ? `<button class="mini-slot-btn slot-move" title="إرجاع" onclick="moveSlotPerson('${slotId}', event)">↺</button>` : ''}
-            ${val ? `<button class="mini-slot-btn slot-del" title="حذف" onclick="clearSlot(event, '${slotId}')">✕</button>` : ''}
-          </div>
-        </div>
-      `;
-    }
-
-    function buildInlinePeoplePickerHtml() {
-      if (!ui.filters.hall || !ui.filters.shift) return '';
-      if (!ui.activeTarget) return '';
-
-      const list = getCombinedPersonList();
-      currentVisiblePeople = list;
-
-      let targetTitle = 'العنصر المحدد';
-      if (ui.activeTarget.type === 'card') {
-        targetTitle = getCardDisplayTitle(getCardById(ui.activeTarget.id)) || 'كاونتر';
-      } else if (ui.activeTarget.type === 'task') {
-        targetTitle = getTaskDisplayTitle(getTaskById(ui.activeTarget.id)) || 'مهمة';
-      }
-
-      let body = '';
-      if (!list.length) {
-        body = `<div class="inline-people-empty">لا توجد أسماء متاحة</div>`;
-      } else {
-        body = list.map((p, idx) => `
-          <button class="inline-person-btn" type="button" onclick="event.stopPropagation(); assignPersonByIndex(${idx})">
-            ${escapeHtml(p.name)}
-          </button>
-        `).join('');
-      }
-
-      return `
-        <div class="inline-people-picker" onclick="event.stopPropagation()">
-          <div class="inline-people-picker-head">
-            <span>اختيار اسم لـ ${escapeHtml(targetTitle)}</span>
-            <button class="inline-people-picker-close" type="button" onclick="clearActiveCard()">إخفاء</button>
-          </div>
-          <div class="inline-people-grid">${body}</div>
-        </div>
-      `;
-    }
-
-    function getCardSortWeight(card) {
-      const stats = getCardFillStats(card.id);
-      if (stats.filled === 0) return 0;
-      if (stats.filled < stats.total) return 1;
-      return 2;
-    }
-
-    function renderWorkspace() {
-      const ws = document.getElementById('workspace');
-      if (!ws) return;
-      ws.innerHTML = '';
-
-      if (!state.cards.length) {
-        ws.innerHTML = `<div class="card" style="grid-column:1/-1;"><div class="empty-note">لا توجد كاونترات مضافة</div></div>`;
-        return;
-      }
-
-      const sortedCards = [...state.cards].sort((a, b) => {
-        const wa = getCardSortWeight(a);
-        const wb = getCardSortWeight(b);
-        if (wa !== wb) return wa - wb;
-        return (a.nums[0] || 0) - (b.nums[0] || 0);
-      });
-
-      sortedCards.forEach(c => {
-        const title = c.type === 'merged' ? `${c.nums[0]} & ${c.nums[1]}` : `${c.nums[0]}`;
-        const active = ui.activeTarget?.type === 'card' && ui.activeTarget.id === c.id;
-        const stats = getCardFillStats(c.id);
-
-        let slotsHtml = '';
-        getCardSlotIds(c).forEach(id => { slotsHtml += makeSlot(id); });
-
-        const pickerHtml = active ? buildInlinePeoplePickerHtml() : '';
-
-        const el = document.createElement('div');
-        el.className = `card ${c.type === 'merged' ? 'merged' : ''} ${active ? 'active-card' : ''}`;
-        el.onclick = () => setActiveCard(c.id);
-        el.innerHTML = `
-          <div class="card-header">
-            <span>كاونتر ${escapeHtml(title)} (${stats.filled}/${stats.total})</span>
-            <span class="delete" onclick="event.stopPropagation(); deleteCard('${c.id}')">✕</span>
-          </div>
-          <div class="card-body">
-            ${slotsHtml}
-            ${pickerHtml}
-          </div>
-        `;
-        ws.appendChild(el);
-      });
-    }
-
-    function renderTasks() {
-      const grid = document.getElementById('extrasGrid');
-      if (!grid) return;
-      grid.innerHTML = '';
-
-      const tasks = getAllTasks();
-      for (const t of tasks) {
-        grid.appendChild(buildTaskCard(t));
-      }
-    }
-
-    function buildTaskCard(task) {
-      const el = document.createElement('div');
-      const isCustom = task.kind === 'custom';
-      const active = ui.activeTarget?.type === 'task' && ui.activeTarget.id === task.id;
-      const stats = getTaskFillStats(task.id);
-
-      el.className = `task-card ${isCustom ? 'custom' : ''} ${active ? 'active-card' : ''}`;
-      el.onclick = () => setActiveTask(task.id);
-
-      const slots = getTaskSlotIds(task.id);
-      let slotsHtml = '';
-      slots.forEach((slotId, idx) => {
-        const val = state.slots[slotId];
-        slotsHtml += `
-          <div class="slot ${val ? 'filled' : ''}">
-            <div class="slot-main">
-              <span class="slot-sub">${escapeHtml(task.title)} ${idx+1}</span>
-              <span class="slot-text">${escapeHtml(val?.name || 'فارغ')}</span>
-            </div>
-            <div class="slot-actions">
-              ${val ? `<button class="mini-slot-btn slot-move" onclick="moveSlotPerson('${slotId}', event)">↺</button>` : ''}
-              ${val ? `<button class="mini-slot-btn slot-del" onclick="clearSlot(event, '${slotId}')">✕</button>` : ''}
-            </div>
-          </div>
-        `;
-      });
-
-      const pickerHtml = active ? buildInlinePeoplePickerHtml() : '';
-
-      el.innerHTML = `
-        <div class="task-head">
-          <div class="task-title-wrap">
-            <span class="task-title">${escapeHtml(task.title)} (${stats.filled}/${stats.total})</span>
-          </div>
-          <div class="task-actions">
-            <button class="task-icon-btn" onclick="event.stopPropagation(); addTaskSlot('${task.id}')">＋</button>
-            ${isCustom ? `<button class="task-icon-btn" onclick="event.stopPropagation(); renameCustomTask('${task.id}')">✎</button>` : ''}
-            ${isCustom ? `<button class="task-icon-btn delete" onclick="event.stopPropagation(); deleteCustomTask('${task.id}')">✕</button>` : ''}
-          </div>
-        </div>
-        <div class="task-body">
-          ${slotsHtml}
-          ${pickerHtml}
-        </div>
-      `;
-      return el;
-    }
-
-    function addTaskSlot(taskId) {
-      state.taskCounters[taskId] = Math.max(1, Number(state.taskCounters[taskId] || 1)) + 1;
-      saveState();
-    }
-
-    function addCustomTask() {
-      const input = document.getElementById('customTaskInput');
-      if (!input) return;
-      const title = String(input.value || '').trim();
-      if (!title) return;
-
-      const exists = getAllTasks().some(t => t.title === title);
-      if (exists) {
-        alert('المهمة موجودة مسبقًا');
-        return;
-      }
-
-      const id = `task_custom_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
-      state.customTasks.push({ id, title, kind:'custom', color:'violet' });
-      state.taskCounters[id] = 1;
-      input.value = '';
-      ui.activeTarget = { type:'task', id };
-      saveState();
-    }
-
-    function renameCustomTask(taskId) {
-      const t = getTaskById(taskId);
-      if (!t || t.kind !== 'custom') return;
-      const v = prompt('اسم المهمة:', t.title);
-      if (v === null) return;
-      const title = String(v).trim();
-      if (!title) return;
-      t.title = title;
-      saveState();
-    }
-
-    function deleteCustomTask(taskId) {
-      const t = getTaskById(taskId);
-      if (!t || t.kind !== 'custom') return;
-      if (!confirm(`حذف المهمة "${t.title}"؟`)) return;
-
-      Object.keys(state.slots).forEach(k => {
-        if (k.startsWith(taskId + '__')) delete state.slots[k];
-      });
-
-      state.customTasks = state.customTasks.filter(x => x.id !== taskId);
-      delete state.taskCounters[taskId];
-
-      if (ui.activeTarget?.type === 'task' && ui.activeTarget.id === taskId) ui.activeTarget = null;
-      saveState();
-    }
-
-    function getCardPreviewNames(card) {
-      const ids = getCardSlotIds(card);
-      const names = ids
-        .map(id => state.slots[id]?.name || '')
-        .filter(Boolean)
-        .map(n => firstNameOnly(n));
-      return names;
-    }
-
-    function populateQuickPreview() {
-      const grid = document.getElementById('quickPreviewGrid');
-      const countEl = document.getElementById('quickPreviewCount');
-      if (!grid || !countEl) return;
-
-      const cards = [...state.cards].sort((a, b) => {
-        const wa = getCardSortWeight(a);
-        const wb = getCardSortWeight(b);
-        if (wa !== wb) return wa - wb;
-        return (a.nums[0] || 0) - (b.nums[0] || 0);
-      });
-
-      countEl.textContent = `${cards.length} كاونتر`;
-
-      if (!cards.length) {
-        grid.innerHTML = `<div class="quick-preview-empty">لا توجد كاونترات مضافة</div>`;
-        return;
-      }
-
-      grid.innerHTML = cards.map(card => {
-        const title = card.type === 'merged'
-          ? `كاونتر ${card.nums[0]} & ${card.nums[1]}`
-          : `كاونتر ${card.nums[0]}`;
-        const names = getCardPreviewNames(card);
-        const isEmpty = names.length === 0;
-        const namesTxt = isEmpty ? 'فارغ' : names.join(' + ');
-        return `
-          <div class="mini-counter-card ${isEmpty ? 'empty' : ''}">
-            <div class="mini-counter-title">${escapeHtml(title)}</div>
-            <div class="mini-counter-names">${escapeHtml(namesTxt)}</div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function getCardDisplayTitle(card) {
-      if (!card) return 'لا يوجد';
-      return card.type === 'merged'
-        ? `كاونتر ${card.nums[0]} & ${card.nums[1]}`
-        : `كاونتر ${card.nums[0]}`;
-    }
-
-    function getTaskDisplayTitle(task) {
-      return task ? `مهمة: ${task.title}` : 'لا يوجد';
-    }
-
-    function updateInfoPanels() {
-      const badge = document.getElementById('selectionStatus');
-      const info = document.getElementById('activeCardInfo');
-      const helper = document.getElementById('dbInfoText');
-
-      let badgeText = 'لا يوجد عنصر محدد';
-      let activeText = 'حدّد كاونتر أو مهمة أولاً';
-
-      if (ui.activeTarget?.type === 'card') {
-        const card = getCardById(ui.activeTarget.id);
-        if (card) {
-          const s = getCardFillStats(card.id);
-          const nextSlot = getNextEmptySlotIdInCard(card.id);
-          const nextLabel = nextSlot ? getSlotLabelById(nextSlot) : 'مكتمل';
-          badgeText = `${getCardDisplayTitle(card)} (${s.filled}/${s.total})`;
-          activeText = `${getCardDisplayTitle(card)} • التالي: ${nextLabel}`;
+    function generateEmployees() {
+        employees = [];
+        if (!employeesData) return;
+        for (const shift in employeesData) {
+            for (const hall in employeesData[shift]) {
+                const staffList = employeesData[shift][hall];
+                staffList.forEach((p, idx) => {
+                    employees.push({
+                        id: p.id || `emp_${shift}_${hall}_${idx}`,
+                        name: p.name,
+                        rank: p.rank || 'غير محدد',
+                        hall: hall,
+                        shift: shift
+                    });
+                });
+            }
         }
-      } else if (ui.activeTarget?.type === 'task') {
-        const task = getTaskById(ui.activeTarget.id);
-        if (task) {
-          const s = getTaskFillStats(task.id);
-          const nextIdx = getTaskSlotIds(task.id).findIndex(id => !state.slots[id]);
-          const nextLabel = nextIdx >= 0 ? `${task.title} ${nextIdx+1}` : 'مكتمل';
-          badgeText = `${getTaskDisplayTitle(task)} (${s.filled}/${s.total})`;
-          activeText = `${getTaskDisplayTitle(task)} • التالي: ${nextLabel}`;
-        }
-      }
-
-      if (badge) {
-        badge.classList.remove('warn');
-        badge.textContent = badgeText;
-      }
-
-      if (info) info.textContent = activeText;
-
-      if (helper) {
-        const hall = ui.filters.hall || '—';
-        const shift = ui.filters.shift || '—';
-        const count = (ui.filters.hall && ui.filters.shift) ? getCombinedPersonList().length : 0;
-        const force = state.forceCount || '—';
-        helper.innerHTML = `
-          الصالة: <strong>${escapeHtml(hall)}</strong> | المناوبة: <strong>${escapeHtml(shift)}</strong> | عدد القوة: <strong>${escapeHtml(force)}</strong><br>
-          الأسماء المتاحة (غير المستخدمة): <strong>${count}</strong>
-        `;
-      }
     }
 
-    function addCustomStaffPrompt() {
-      const name = prompt('أدخل الاسم:');
-      if (!name) return;
-      const trimmed = name.trim();
-      if (!trimmed) return;
+    function addNewName() {
+        const name = prompt("أدخل الاسم الجديد لإضافته للقائمة:");
+        if (name && name.trim() !== '') {
+            savedCustomNames.push(name.trim());
+            savePrefs();
+            onFilterChange(); 
+        }
+    }
 
-      if ((state.customStaff || []).includes(trimmed)) {
-        alert('الاسم موجود مسبقًا');
-        return;
-      }
+    function addNewTask() {
+        const t = prompt("أدخل اسم المهمة الجديدة:");
+        if (t && t.trim() !== '') {
+            if(!customTasksList.includes(t.trim()) && !DEFAULT_TASKS.includes(t.trim())) {
+                customTasksList.push(t.trim());
+                savePrefs();
+                renderCounterStrip();
+            } else {
+                alert("هذه المهمة موجودة مسبقاً.");
+            }
+        }
+    }
 
-      state.customStaff.push(trimmed);
-      saveState();
+    function onFilterChange() {
+        const h = document.getElementById('hallSelect').value;
+        const s = document.getElementById('shiftSelect').value;
+
+        if (!h || !s) {
+            dailyPool = [];
+            document.getElementById('forceCountInput').value = '';
+        } else {
+            const chosenIds = chosen.map(x => x.id);
+            dailyPool = employees.filter(e => e.hall === h && e.shift === s && !chosenIds.includes(e.id));
+            
+            savedCustomNames.forEach((n, i) => {
+                const cId = 'custom_name_' + i;
+                if (!chosenIds.includes(cId)) {
+                    dailyPool.push({ id: cId, name: n, rank: 'إضافي', hall: h, shift: s });
+                }
+            });
+
+            dailyPool.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+            const chosenForThisShift = chosen.filter(e => e.hall === h && e.shift === s).length;
+            const totalForce = dailyPool.length + chosenForThisShift;
+            document.getElementById('forceCountInput').value = totalForce;
+        }
+        
+        savePrefs();
+        renderTransferLists();
+    }
+
+    function renderCounterStrip() {
+        const container = document.getElementById('counterContainer');
+        container.innerHTML = '';
+
+        for (let i = 1; i <= 20; i++) {
+            const isFilled = chosen.some(x => x.task === `كاونتر ${i}` || x.task.startsWith(`كاونتر ${i} &`) || x.task.endsWith(`& ${i}`));
+            
+            const div = document.createElement('div');
+            div.className = `cnt-btn ${selectedCountersForMerge.includes(i) ? 'active' : ''} ${isFilled ? 'filled' : ''}`;
+            div.textContent = i;
+            div.onclick = () => selectCounterNumber(i);
+            container.appendChild(div);
+        }
+
+        const allTasks = [...DEFAULT_TASKS, ...customTasksList];
+        allTasks.forEach(t => {
+            const isFilled = chosen.some(x => x.task === t);
+            const div = document.createElement('div');
+            div.className = `cnt-btn task-cnt-btn ${currentTask === t ? 'active' : ''} ${isFilled ? 'filled' : ''}`;
+            div.textContent = t;
+            div.onclick = () => selectTask(t);
+            container.appendChild(div);
+        });
+
+        const btnAddTask = document.createElement('div');
+        btnAddTask.className = `cnt-btn task-cnt-btn add-task-btn`;
+        btnAddTask.textContent = '+ مهمة';
+        btnAddTask.onclick = addNewTask;
+        container.appendChild(btnAddTask);
+
+        updateCurrentTargetBanner();
+    }
+
+    function selectCounterNumber(num) {
+        if (currentTask && isNaN(parseInt(currentTask.replace('كاونتر ', '')))) {
+             currentTask = null;
+             selectedCountersForMerge = [];
+        }
+
+        if (selectedCountersForMerge.includes(num)) {
+            selectedCountersForMerge = selectedCountersForMerge.filter(n => n !== num);
+        } else {
+            if (selectedCountersForMerge.length >= 2) selectedCountersForMerge.shift();
+            selectedCountersForMerge.push(num);
+        }
+
+        if (selectedCountersForMerge.length === 1) {
+            currentTask = `كاونتر ${selectedCountersForMerge[0]}`;
+        } else if (selectedCountersForMerge.length === 2) {
+            const sorted = [...selectedCountersForMerge].sort((a,b)=>a-b);
+            currentTask = `كاونتر ${sorted[0]} & ${sorted[1]}`;
+        } else {
+             currentTask = null;
+        }
+
+        renderCounterStrip();
+    }
+
+    function selectTask(taskName) {
+        selectedCountersForMerge = []; 
+        currentTask = taskName;
+        renderCounterStrip();
+    }
+
+    function updateCurrentTargetBanner() {
+        const banner = document.getElementById('currentTargetBanner');
+        if (!currentTask) {
+            banner.style.background = '#fef2f2';
+            banner.style.color = '#991b1b';
+            banner.style.borderColor = '#fecaca';
+            banner.textContent = 'يرجى اختيار كاونتر أو مهمة من الشريط الأعلى أولاً';
+        } else {
+            banner.style.background = '#eef2ff';
+            banner.style.color = '#4338ca';
+            banner.style.borderColor = '#c7d2fe';
+            
+            if (selectedCountersForMerge.length === 2) {
+                banner.textContent = `سيتم دمج الكونترين: ${currentTask} (اختر اسماً من المتاح للتوزيع)`;
+            } else {
+                banner.textContent = `الهدف الحالي: ${currentTask} (اختر اسماً من المتاح للتوزيع)`;
+            }
+        }
+    }
+
+    // تنسيق الاسم للقائمة (الأول، الثاني، الأخير)
+    function formatShortName(fullName) {
+        if (!fullName) return '';
+        const parts = fullName.trim().split(/\s+/);
+        if (parts.length >= 4) {
+            return `${parts[0]} ${parts[1]} ${parts[parts.length - 1]}`;
+        }
+        return fullName;
+    }
+
+    // تنسيق الاسم للمعاينة السريعة (الأول والأخير فقط)
+    function formatFirstAndLastName(fullName) {
+        if (!fullName) return '';
+        const parts = fullName.trim().split(/\s+/);
+        if (parts.length > 1) {
+            return `${parts[0]} ${parts[parts.length - 1]}`;
+        }
+        return fullName;
+    }
+
+    function renderTransferLists() {
+        const pList = document.getElementById('list-pool');
+        const cList = document.getElementById('list-chosen');
+        const searchTxt = document.getElementById('searchPool').value.toLowerCase();
+        
+        pList.innerHTML = ''; cList.innerHTML = '';
+
+        const avail = dailyPool.filter(e => e.name.toLowerCase().includes(searchTxt));
+        
+        document.getElementById('c-pool').textContent = avail.length;
+        document.getElementById('c-chosen').textContent = chosen.length;
+
+        if (avail.length === 0) {
+            pList.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:0.75rem; margin-top:20px;">لا يوجد أسماء</div>`;
+        } else {
+            avail.forEach(e => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `<div style="font-weight:800;">${formatShortName(e.name)}</div><div class="emp-meta">${e.rank}</div>`;
+                div.onclick = () => assignPerson(e);
+                pList.appendChild(div);
+            });
+        }
+
+        if (chosen.length === 0) {
+            cList.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:0.75rem; margin-top:20px;">لم يتم توزيع أحد</div>`;
+        } else {
+            const sortedChosen = [...chosen].sort((a,b) => a.task.localeCompare(b.task, 'ar'));
+            sortedChosen.forEach((e) => {
+                const isAbsent = e.task === "بدون مهام/غياب";
+                const div = document.createElement('div');
+                div.className = 'list-item selected';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div style="font-weight:800;">${formatShortName(e.name)}</div>
+                        <div class="task-badge ${isAbsent ? 'absent-badge' : ''}">${e.task}</div>
+                    </div>
+                    <div class="emp-meta" style="margin-top:2px">${e.rank}</div>
+                `;
+                div.onclick = () => unassignPerson(e.id);
+                cList.appendChild(div);
+            });
+        }
+
+        renderQuickPreview();
+        savePrefs();
+    }
+
+    // الدالة المعدلة: تلغي التحديد التلقائي عند الوصول لـ 3 وتمنع الرابع
+    function assignPerson(emp) {
+        if (!currentTask) {
+            alert("الرجاء اختيار كاونتر أو مهمة من الأعلى قبل اختيار الاسم.");
+            return;
+        }
+
+        // حماية إضافية: إذا أعاد المستخدم تحديد كاونتر ممتلئ مسبقاً
+        if (currentTask.startsWith('كاونتر')) {
+            const currentCount = chosen.filter(x => x.task === currentTask).length;
+            if (currentCount >= 3) {
+                alert('عذراً، هذا الكاونتر ممتلئ (تم اختيار 3 أفراد مسبقاً).');
+                currentTask = null;
+                selectedCountersForMerge = [];
+                renderCounterStrip();
+                return;
+            }
+        }
+
+        dailyPool = dailyPool.filter(x => x.id !== emp.id);
+        chosen.push({ ...emp, task: currentTask });
+
+        // إلغاء التحديد تلقائياً عند الوصول لـ 3 أفراد (للكاونترات الفردية والمدمجة)
+        if (currentTask.startsWith('كاونتر')) {
+            const newCount = chosen.filter(x => x.task === currentTask).length;
+            if (newCount >= 3) {
+                currentTask = null;
+                selectedCountersForMerge = [];
+            }
+        }
+
+        renderCounterStrip();
+        renderTransferLists();
+    }
+
+    function unassignPerson(empId) {
+        const empIndex = chosen.findIndex(x => x.id === empId);
+        if (empIndex > -1) {
+            const emp = chosen[empIndex];
+            chosen.splice(empIndex, 1);
+            delete emp.task; 
+            dailyPool.push(emp);
+            dailyPool.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+        }
+        renderCounterStrip(); 
+        renderTransferLists();
     }
 
     function resetSchedule() {
-      const ok = confirm(
-        'إعادة تعيين كاملة؟\n' +
-        '- حذف الكاونترات والتوزيعات والمهام\n' +
-        '- الاحتفاظ بالصالة والمناوبة\n' +
-        '- الاحتفاظ بالأسماء اليدوية'
-      );
-      if (!ok) return;
+        if (!confirm('تصفير التوزيع بالكامل؟')) return;
+        chosen = [];
+        selectedCountersForMerge = [];
+        currentTask = null;
+        onFilterChange(); 
+        renderCounterStrip();
+    }
 
-      state.cards = [];
-      state.slots = {};
-      state.customTasks = [];
-      state.taskCounters = {};
-      state.forceCount = state.forceCount || '';
-      normalizeState();
+    function generateStructuredData() {
+        let cardsMap = {}; 
+        let tasksMap = {}; 
 
-      ui.activeTarget = null;
-      ui.selectedCounterNums = [];
-      saveState();
-      restoreFilterControls();
+        chosen.forEach(p => {
+            if (p.task === "بدون مهام/غياب") return; 
+
+            if(p.task.startsWith('كاونتر')) {
+                if(!cardsMap[p.task]) {
+                    let isMerged = p.task.includes('&');
+                    let numsStr = p.task.replace('كاونتر ', '');
+                    let nums = isMerged ? numsStr.split('&').map(n=>parseInt(n.trim())) : [parseInt(numsStr.trim())];
+                    cardsMap[p.task] = { id: p.task, nums: nums, type: isMerged ? 'merged' : 'single', people: [] };
+                }
+                cardsMap[p.task].people.push(p);
+            } else {
+                if(!tasksMap[p.task]) {
+                    tasksMap[p.task] = { title: p.task, people: [] };
+                }
+                tasksMap[p.task].people.push(p);
+            }
+        });
+
+        return { 
+            cards: Object.values(cardsMap).sort((a,b) => a.nums[0] - b.nums[0]), 
+            tasks: Object.values(tasksMap) 
+        };
+    }
+
+    function renderQuickPreview() {
+        const grid = document.getElementById('quickPreviewGrid');
+        const countSpan = document.getElementById('quickPreviewCount');
+        
+        const data = generateStructuredData();
+        const allItems = [...data.cards, ...data.tasks];
+        
+        countSpan.textContent = `(${allItems.length} عناصر)`;
+        grid.innerHTML = '';
+
+        if(allItems.length === 0) {
+            grid.innerHTML = `<div style="width:100%; text-align:center; color:#94a3b8; font-size:0.75rem; padding:10px;">فارغ (الأشخاص بدون مهام/غياب لا يظهرون هنا)</div>`;
+            return;
+        }
+
+        data.cards.forEach(c => {
+            const title = c.type === 'merged' ? `كاونتر ${c.nums[0]} & ${c.nums[1]}` : `كاونتر ${c.nums[0]}`;
+            const names = c.people.map(p => formatFirstAndLastName(p.name)).join(' + ');
+            grid.innerHTML += `
+                <div class="mini-counter-card">
+                    <div class="mini-counter-title">${title}</div>
+                    <div class="mini-counter-names">${names || 'فارغ'}</div>
+                </div>
+            `;
+        });
+
+        data.tasks.forEach(t => {
+            const names = t.people.map(p => formatFirstAndLastName(p.name)).join(' + ');
+            grid.innerHTML += `
+                <div class="mini-counter-card" style="border-top:2px solid var(--teal)">
+                    <div class="mini-counter-title" style="color:var(--teal)">${t.title}</div>
+                    <div class="mini-counter-names">${names || 'فارغ'}</div>
+                </div>
+            `;
+        });
     }
 
     function downloadPDF() {
-      if (typeof html2pdf === 'undefined') {
-        alert('مكتبة PDF غير محملة');
-        return;
-      }
-      populatePDF();
+      if (typeof html2pdf === 'undefined') { alert('مكتبة PDF غير محملة'); return; }
+      
+      const data = generateStructuredData();
+      populatePDF(data);
 
       const element = document.getElementById('pdf-report');
-      if (!element) return;
       element.style.display = 'block';
 
       const opt = {
         margin: [6, 6, 6, 6],
-        filename: `جدول_الكاونترات_${new Date().toISOString().slice(0,10)}.pdf`,
+        filename: `توزيع_المناوبة_${new Date().toISOString().slice(0,10)}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
@@ -1903,34 +670,23 @@
         .catch(() => { element.style.display = 'none'; });
     }
 
-    /* ====== التعديل المطلوب: جدول الكونترات بالعرض ======
-       صف 1: رقم الكونتر | 1 | 2 | 3 ...
-       صف 2: الفرد الأول | أحمد | ...
-       صف 3: الفرد الثاني | خالد | ...
-       صف 4: فرد التغطية | ...
-       وإذا الكونتر مدموج: يتم دمج الخليتين الخاصة برقمَي الكونتر + دمج خلايا الأسماء تحتها
-    ====================================================== */
-    function populatePDF() {
+    function populatePDF(data) {
       const dateEl = document.getElementById('pdfDateStr');
       const infoEl = document.getElementById('pdfFilterInfo');
       const countersBody = document.getElementById('pdf-counters-horizontal-body');
       const tasksBody = document.getElementById('pdf-tasks-body');
 
-      if (!dateEl || !infoEl || !countersBody || !tasksBody) return;
-
       dateEl.innerText = `التاريخ: ${new Date().toLocaleDateString('ar-SA')}`;
       infoEl.innerHTML = `
-        <div><strong>الصالة:</strong> ${escapeHtml(ui.filters.hall || '-')}</div>
-        <div><strong>المناوبة:</strong> ${escapeHtml(ui.filters.shift || '-')}</div>
-        <div><strong>عدد القوة:</strong> ${escapeHtml(state.forceCount || '-')}</div>
+        <div><strong>الصالة:</strong> ${document.getElementById('hallSelect').value || '-'}</div>
+        <div><strong>المناوبة:</strong> ${document.getElementById('shiftSelect').value || '-'}</div>
+        <div><strong>عدد القوة:</strong> ${document.getElementById('forceCountInput').value || '-'}</div>
       `;
 
       countersBody.innerHTML = '';
       tasksBody.innerHTML = '';
 
-      const sortedCards = [...state.cards].sort((a,b)=>(a.nums[0]||0)-(b.nums[0]||0));
-
-      if (!sortedCards.length) {
+      if (data.cards.length === 0) {
         countersBody.innerHTML = `
           <tr><td class="row-label">رقم الكونتر</td><td colspan="10" style="text-align:center;">لا يوجد</td></tr>
           <tr><td class="row-label">الفرد الأول</td><td colspan="10" style="text-align:center;">-</td></tr>
@@ -1938,139 +694,58 @@
           <tr><td class="row-label">فرد التغطية</td><td colspan="10" style="text-align:center;">-</td></tr>
         `;
       } else {
-        const trCounters = document.createElement('tr');
-        const trFirst   = document.createElement('tr');
-        const trSecond  = document.createElement('tr');
-        const trCover   = document.createElement('tr');
+        const trCounters = document.createElement('tr'); trCounters.innerHTML = `<td class="row-label">رقم الكونتر</td>`;
+        const trFirst   = document.createElement('tr'); trFirst.innerHTML = `<td class="row-label">الفرد الأول</td>`;
+        const trSecond  = document.createElement('tr'); trSecond.innerHTML = `<td class="row-label">الفرد الثاني</td>`;
+        const trCover   = document.createElement('tr'); trCover.innerHTML = `<td class="row-label">فرد التغطية</td>`;
 
-        trCounters.innerHTML = `<td class="row-label">رقم الكونتر</td>`;
-        trFirst.innerHTML    = `<td class="row-label">الفرد الأول</td>`;
-        trSecond.innerHTML   = `<td class="row-label">الفرد الثاني</td>`;
-        trCover.innerHTML    = `<td class="row-label">فرد التغطية</td>`;
-
-        sortedCards.forEach(card => {
+        data.cards.forEach(card => {
           if (card.type === 'single') {
-            // فردي = عمود واحد
-            const first = state.slots[`${card.id}_m`]?.name || '-';
-            const second = '-';
-            const cover = state.slots[`${card.id}_r`]?.name || '-';
+            const first = card.people[0] ? formatShortName(card.people[0].name) : '-';
+            const second = '-'; 
+            const cover = card.people[1] ? formatShortName(card.people[1].name) : '-';
 
-            const tdCounter = document.createElement('td');
-            tdCounter.className = 'counter-head';
-            tdCounter.textContent = String(card.nums[0]);
+            const tdCounter = document.createElement('td'); tdCounter.className = 'counter-head'; tdCounter.textContent = String(card.nums[0]);
+            const tdFirst = document.createElement('td'); tdFirst.className = 'name-cell'; tdFirst.textContent = first;
+            const tdSecond = document.createElement('td'); tdSecond.className = 'name-cell'; tdSecond.textContent = second;
+            const tdCover = document.createElement('td'); tdCover.className = 'name-cell'; tdCover.textContent = cover;
 
-            const tdFirst = document.createElement('td');
-            tdFirst.className = 'name-cell';
-            tdFirst.textContent = first;
-
-            const tdSecond = document.createElement('td');
-            tdSecond.className = 'name-cell';
-            tdSecond.textContent = second;
-
-            const tdCover = document.createElement('td');
-            tdCover.className = 'name-cell';
-            tdCover.textContent = cover;
-
-            trCounters.appendChild(tdCounter);
-            trFirst.appendChild(tdFirst);
-            trSecond.appendChild(tdSecond);
-            trCover.appendChild(tdCover);
+            trCounters.appendChild(tdCounter); trFirst.appendChild(tdFirst); trSecond.appendChild(tdSecond); trCover.appendChild(tdCover);
           } else {
-            // مدمج = عمودان (رقمان) لكن الأسماء تكون خلية واحدة span=2
-            const first = state.slots[`${card.id}_m1`]?.name || '-';
-            const second = state.slots[`${card.id}_m2`]?.name || '-';
-            const cover = state.slots[`${card.id}_sh`]?.name || '-';
+            const first = card.people[0] ? formatShortName(card.people[0].name) : '-';
+            const second = card.people[1] ? formatShortName(card.people[1].name) : '-';
+            const cover = card.people[2] ? formatShortName(card.people[2].name) : '-';
 
-            const tdCounter1 = document.createElement('td');
-            tdCounter1.className = 'counter-head';
-            tdCounter1.textContent = String(card.nums[0]);
+            const tdCounter1 = document.createElement('td'); tdCounter1.className = 'counter-head'; tdCounter1.textContent = String(card.nums[0]);
+            const tdCounter2 = document.createElement('td'); tdCounter2.className = 'counter-head'; tdCounter2.textContent = String(card.nums[1]);
 
-            const tdCounter2 = document.createElement('td');
-            tdCounter2.className = 'counter-head';
-            tdCounter2.textContent = String(card.nums[1]);
+            trCounters.appendChild(tdCounter1); trCounters.appendChild(tdCounter2);
 
-            trCounters.appendChild(tdCounter1);
-            trCounters.appendChild(tdCounter2);
+            const tdFirst = document.createElement('td'); tdFirst.className = 'name-cell'; tdFirst.colSpan = 2; tdFirst.textContent = first;
+            const tdSecond = document.createElement('td'); tdSecond.className = 'name-cell'; tdSecond.colSpan = 2; tdSecond.textContent = second;
+            const tdCover = document.createElement('td'); tdCover.className = 'name-cell'; tdCover.colSpan = 2; tdCover.textContent = cover;
 
-            const tdFirst = document.createElement('td');
-            tdFirst.className = 'name-cell';
-            tdFirst.colSpan = 2;
-            tdFirst.textContent = first;
-
-            const tdSecond = document.createElement('td');
-            tdSecond.className = 'name-cell';
-            tdSecond.colSpan = 2;
-            tdSecond.textContent = second;
-
-            const tdCover = document.createElement('td');
-            tdCover.className = 'name-cell';
-            tdCover.colSpan = 2;
-            tdCover.textContent = cover;
-
-            trFirst.appendChild(tdFirst);
-            trSecond.appendChild(tdSecond);
-            trCover.appendChild(tdCover);
+            trFirst.appendChild(tdFirst); trSecond.appendChild(tdSecond); trCover.appendChild(tdCover);
           }
         });
 
-        countersBody.appendChild(trCounters);
-        countersBody.appendChild(trFirst);
-        countersBody.appendChild(trSecond);
-        countersBody.appendChild(trCover);
+        countersBody.appendChild(trCounters); countersBody.appendChild(trFirst); countersBody.appendChild(trSecond); countersBody.appendChild(trCover);
       }
 
-      // المهام الإضافية
-      const tasks = getAllTasks();
-      if (!tasks.length) {
-        tasksBody.innerHTML = `
-          <tr>
-            <td colspan="2" style="text-align:center;">لا توجد مهام إضافية</td>
-          </tr>
-        `;
+      if (data.tasks.length === 0) {
+        tasksBody.innerHTML = `<tr><td colspan="2" style="text-align:center;">لا توجد مهام إضافية</td></tr>`;
       } else {
-        for (const task of tasks) {
-          const ids = getTaskSlotIds(task.id);
-          const names = ids.map(id => state.slots[id]?.name).filter(Boolean);
-
+        data.tasks.forEach(task => {
+          const namesHtml = task.people.map(p => `<div>${formatShortName(p.name)}</div>`).join('');
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td class="pdf-extra-label">${escapeHtml(task.title)}</td>
-            <td class="name-cell" style="text-align:right;">
-              ${
-                names.length
-                  ? `<div class="pdf-task-names-list">${names.map(n => `<div>${escapeHtml(n)}</div>`).join('')}</div>`
-                  : '-'
-              }
-            </td>
+            <td class="pdf-extra-label">${task.title}</td>
+            <td class="name-cell" style="text-align:right; padding-right:15px;">${namesHtml || '-'}</td>
           `;
           tasksBody.appendChild(tr);
-        }
+        });
       }
     }
-
-    function renderAll() {
-      restoreFilterControls();
-      applyHeaderModes();
-      renderCounters();
-      renderWorkspace();
-      renderTasks();
-      renderPeopleList();
-      populateQuickPreview();
-      updateActionButtons();
-      updateInfoPanels();
-    }
-
-    function escapeHtml(str) {
-      return String(str ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-     function goBackPage() {
-    window.location.href = 'https://saud5161.github.io/passportstamp/indexhh.html';
-  }
   </script>
 </body>
 </html>
