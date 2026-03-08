@@ -1,0 +1,1753 @@
+{
+  "meta": {
+    "airport": {
+      "name_ar": "مطار الملك خالد الدولي",
+      "name_en": "King Khalid International Airport",
+      "iata": "RUH",
+      "city_ar": "الرياض",
+      "city_en": "Riyadh"
+    },
+    "updated_at": "2026-01-04T00:00:00Z",
+    "notes_ar": "تمت ازالة الهمزات والتشكيل من الاسماء العربية، والغاء كلمات (الخطوط/طيران) من اسماء الشركات. تمت اضافة بعض الشركات والوجهات المذكورة في القائمة. تمت اضافة رحلات دولية اضافية من قائمة 2026-01-04."
+  },
+  "airlines": [
+    {
+      "name_ar": "السعودية",
+      "name_en": "Saudia",
+      "iata": "SV",
+      "icao": "SVA",
+      "priority": 1
+    },
+    {
+      "name_ar": "ناس",
+      "name_en": "flynas",
+      "iata": "XY",
+      "icao": "FNA",
+      "priority": 2
+    },
+    {
+      "name_ar": "اديل",
+      "name_en": "flyadeal",
+      "iata": "F3",
+      "icao": "FAD",
+      "priority": 3
+    },
+    {
+      "name_ar": "الامارات",
+      "name_en": "Emirates",
+      "iata": "EK",
+      "icao": "UAE",
+      "priority": 10
+    },
+    {
+      "name_ar": "فلاي دبي",
+      "name_en": "flydubai",
+      "iata": "FZ",
+      "icao": "FDB",
+      "priority": 11
+    },
+    {
+      "name_ar": "القطرية",
+      "name_en": "Qatar Airways",
+      "iata": "QR",
+      "icao": "QTR",
+      "priority": 12
+    },
+    {
+      "name_ar": "الاتحاد",
+      "name_en": "Etihad Airways",
+      "iata": "EY",
+      "icao": "ETD",
+      "priority": 13
+    },
+    {
+      "name_ar": "التركية",
+      "name_en": "Turkish Airlines",
+      "iata": "TK",
+      "icao": "THY",
+      "priority": 14
+    },
+    {
+      "name_ar": "بيجاسوس",
+      "name_en": "Pegasus Airlines",
+      "iata": "PC",
+      "icao": "PGT",
+      "priority": 15
+    },
+    {
+      "name_ar": "الخليج",
+      "name_en": "Gulf Air",
+      "iata": "GF",
+      "icao": "GFA",
+      "priority": 16
+    },
+    {
+      "name_ar": "الكويتية",
+      "name_en": "Kuwait Airways",
+      "iata": "KU",
+      "icao": "KAC",
+      "priority": 17
+    },
+    {
+      "name_ar": "الجزيرة",
+      "name_en": "Jazeera Airways",
+      "iata": "J9",
+      "icao": "JZR",
+      "priority": 18
+    },
+    {
+      "name_ar": "العماني",
+      "name_en": "Oman Air",
+      "iata": "WY",
+      "icao": "OMA",
+      "priority": 19
+    },
+    {
+      "name_ar": "السلام",
+      "name_en": "SalamAir",
+      "iata": "OV",
+      "icao": "OMS",
+      "priority": 20
+    },
+    {
+      "name_ar": "العربية",
+      "name_en": "Air Arabia",
+      "iata": "G9",
+      "icao": "ABY",
+      "priority": 21
+    },
+    {
+      "name_ar": "المصرية",
+      "name_en": "EgyptAir",
+      "iata": "MS",
+      "icao": "MSR",
+      "priority": 22
+    },
+    {
+      "name_ar": "اير كايرو",
+      "name_en": "Air Cairo",
+      "iata": "SM",
+      "icao": "MSC",
+      "priority": 23
+    },
+    {
+      "name_ar": "الملكية الاردنية",
+      "name_en": "Royal Jordanian",
+      "iata": "RJ",
+      "icao": "RJA",
+      "priority": 24
+    },
+    {
+      "name_ar": "البريطانية",
+      "name_en": "British Airways",
+      "iata": "BA",
+      "icao": "BAW",
+      "priority": 25
+    },
+    {
+      "name_ar": "فيرجن اتلانتيك",
+      "name_en": "Virgin Atlantic",
+      "iata": "VS",
+      "icao": "VIR",
+      "priority": 26
+    },
+    {
+      "name_ar": "لوفتهانزا",
+      "name_en": "Lufthansa",
+      "iata": "LH",
+      "icao": "DLH",
+      "priority": 27
+    },
+    {
+      "name_ar": "الهولندية",
+      "name_en": "KLM",
+      "iata": "KL",
+      "icao": "KLM",
+      "priority": 28
+    },
+    {
+      "name_ar": "الفرنسية",
+      "name_en": "Air France",
+      "iata": "AF",
+      "icao": "AFR",
+      "priority": 29
+    },
+    {
+      "name_ar": "الايطالية",
+      "name_en": "ITA Airways",
+      "iata": "AZ",
+      "icao": "ITY",
+      "priority": 30
+    },
+    {
+      "name_ar": "البولندية",
+      "name_en": "LOT Polish Airlines",
+      "iata": "LO",
+      "icao": "LOT",
+      "priority": 31
+    },
+    {
+      "name_ar": "الاثيوبية",
+      "name_en": "Ethiopian Airlines",
+      "iata": "ET",
+      "icao": "ETH",
+      "priority": 32
+    },
+    {
+      "name_ar": "الفلبينية",
+      "name_en": "Philippine Airlines",
+      "iata": "PR",
+      "icao": "PAL",
+      "priority": 33
+    },
+    {
+      "name_ar": "سريلانكا",
+      "name_en": "SriLankan Airlines",
+      "iata": "UL",
+      "icao": "ALK",
+      "priority": 34
+    },
+    {
+      "name_ar": "كاثي باسيفيك",
+      "name_en": "Cathay Pacific",
+      "iata": "CX",
+      "icao": "CPA",
+      "priority": 35
+    },
+    {
+      "name_ar": "انديغو",
+      "name_en": "IndiGo",
+      "iata": "6E",
+      "icao": "IGO",
+      "priority": 36
+    },
+    {
+      "name_ar": "الهند",
+      "name_en": "Air India",
+      "iata": "AI",
+      "icao": "AIC",
+      "priority": 37
+    },
+    {
+      "name_ar": "اير انديا اكسبرس",
+      "name_en": "Air India Express",
+      "iata": "IX",
+      "icao": "AXB",
+      "priority": 38
+    },
+    {
+      "name_ar": "اكاسا اير",
+      "name_en": "Akasa Air",
+      "iata": "QP",
+      "icao": "AKJ",
+      "priority": 39
+    },
+    {
+      "name_ar": "الباكستانية",
+      "name_en": "Pakistan International Airlines",
+      "iata": "PK",
+      "icao": "PIA",
+      "priority": 40
+    },
+    {
+      "name_ar": "طيران الصين",
+      "name_en": "Air China",
+      "iata": "CA",
+      "icao": "CCA",
+      "priority": 41
+    },
+    {
+      "name_ar": "جنوب الصين",
+      "name_en": "China Southern",
+      "iata": "CZ",
+      "icao": "CSN",
+      "priority": 42
+    },
+    {
+      "name_ar": "تاركو",
+      "name_en": "Tarco",
+      "iata": "3T",
+      "icao": "TQQ",
+      "priority": 43
+    },
+    {
+      "name_ar": "بيمان بنغلادش",
+      "name_en": "Biman Bangladesh",
+      "iata": "BG",
+      "icao": "BBC",
+      "priority": 44
+    },
+    {
+      "name_ar": "يو إس بنغلا",
+      "name_en": "US-Bangla",
+      "iata": "BS",
+      "icao": "UBG",
+      "priority": 45
+    },
+    {
+      "name_ar": "العربية مصر",
+      "name_en": "Air Arabia Egypt",
+      "iata": "E5",
+      "icao": "RBG",
+      "priority": 46
+    },
+    {
+      "name_ar": "اليمنية",
+      "name_en": "Yemenia",
+      "iata": "IY",
+      "icao": "IYE",
+      "priority": 49
+    },
+    {
+      "name_ar": "بدر",
+      "name_en": "Badr",
+      "iata": "J4",
+      "icao": "BDR",
+      "priority": 50
+    },
+    {
+      "name_ar": "الشرق الأوسط",
+      "name_en": "Middle East",
+      "iata": "ME",
+      "icao": "MEA",
+      "priority": 52
+    },
+    {
+      "name_ar": "شرق الصين",
+      "name_en": "China Eastern",
+      "iata": "MU",
+      "icao": "CES",
+      "priority": 53
+    },
+    {
+      "name_ar": "النيل",
+      "name_en": "Nile",
+      "iata": "NP",
+      "icao": "NIA",
+      "priority": 54
+    },
+    {
+      "name_ar": "إيربلو",
+      "name_en": "Airblue",
+      "iata": "PA",
+      "icao": "ABQ",
+      "priority": 55
+    },
+    {
+      "name_ar": "السورية",
+      "name_en": "SyrianAir",
+      "iata": "RB",
+      "icao": "SYR",
+      "priority": 56
+    },
+    {
+      "name_ar": "كام",
+      "name_en": "Kam",
+      "iata": "RQ",
+      "icao": "KMF",
+      "priority": 57
+    },
+    {
+      "name_ar": "الرياض",
+      "name_en": "Riyadh",
+      "iata": "RX",
+      "icao": "RXI",
+      "priority": 58
+    },
+    {
+      "name_ar": "سيرين اير",
+      "name_en": "SereneAir",
+      "iata": "ER",
+      "icao": "SEP",
+      "priority": 59
+    },
+    {
+      "name_ar": "ايرسيال",
+      "name_en": "AirSial",
+      "iata": "PF",
+      "icao": "SIF",
+      "priority": 60
+    },
+    {
+      "name_ar": "فلاي جناح",
+      "name_en": "Fly Jinnah",
+      "iata": "9P",
+      "icao": "FJL",
+      "priority": 61
+    },
+    {
+  "name_ar": "اجيت",
+  "name_en": "AJet",
+  "iata": "VF",
+  "icao": "TKJ",
+  "priority": 62
+},
+{
+  "name_ar": "الاذربيجانية",
+  "name_en": "Azerbaijan Airlines",
+  "iata": "J2",
+  "icao": "AHY",
+  "priority": 63
+}
+  ],
+  "destinations": [
+    {
+      "city_ar": "دبي",
+      "city_en": "Dubai",
+      "iata": "DXB",
+      "country_ar": "الامارات",
+      "priority": 2
+    },
+    {
+      "city_ar": "القاهرة",
+      "city_en": "Cairo",
+      "iata": "CAI",
+      "country_ar": "مصر",
+      "priority": 3
+    },
+    {
+      "city_ar": "اسطنبول",
+      "city_en": "Istanbul",
+      "iata": "IST",
+      "country_ar": "تركيا",
+      "priority": 5
+    },
+    {
+      "city_ar": "الدوحة",
+      "city_en": "Doha",
+      "iata": "DOH",
+      "country_ar": "قطر",
+      "priority": 6
+    },
+    {
+      "city_ar": "ابوظبي",
+      "city_en": "Abu Dhabi",
+      "iata": "AUH",
+      "country_ar": "الامارات",
+      "priority": 7
+    },
+    {
+      "city_ar": "الكويت",
+      "city_en": "Kuwait City",
+      "iata": "KWI",
+      "country_ar": "الكويت",
+      "priority": 8
+    },
+    {
+      "city_ar": "المنامة",
+      "city_en": "Bahrain",
+      "iata": "BAH",
+      "country_ar": "البحرين",
+      "priority": 9
+    },
+    {
+      "city_ar": "عمان",
+      "city_en": "Amman",
+      "iata": "AMM",
+      "country_ar": "الاردن",
+      "priority": 10
+    },
+    {
+      "city_ar": "لندن",
+      "city_en": "London Heathrow",
+      "iata": "LHR",
+      "country_ar": "المملكة المتحدة",
+      "priority": 11
+    },
+    {
+      "city_ar": "برج العرب",
+      "city_en": "Borg El Arab",
+      "iata": "HBE",
+      "country_ar": "مصر",
+      "priority": 12
+    },
+    {
+      "city_ar": "الشارقة",
+      "city_en": "Sharjah",
+      "iata": "SHJ",
+      "country_ar": "الامارات",
+      "priority": 13
+    },
+    {
+      "city_ar": "مومباي",
+      "city_en": "Mumbai",
+      "iata": "BOM",
+      "country_ar": "الهند",
+      "priority": 14
+    },
+    {
+      "city_ar": "نيودلهي",
+      "city_en": "New Delhi",
+      "iata": "DEL",
+      "country_ar": "الهند",
+      "priority": 15
+    },
+    {
+      "city_ar": "دكا",
+      "city_en": "Dhaka",
+      "iata": "DAC",
+      "country_ar": "بنغلاديش",
+      "priority": 16
+    },
+    {
+      "city_ar": "مانيلا",
+      "city_en": "Manila",
+      "iata": "MNL",
+      "country_ar": "الفلبين",
+      "priority": 17
+    },
+    {
+      "city_ar": "كراتشي",
+      "city_en": "Karachi",
+      "iata": "KHI",
+      "country_ar": "باكستان",
+      "priority": 18
+    },
+    {
+      "city_ar": "باريس",
+      "city_en": "Paris (CDG)",
+      "iata": "CDG",
+      "country_ar": "فرنسا",
+      "priority": 19
+    },
+    {
+      "city_ar": "فرانكفورت",
+      "city_en": "Frankfurt",
+      "iata": "FRA",
+      "country_ar": "المانيا",
+      "priority": 20
+    },
+    {
+      "city_ar": "مسقط",
+      "city_en": "Muscat",
+      "iata": "MCT",
+      "country_ar": "عمان",
+      "priority": 21
+    },
+    {
+      "city_ar": "باكو",
+      "city_en": "Baku",
+      "iata": "GYD",
+      "country_ar": "اذربيجان",
+      "priority": 22
+    },
+    {
+      "city_ar": "كولومبو",
+      "city_en": "Colombo",
+      "iata": "CMB",
+      "country_ar": "سريلانكا",
+      "priority": 23
+    },
+    {
+      "city_ar": "اديس ابابا",
+      "city_en": "Addis Ababa",
+      "iata": "ADD",
+      "country_ar": "اثيوبيا",
+      "priority": 24
+    },
+    {
+      "city_ar": "روما",
+      "city_en": "Rome (FCO)",
+      "iata": "FCO",
+      "country_ar": "ايطاليا",
+      "priority": 25
+    },
+    {
+      "city_ar": "جنيف",
+      "city_en": "Geneva",
+      "iata": "GVA",
+      "country_ar": "سويسرا",
+      "priority": 26
+    },
+    {
+      "city_ar": "ميونخ",
+      "city_en": "Munich",
+      "iata": "MUC",
+      "country_ar": "المانيا",
+      "priority": 27
+    },
+    {
+      "city_ar": "امستردام",
+      "city_en": "Amsterdam",
+      "iata": "AMS",
+      "country_ar": "هولندا",
+      "priority": 28
+    },
+    {
+      "city_ar": "نيويورك",
+      "city_en": "New York (JFK)",
+      "iata": "JFK",
+      "country_ar": "الولايات المتحدة",
+      "priority": 29
+    },
+    {
+      "city_ar": "واشنطن",
+      "city_en": "Washington (IAD)",
+      "iata": "IAD",
+      "country_ar": "الولايات المتحدة",
+      "priority": 30
+    },
+    {
+      "city_ar": "سرايفو",
+      "city_en": "Sarajevo",
+      "iata": "SJJ",
+      "country_ar": "البوسنه والهرسك",
+      "priority": 31
+    },
+    {
+      "city_ar": "فينيسيا",
+      "city_en": "Venice",
+      "iata": "VCE",
+      "country_ar": "ايطاليا",
+      "priority": 32
+    },
+    {
+      "city_ar": "طرابزون",
+      "city_en": "Trabzon",
+      "iata": "TZX",
+      "country_ar": "تركيا",
+      "priority": 33
+    },
+    {
+      "city_ar": "جاكرتا",
+      "city_en": "Jakarta",
+      "iata": "CGK",
+      "country_ar": "اندونيسيا",
+      "priority": 34
+    },
+    {
+      "city_ar": "كوالالمبور",
+      "city_en": "Kuala Lumpur",
+      "iata": "KUL",
+      "country_ar": "ماليزيا",
+      "priority": 35
+    },
+    {
+      "city_ar": "اسلام اباد",
+      "city_en": "Islamabad",
+      "iata": "ISB",
+      "country_ar": "باكستان",
+      "priority": 36
+    },
+    {
+      "city_ar": "قوانزو",
+      "city_en": "Guangzhou",
+      "iata": "CAN",
+      "country_ar": "الصين",
+      "priority": 37
+    },
+    {
+      "city_ar": "بكين",
+      "city_en": "Beijing",
+      "iata": "PEK",
+      "country_ar": "الصين",
+      "priority": 38
+    },
+    {
+      "city_ar": "بانكوك",
+      "city_en": "Bangkok",
+      "iata": "BKK",
+      "country_ar": "تايلند",
+      "priority": 39
+    },
+    {
+      "city_ar": "بشاور",
+      "city_en": "Peshawar",
+      "iata": "PEW",
+      "country_ar": "باكستان",
+      "priority": 40
+    },
+    {
+      "city_ar": "مالديف",
+      "city_en": "Male (Maldives)",
+      "iata": "MLE",
+      "country_ar": "المالديف",
+      "priority": 41
+    },
+    {
+      "city_ar": "زيورخ",
+      "city_en": "Zurich",
+      "iata": "ZRH",
+      "country_ar": "سويسرا",
+      "priority": 42
+    },
+    {
+      "city_ar": "اثينا",
+      "city_en": "Athens",
+      "iata": "ATH",
+      "country_ar": "اليونان",
+      "priority": 43
+    },
+    
+    {
+      "city_ar": "شرم الشيخ",
+      "city_en": "Sharm El Sheikh",
+      "iata": "SSH",
+      "country_ar": "مصر",
+      "priority": 44
+    },
+    {
+      "city_ar": "لاهور",
+      "city_en": "Lahore",
+      "iata": "LHE",
+      "country_ar": "باكستان",
+      "priority": 45
+    },
+    {
+      "city_ar": "الدار البيضاء",
+      "city_en": "Casablanca",
+      "iata": "CMN",
+      "country_ar": "المغرب",
+      "priority": 46
+    },
+    {
+      "city_ar": "عنتيبي",
+      "city_en": "Entebbe",
+      "iata": "EBB",
+      "country_ar": "اوغندا",
+      "priority": 47
+    },
+    {
+      "city_ar": "كاليكوت",
+      "city_en": "Kozhikode (Calicut)",
+      "iata": "CCJ",
+      "country_ar": "الهند",
+      "priority": 48
+    },
+    {
+      "city_ar": "هونغ كونغ",
+      "city_en": "Hong Kong",
+      "iata": "HKG",
+      "country_ar": "الصين",
+      "priority": 49
+    },
+    {
+      "city_ar": "حيدر اباد",
+      "city_en": "Hyderabad",
+      "iata": "HYD",
+      "country_ar": "الهند",
+      "priority": 50
+    },
+    {
+      "city_ar": "لكناو",
+      "city_en": "Lucknow",
+      "iata": "LKO",
+      "country_ar": "الهند",
+      "priority": 51
+    },
+    {
+      "city_ar": "ال مكتوم",
+      "city_en": "Dubai World Central (Al Maktoum)",
+      "iata": "DWC",
+      "country_ar": "الامارات",
+      "priority": 52
+    },
+    {
+      "city_ar": "اسيوط",
+      "city_en": "Assiut",
+      "iata": "ATZ",
+      "country_ar": "مصر",
+      "priority": 53
+    },
+    {
+      "city_ar": "بيروت",
+      "city_en": "Beirut",
+      "iata": "BEY",
+      "country_ar": "لبنان",
+      "priority": 54
+    },
+    {
+      "city_ar": "شنغهاي",
+      "city_en": "Shanghai",
+      "iata": "PVG",
+      "country_ar": "الصين",
+      "priority": 56
+    },
+    {
+      "city_ar": "اسطنبول",
+      "city_en": "Istanbul",
+      "iata": "SAW",
+      "country_ar": "تركيا",
+      "priority": 57
+    },
+    {
+      "city_ar": "الجيزة",
+      "city_en": "Giza",
+      "iata": "SPX",
+      "country_ar": "مصر",
+      "priority": 58
+    },
+    {
+      "city_ar": "تبليسي",
+      "city_en": "Tbilisi",
+      "iata": "TBS",
+      "country_ar": "جورجيا",
+      "priority": 59
+    },
+    {
+      "city_ar": "موسكو",
+      "city_en": "Moscow",
+      "iata": "VKO",
+      "country_ar": "روسيا",
+      "priority": 60
+    },
+    {
+      "city_ar": "دمشق",
+      "city_en": "Damascus",
+      "iata": "DAM",
+      "country_ar": "سوريا",
+      "priority": 61
+    },
+    {
+      "city_ar": "كنور",
+      "city_en": "Kannur",
+      "iata": "CNN",
+      "country_ar": "الهند",
+      "priority": 62
+    },
+    {
+      "city_ar": "بورتسودان",
+      "city_en": "Port Sudan",
+      "iata": "PZU",
+      "country_ar": "السودان",
+      "priority": 63
+    }
+    
+  ],
+  "extra_routes": [
+    {
+      "no": "SV520",
+      "dest": "البحرين"
+    },
+    {
+      "no": "F3573",
+      "dest": "إسطنبول"
+    },
+    {
+      "no": "SV560",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV510",
+      "dest": "الكويت"
+    },
+    {
+      "no": "F3591",
+      "dest": "سرايفو"
+    },
+    {
+      "no": "SV217",
+      "dest": "فينيسيا"
+    },
+    {
+      "no": "SV313",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "SV804",
+      "dest": "دكا"
+    },
+    {
+      "no": "F3507",
+      "dest": "دبي"
+    },
+    {
+      "no": "F3509",
+      "dest": "دبي"
+    },
+    {
+      "no": "F3579",
+      "dest": "طرابزون"
+    },
+    {
+      "no": "F3511",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV552",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV333",
+      "dest": "برج العرب"
+    },
+    {
+      "no": "F3513",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV637",
+      "dest": "عمان"
+    },
+    {
+      "no": "F3525",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV321",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "SV864",
+      "dest": "جاكرتا"
+    },
+    {
+      "no": "SV828",
+      "dest": "كوالالمبور"
+    },
+    {
+      "no": "SV514",
+      "dest": "الكويت"
+    },
+    {
+      "no": "SV740",
+      "dest": "مومباي"
+    },
+    {
+      "no": "SV584",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV730",
+      "dest": "إسلام آباد"
+    },
+    {
+      "no": "SV862",
+      "dest": "مانيلا"
+    },
+    {
+      "no": "F3615",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "SV277",
+      "dest": "اسطنبول"
+    },
+    {
+      "no": "F3519",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV592",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV884",
+      "dest": "قوانزو"
+    },
+    {
+      "no": "SV742",
+      "dest": "مومباي"
+    },
+    {
+      "no": "SV806",
+      "dest": "دكا"
+    },
+    {
+      "no": "SV323",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "F3661",
+      "dest": "كراتشي"
+    },
+    {
+      "no": "SV209",
+      "dest": "روما"
+    },
+    {
+      "no": "SV143",
+      "dest": "باريس"
+    },
+    {
+      "no": "SV888",
+      "dest": ""
+    },
+    
+  {
+    "no": "J28204",
+    "dest": "باكو"
+  },
+  {
+    "no": "QR1969",
+    "dest": "الدوحة"
+  },
+  {
+    "no": "SV712",
+    "dest": "كاليكوت"
+  },
+  {
+    "no": "6E54",
+    "dest": "بنجالور"
+  },
+  {
+    "no": "VF214",
+    "dest": "اسطنبول"
+  },
+  {
+    "no": "F3561",
+    "dest": "دمشق"
+  },
+  {
+    "no": "SV283",
+    "dest": "موسكو"
+  },
+  {
+    "no": "AF685",
+    "dest": "باريس"
+  },
+
+    {
+      "no": "SV724",
+      "dest": "اسلام اباد"
+    },
+    {
+      "no": "SV846",
+      "dest": "بانكك"
+    },
+    {
+      "no": "SV23",
+      "dest": "نيويورك"
+    },
+    {
+      "no": "SV792",
+      "dest": "بشاور"
+    },
+    {
+      "no": "SV111",
+      "dest": "لندن"
+    },
+    {
+      "no": "F3613",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "F3577",
+      "dest": "طرابزون"
+    },
+    {
+      "no": "SV562",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV708",
+      "dest": "كراتشي"
+    },
+    {
+      "no": "SV838",
+      "dest": "مالديف"
+    },
+    {
+      "no": "SV311",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "SV512",
+      "dest": "الكويت"
+    },
+    {
+      "no": "SV37",
+      "dest": "واشنطن"
+    },
+    {
+      "no": "F3505",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV596",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV760",
+      "dest": "دلهي"
+    },
+    {
+      "no": "SV629",
+      "dest": "عمان"
+    },
+    {
+      "no": "SV179",
+      "dest": "فرانكفورت"
+    },
+    {
+      "no": "SV171",
+      "dest": "ميونخ"
+    },
+    {
+      "no": "SV239",
+      "dest": "جنيف"
+    },
+    {
+      "no": "SV121",
+      "dest": "لندن"
+    },
+    {
+      "no": "SV115",
+      "dest": "لندن"
+    },
+    {
+      "no": "SV195",
+      "dest": "أثينا"
+    },
+    {
+      "no": "SV235",
+      "dest": "زيورخ"
+    },
+    {
+      "no": "SV207",
+      "dest": "روما"
+    },
+    {
+      "no": "SV263",
+      "dest": "إسطنبول"
+    },
+    {
+      "no": "SV572",
+      "dest": "أبوظبي"
+    },
+    {
+      "no": "SV113",
+      "dest": "لندن"
+    },
+    {
+      "no": "SV558",
+      "dest": "دبي"
+    },
+    {
+      "no": "F3541",
+      "dest": "عمان"
+    },
+    {
+      "no": "SV417",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "F3607",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "SV633",
+      "dest": "عمان"
+    },
+    {
+      "no": "SV327",
+      "dest": "شرم الشيخ"
+    },
+    {
+      "no": "SV540",
+      "dest": "الدوحة"
+    },
+    {
+      "no": "SV736",
+      "dest": "لاهور"
+    },
+    {
+      "no": "SV375",
+      "dest": "الدار البيضاء"
+    },
+    {
+      "no": "SV554",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY345",
+      "dest": "عنتيبي"
+    },
+    {
+      "no": "CA790",
+      "dest": "بكين"
+    },
+    {
+      "no": "XY327",
+      "dest": "كاليكوت"
+    },
+    {
+      "no": "3T217",
+      "dest": "بورتسودان"
+    },
+    {
+      "no": "6E72",
+      "dest": "دلهي"
+    },
+    {
+      "no": "6E74",
+      "dest": "مومباي"
+    },
+    {
+      "no": "6E94",
+      "dest": "حيدر آباد"
+    },
+    {
+      "no": "AI2214",
+      "dest": "مومباي"
+    },
+    {
+      "no": "BA258",
+      "dest": "لندن"
+    },
+    {
+      "no": "BA262",
+      "dest": "لندن"
+    },
+    {
+      "no": "BG340",
+      "dest": "دكا"
+    },
+    {
+      "no": "BS382",
+      "dest": "دكا"
+    },
+    {
+      "no": "CZ5008",
+      "dest": "شينزين"
+    },
+    {
+      "no": "E5338",
+      "dest": "برج العرب"
+    },
+    {
+      "no": "E5416",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "EK814",
+      "dest": "دبي"
+    },
+    {
+      "no": "EK816",
+      "dest": "دبي"
+    },
+    {
+      "no": "EK818",
+      "dest": "دبي"
+    },
+    {
+      "no": "EK820",
+      "dest": "دبي"
+    },
+    {
+      "no": "ET413",
+      "dest": "أديس أبابا"
+    },
+    {
+      "no": "EY552",
+      "dest": "أبوظبي"
+    },
+    {
+      "no": "EY554",
+      "dest": "أبوظبي"
+    },
+    {
+      "no": "EY556",
+      "dest": "أبوظبي"
+    },
+    {
+      "no": "EY560",
+      "dest": "أبوظبي"
+    },
+    {
+      "no": "FZ842",
+      "dest": "دبي"
+    },
+    {
+      "no": "FZ844",
+      "dest": "دبي"
+    },
+    {
+      "no": "FZ848",
+      "dest": "دبي"
+    },
+    {
+      "no": "FZ850",
+      "dest": "دبي"
+    },
+    {
+      "no": "FZ856",
+      "dest": "دبي"
+    },
+    {
+      "no": "G9152",
+      "dest": "الشارقة"
+    },
+    {
+      "no": "G9155",
+      "dest": "الشارقة"
+    },
+    {
+      "no": "GF162",
+      "dest": "المنامة"
+    },
+    {
+      "no": "GF164",
+      "dest": "المنامة"
+    },
+    {
+      "no": "GF168",
+      "dest": "المنامة"
+    },
+    {
+      "no": "GF190",
+      "dest": "المنامة"
+    },
+    {
+      "no": "IX522",
+      "dest": "ثيروفنانثابورام"
+    },
+    {
+      "no": "IY533",
+      "dest": "عدن"
+    },
+    {
+      "no": "J4671",
+      "dest": "بورتسودان"
+    },
+    {
+      "no": "J9222",
+      "dest": "الكويت"
+    },
+    {
+      "no": "J9226",
+      "dest": "الكويت"
+    },
+    {
+      "no": "KU774",
+      "dest": "الكويت"
+    },
+    {
+      "no": "KU776",
+      "dest": "الكويت"
+    },
+    {
+      "no": "LH622",
+      "dest": "فرانكفورت"
+    },
+    {
+      "no": "LH623",
+      "dest": "فرانكفورت"
+    },
+    {
+      "no": "LH641",
+      "dest": "ميونخ"
+    },
+    {
+      "no": "LO126",
+      "dest": "وارسو"
+    },
+    {
+      "no": "ME423",
+      "dest": "بيروت"
+    },
+    {
+      "no": "ME425",
+      "dest": "بيروت"
+    },
+    {
+      "no": "MS648",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "MS650",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "MS652",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "MU270",
+      "dest": "شنغهاي"
+    },
+    {
+      "no": "NP252",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "PA277",
+      "dest": "إسلام آباد"
+    },
+    {
+      "no": "PC691",
+      "dest": "إسطنبول"
+    },
+    {
+      "no": "PK754",
+      "dest": "إسلام آباد"
+    },
+    {
+      "no": "PK766",
+      "dest": "ملتان"
+    },
+    {
+      "no": "PR655",
+      "dest": "مانيلا"
+    },
+    {
+      "no": "QR1161",
+      "dest": "الدوحة"
+    },
+    {
+      "no": "QR1165",
+      "dest": "الدوحة"
+    },
+    {
+      "no": "QR1167",
+      "dest": "الدوحة"
+    },
+    {
+      "no": "QR1169",
+      "dest": "الدوحة"
+    },
+    {
+      "no": "QR1171",
+      "dest": "الدوحة"
+    },
+    {
+      "no": "QR1173",
+      "dest": "الدوحة"
+    },
+    {
+      "no": "RB390",
+      "dest": "دمشق"
+    },
+    {
+      "no": "RJ731",
+      "dest": "عمّان"
+    },
+    {
+      "no": "RJ735",
+      "dest": "عمّان"
+    },
+    {
+      "no": "RQ996",
+      "dest": "كابول"
+    },
+    {
+      "no": "RX401",
+      "dest": "لندن"
+    },
+    {
+      "no": "SM462",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "SM466",
+      "dest": "أسيوط"
+    },
+    {
+      "no": "SM470",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "SV153",
+      "dest": "فيينا"
+    },
+    {
+      "no": "SV556",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV564",
+      "dest": "دبي"
+    },
+    {
+      "no": "SV852",
+      "dest": "بوكيت"
+    },
+    {
+      "no": "TK141",
+      "dest": "إسطنبول"
+    },
+    {
+      "no": "TK143",
+      "dest": "إسطنبول"
+    },
+    {
+      "no": "TK145",
+      "dest": "إسطنبول"
+    },
+    {
+      "no": "UL266",
+      "dest": "كولومبو"
+    },
+    {
+      "no": "VS243",
+      "dest": "لندن"
+    },
+    {
+      "no": "WY682",
+      "dest": "مسقط"
+    },
+    {
+      "no": "WY684",
+      "dest": "مسقط"
+    },
+    {
+      "no": "WY686",
+      "dest": "مسقط"
+    },
+    {
+      "no": "XY201",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY205",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY207",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY209",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY211",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY213",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY215",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY217",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY223",
+      "dest": "الدوحة"
+    },
+    {
+      "no": "XY225",
+      "dest": "الدوحة"
+    },
+    {
+      "no": "XY227",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY231",
+      "dest": "الكويت"
+    },
+    {
+      "no": "XY233",
+      "dest": "المنامة"
+    },
+    {
+      "no": "XY235",
+      "dest": "أبوظبي"
+    },
+    {
+      "no": "XY241",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY247",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY251",
+      "dest": "عمّان"
+    },
+    {
+      "no": "XY253",
+      "dest": "عمّان"
+    },
+    {
+      "no": "XY255",
+      "dest": "عمّان"
+    },
+    {
+      "no": "XY257",
+      "dest": "إسطنبول"
+    },
+    {
+      "no": "XY263",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "XY265",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "XY267",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "XY269",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "XY271",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "XY273",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "XY275",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "XY285",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "XY293",
+      "dest": "الدوحة"
+    },
+    {
+      "no": "XY299",
+      "dest": "إسطنبول"
+    },
+    {
+      "no": "XY309",
+      "dest": "تبليسي"
+    },
+    {
+      "no": "XY315",
+      "dest": "إسلام آباد"
+    },
+    {
+      "no": "XY329",
+      "dest": "دلهي"
+    },
+    {
+      "no": "XY333",
+      "dest": "لكناو"
+    },
+    {
+      "no": "ov204",
+      "dest": "مسقط"
+    },
+    {
+      "no": "XY347",
+      "dest": "أديس أبابا"
+    },
+    {
+      "no": "XY377",
+      "dest": "دمشق"
+    },
+    {
+      "no": "XY379",
+      "dest": "موسكو"
+    },
+    {
+      "no": "CX644",
+      "dest": "هونغ كونغ"
+    },
+    {
+      "no": "KL425",
+      "dest": "امستردام"
+    },
+    {
+      "no": "CZ376",
+      "dest": "قوانزو"
+    },
+    {
+      "no": "XY325",
+      "dest": "حيدر آباد"
+    },
+    {
+      "no": "XY1215",
+      "dest": "دبي"
+    },
+    {
+      "no": "XY283",
+      "dest": "أسيوط"
+    },
+    {
+      "no": "RJ733",
+      "dest": "عمان"
+    },
+    {
+      "no": "SM464",
+      "dest": "اسيوط"
+    },
+    {
+      "no": "GF170",
+      "dest": "البحرين"
+    },
+    {
+      "no": "XY237",
+      "dest": "البحرين"
+    },
+    {
+      "no": "ME2425",
+      "dest": "بيروت"
+    },
+    {
+      "no": "XY321",
+      "dest": "مومباي"
+    },
+    {
+      "no": "E5411",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "NP152",
+      "dest": "القاهرة"
+    },
+    {
+      "no": "IX322",
+      "dest": "كاليكوت"
+    },
+    {
+      "no": "IX790",
+      "dest": "كنور"
+    },
+    {
+      "no": "XY387",
+      "dest": "دمشق"
+    },
+    {
+      "no": "AI2244",
+      "dest": "نيودلهي"
+    },
+    {
+      "no": "KL423",
+      "dest": "امستردام"
+    },
+    {
+      "no": "XY323",
+      "dest": "باكو"
+    },
+    {
+      "no": "CX648",
+      "dest": "هونغ كونغ"
+    },
+    {
+      "no": "ER808",
+      "dest": "اسلام اباد"
+    },
+    {
+      "no": "PF769",
+      "dest": "اسلام اباد"
+    },
+    {
+      "no": "9P581",
+      "dest": "لاهور"
+    },
+    {
+      "no": "XY317",
+      "dest": "لاهور"
+    },
+    {
+      "no": "IX190",
+      "dest": "لكناو"
+    },
+    {
+      "no": "OV206",
+      "dest": "مسقط"
+    },
+    {
+      "no": "XY311",
+      "dest": "تبليسي"
+    }
+  ]
+}

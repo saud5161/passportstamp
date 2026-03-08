@@ -45,7 +45,7 @@
 
         .container { max-width: 900px; margin: 0 auto; padding: 0 15px; }
 
-        /* عناوين الأقسام (ستايل جديد) */
+        /* عناوين الأقسام */
         .section-title {
             color: var(--primary-dark);
             font-size: 1.2rem;
@@ -57,150 +57,61 @@
             padding-bottom: 10px;
         }
         
-        .section-title i {
-            margin-left: 10px;
-            color: var(--gold);
-            font-size: 1.4rem;
-        }
-
+        .section-title i { margin-left: 10px; color: var(--gold); font-size: 1.4rem; }
         .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 50px;
-            height: 3px;
-            background-color: var(--gold);
-            border-radius: 2px;
-            transition: width 0.3s;
+            content: ''; position: absolute; bottom: 0; right: 0; width: 50px; height: 3px;
+            background-color: var(--gold); border-radius: 2px; transition: width 0.3s;
         }
-        
         .section-title:hover::after { width: 100px; }
 
         /* الشبكة */
-        .grid-menu {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 12px;
-            margin-bottom: 10px;
-        }
+        .grid-menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-bottom: 10px; }
 
         .card {
-            background: var(--white);
-            border-radius: var(--radius);
-            padding: 15px 5px;
-            text-align: center;
-            position: relative;
-            cursor: pointer;
-            height: 110px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(0,0,0,0.03);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-            transition: all 0.3s ease;
-            overflow: hidden;
+            background: var(--white); border-radius: var(--radius); padding: 15px 5px; text-align: center;
+            position: relative; cursor: pointer; height: 110px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: all 0.3s ease; overflow: hidden;
         }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(197, 160, 89, 0.2);
-            border-color: var(--gold);
-        }
-
-        .card i {
-            font-size: 2rem;
-            color: var(--gold);
-            margin-bottom: 10px;
-            transition: transform 0.3s;
-        }
-        
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(197, 160, 89, 0.2); border-color: var(--gold); }
+        .card i { font-size: 2rem; color: var(--gold); margin-bottom: 10px; transition: transform 0.3s; }
         .card:hover i { transform: scale(1.1); color: var(--primary); }
-        
-        .card span {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #555;
-            line-height: 1.2;
-        }
+        .card span { font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.2; }
 
         /* النماذج */
         .form-section {
-            display: none;
-            background: var(--white);
-            padding: 20px;
-            border-radius: var(--radius);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
-            animation: slideUp 0.3s ease-out;
-            border-top: 5px solid var(--gold);
+            display: none; background: var(--white); padding: 20px; border-radius: var(--radius);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05); animation: slideUp 0.3s ease-out; border-top: 5px solid var(--gold);
         }
-        .form-title {
-            color: var(--primary);
-            font-size: 1.3rem;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px dashed #ddd;
-        }
+        .form-title { color: var(--primary); font-size: 1.3rem; font-weight: 800; text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px dashed #ddd; }
 
         /* الحقول */
         .input-group { margin-bottom: 18px; }
         .input-group label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 0.9rem; color: #444; }
         
         input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            background-color: #fcfcfc;
-            box-sizing: border-box;
-            transition: all 0.3s;
-            font-family: inherit;
+            width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 1rem;
+            background-color: #fcfcfc; box-sizing: border-box; transition: all 0.3s; font-family: inherit;
         }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.15);
-            background-color: #fff;
-        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.15); background-color: #fff; }
 
         .input-error-msg { color: #dc3545; font-size: 0.75rem; margin-top: 4px; font-weight: bold; display: none; }
         .row { display: flex; gap: 10px; } .row > * { flex: 1; }
 
         /* الأزرار العائمة */
-        .fab-container {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 400px; display: none; gap: 10px; z-index: 999;
-        }
-        .btn {
-            flex: 1; padding: 15px; border: none; border-radius: 50px; font-weight: bold;
-            font-size: 1rem; color: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
-        }
+        .fab-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; display: none; gap: 10px; z-index: 999; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 50px; font-weight: bold; font-size: 1rem; color: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
         .btn:active { transform: scale(0.95); }
         .btn-send { background: linear-gradient(135deg, #198754, #146c43); flex: 2; }
         .btn-back { background: #6c757d; flex: 1; }
 
         /* تخصيصات النماذج */
-        .passenger-group {
-            background: #fff; border: 1px solid #eee; border-right: 4px solid var(--gold);
-            padding: 15px; border-radius: 10px; margin-bottom: 15px;
-        }
-        .hijri-box {
-            background: #fdfcf5; padding: 15px; border-radius: 10px;
-            margin-bottom: 20px; border: 1px solid var(--gold); color: #5a4a25;
-        }
+        .passenger-group { background: #fff; border: 1px solid #eee; border-right: 4px solid var(--gold); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        .hijri-box { background: #fdfcf5; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid var(--gold); color: #5a4a25; }
         .doc-buttons-container { display: flex; gap: 10px; margin-bottom: 15px; }
-        .doc-button {
-            padding: 10px; flex: 1; border: none; border-radius: 8px; cursor: pointer;
-            background: #eee; color: #555; font-weight: bold; transition: 0.3s;
-        }
+        .doc-button { padding: 10px; flex: 1; border: none; border-radius: 8px; cursor: pointer; background: #eee; color: #555; font-weight: bold; transition: 0.3s; }
         .doc-button.active { background: var(--primary); color: white; }
 
-        /* Checkbox Buttons */
         .custom-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; background: #fdfdfd; padding: 10px; border: 1px dashed #ccc; border-radius: 8px; }
         .checkbox-btn { background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; }
         .checkbox-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
@@ -221,25 +132,16 @@
     <div id="mainMenu">
         
         <div class="section-title"><i class="fas fa-clock"></i> أعمال المناوبة</div>
-<div class="grid-menu">
-    <div class="card" onclick="openForm('presence')">
-        <i class="fas fa-clipboard-list"></i>
-        <span>التكميل</span>
-    </div>
-
-<div class="card" onclick="window.location.href='https://saud5161.github.io/Special-document/Shifts.html'">        <i class="fas fa-table"></i>  
-        <span>جدول البريكات</span> 
-    </div>
-</div>
+        <div class="grid-menu">
+            <div class="card" onclick="openForm('presence')"><i class="fas fa-clipboard-list"></i><span>التكميل</span></div>
+            <div class="card" onclick="window.location.href='https://saud5161.github.io/Special-document/Shifts.html'"><i class="fas fa-table"></i><span>جدول البريكات</span></div>
+        </div>
 
         <div class="section-title"><i class="fas fa-users"></i> المسافرين الزيارة</div>
         <div class="grid-menu">
             <div class="card" onclick="openForm('visaExpiry')"><i class="fas fa-calendar-times"></i><span>انتهاء تأشيرة</span></div>
             <div class="card" onclick="openForm('passError')">
-                <div style="position:relative; display:inline-block;">
-                    <i class="fas fa-passport"></i>
-                    <i class="fas fa-exclamation-circle" style="position:absolute; bottom:-5px; right:-5px; color:#dc3545; background:white; border-radius:50%; font-size:1rem;"></i>
-                </div>
+                <div style="position:relative; display:inline-block;"><i class="fas fa-passport"></i><i class="fas fa-exclamation-circle" style="position:absolute; bottom:-5px; right:-5px; color:#dc3545; background:white; border-radius:50%; font-size:1rem;"></i></div>
                 <span>خطأ رقم جواز</span>
             </div>
             <div class="card" onclick="openForm('passportExp')"><i class="fas fa-passport" style="opacity:0.6"></i><span>جواز منتهي</span></div>
@@ -259,6 +161,11 @@
             <div class="card" onclick="openForm('defname')"><i class="fas fa-id-card-alt"></i><span>اختلاف اسم</span></div>
         </div>
 
+        <div class="section-title"><i class="fas fa-plane-slash"></i> إشعار عن الرحلات ( ملغية / محولة )</div>
+        <div class="grid-menu">
+            <div class="card" onclick="openForm('cancelledFlights')"><i class="fas fa-ban" style="color:#d32f2f;"></i><span>رحلات ملغية</span></div>
+        </div>
+
         <div class="section-title"><i class="fas fa-folder-open"></i> أخرى</div>
         <div class="grid-menu">
             <div class="card" onclick="openForm('custom')"><i class="fas fa-edit"></i><span>نموذج جاهز</span></div>
@@ -269,6 +176,51 @@
 
     </div>
 
+    <div id="form-cancelledFlights" class="form-section">
+        <div class="form-title">إشعار عن رحلات الملغية</div>
+        
+        <datalist id="cf_halls_list">
+            <option value="1">
+            <option value="2">
+            <option value="5">
+        </datalist>
+
+        <datalist id="flights_list_db">
+            </datalist>
+
+        <div class="row">
+            <div class="input-group"><label>الصالة</label><input type="text" id="cf_hall" list="cf_halls_list" placeholder="اختر أو اكتب الصالة" value="1"></div>
+            <div class="input-group"><label>اليوم</label><input type="text" id="cf_day"></div>
+        </div>
+        
+        <div class="row">
+            <div class="input-group"><label>التاريخ</label><input type="text" id="cf_date"></div>
+            <div class="input-group"><label>وقت الاستلام</label><input type="text" id="cf_time" placeholder="مثال: 10:00 م حتى 6:00 ص"></div>
+        </div>
+
+        <div class="input-group" style="margin-top: 15px;">
+            <label style="color:var(--primary); font-size: 1.1rem;">عدد الرحلات الملغية</label>
+            <select id="cf_count" onchange="renderCF()" style="border-color: var(--primary);">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        </div>
+
+        <div id="cf_flights"></div>
+
+        <div class="input-group" style="margin-top: 15px;">
+            <label>السبب</label>
+            <textarea id="cf_reason" rows="3" placeholder="مثال: اغلاق المجال الجوي في المطار"></textarea>
+        </div>
+    </div>
     <div id="form-less6" class="form-section">
         <div class="form-title">وثيقة سفر اقل من 6/3 اشهر</div>
         
@@ -332,18 +284,8 @@
                 <input type="text" id="ve_type_manual" placeholder="أو اكتب...">
             </div>
         </div>
-<div class="input-group">
-  <label>عدد المسافرين</label>
-  <select id="ve_count" onchange="renderVE()">
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-    <option value="5">5</option>
-    <option value="6">6</option>
-    <option value="7">7</option>
-  </select>
-</div>        <div id="ve_passengers"></div>
+        <div class="input-group"><label>عدد المسافرين</label><select id="ve_count" onchange="renderVE()"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option></select></div>
+        <div id="ve_passengers"></div>
         <div class="input-group"><label>تاريخ الانتهاء</label><div class="row"><select id="ve_d"><option value="">اليوم</option></select><select id="ve_m"><option value="">الشهر</option></select><select id="ve_y"><option>1447</option><option>1448</option><option>2025</option><option>2026</option></select></div></div>
         <div class="input-group"><label>مدة الانتهاء (أيام)</label><select id="ve_days"><option value="">-- اختر المدة --</option></select></div>
         <div class="input-group"><label>بيانات الرحلة</label><div class="row"><input type="text" id="ve_air" placeholder="الخطوط"><input type="text" id="ve_flt" placeholder="رقم الرحلة"></div></div>
@@ -406,6 +348,7 @@
 <script>
     let currentForm = null;
     let l6DocType = 'passport';
+    let flightsDatabase = []; // لتخزين بيانات ملف fly.json
 
     document.addEventListener('DOMContentLoaded', () => {
         const savedOfficer = localStorage.getItem('officerName');
@@ -415,6 +358,22 @@
             if(s && s.options.length <= 1) for(let i=1;i<=max;i++) s.add(new Option(i,i));
         }
         fill('ve_d',31); fill('ve_m',12); fill('ve_days',90);
+
+        // جلب البيانات من ملف fly.json
+        fetch('fly.json')
+            .then(response => response.json())
+            .then(data => {
+                flightsDatabase = data.extra_routes || [];
+                const datalist = document.getElementById('flights_list_db');
+                flightsDatabase.forEach(flight => {
+                    if(flight.no) {
+                        const opt = document.createElement('option');
+                        opt.value = flight.no;
+                        datalist.appendChild(opt);
+                    }
+                });
+            })
+            .catch(err => console.log('تعذر تحميل قاعدة البيانات fly.json، يرجى التأكد من وجودها بجانب الملف:', err));
     });
 
     function updatePassErrNote() {
@@ -425,6 +384,14 @@
     document.addEventListener('input', function(e) {
         if(e.target.classList.contains('en-num')) {
             const val = e.target.value;
+            // السماح بالحروف الإنجليزية والأرقام للرحلات (مثل SV3255)
+            if(e.target.id.startsWith('cf_flt_')) {
+                if(/[\u0600-\u06FF]/.test(val)) {
+                     e.target.value = val.replace(/[\u0600-\u06FF]/g, '');
+                }
+                return;
+            }
+
             if(/[\u0660-\u0669\u06f0-\u06f9]/.test(val)) {
                 e.target.value = val.replace(/[\u0660-\u0669\u06f0-\u06f9]/g, '');
                 let errSpan = e.target.parentNode.querySelector('.input-error-msg');
@@ -452,6 +419,17 @@
         if(id === 'want' && !document.getElementById('wt_passengers').innerHTML) renderWT();
         if(id === 'fingercon') fillFCNote();
         if(id === 'noacspt' && !document.getElementById('nf_passengers').innerHTML) renderNF();
+        if(id === 'cancelledFlights') {
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const today = new Date();
+            document.getElementById('cf_day').value = days[today.getDay()];
+            
+            const h = getTodayHijriParts();
+            const pad = (n) => n.toString().padStart(2,'0');
+            document.getElementById('cf_date').value = `${h.year}/${pad(h.month)}/${pad(h.day)} هـ`;
+            
+            if(!document.getElementById('cf_flights').innerHTML) renderCF();
+        }
         window.scrollTo(0,0);
     }
 
@@ -460,20 +438,16 @@
         document.getElementById('fab-actions').style.display = 'none';
         document.querySelectorAll('.form-section').forEach(el => el.style.display = 'none');
 
-        // تفريغ جميع الحقول النصية والملاحظات
         document.querySelectorAll('input, textarea').forEach(input => input.value = '');
-
-        // إعادة القوائم المنسدلة للبداية
         document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
 
-        // تفريغ المحتويات الديناميكية لضمان إعادة إنشائها فارغة
         document.getElementById('l6_passengers').innerHTML = '';
         document.getElementById('ve_passengers').innerHTML = '';
         document.getElementById('wt_passengers').innerHTML = '';
         document.getElementById('nf_passengers').innerHTML = '';
+        document.getElementById('cf_flights').innerHTML = ''; 
         document.getElementById('pr_abs_names_box').innerHTML = '';
         
-        // إخفاء الخيارات المخصصة
         document.querySelectorAll('.custom-options input').forEach(c => { 
             c.checked = false; 
             c.parentElement.classList.remove('active'); 
@@ -489,6 +463,58 @@
     function toggleCustomField(divId, checkbox) {
         document.getElementById(divId).style.display = checkbox.checked ? 'block' : 'none';
         checkbox.parentElement.classList.toggle('active', checkbox.checked);
+    }
+
+    // === دوال رحلات ملغية ===
+    function autoFillDest(index) {
+        const val = document.getElementById(`cf_flt_${index}`).value.trim().toUpperCase();
+        const match = flightsDatabase.find(f => f.no.toUpperCase() === val);
+        if (match && match.dest) {
+            document.getElementById(`cf_dest_${index}`).value = match.dest;
+        }
+    }
+
+    function renderCF() {
+        const cnt = document.getElementById('cf_count').value;
+        const box = document.getElementById('cf_flights');
+        box.innerHTML = '';
+        for(let i=1; i<=cnt; i++) {
+            box.innerHTML += `
+            <div class="passenger-group">
+                <h5>الرحلة ${i}</h5>
+                <div class="input-group"><label>رقم الرحلة</label><input type="text" id="cf_flt_${i}" list="flights_list_db" class="en-num" placeholder="مثال: Sv3255" oninput="autoFillDest(${i})"></div>
+                <div class="input-group"><label>الوجهة</label><input type="text" id="cf_dest_${i}" placeholder="مثال: القاهرة"></div>
+                <div class="input-group"><label>وقت الاقلاع</label><input type="text" id="cf_dtime_${i}" placeholder="مثال: 23:10 م"></div>
+                
+                <div class="row">
+                    <div class="input-group"><label>عدد الركاب</label><input type="number" id="cf_pax_${i}" class="en-num"></div>
+                    <div class="input-group"><label>الطاقم</label><input type="number" id="cf_crew_${i}" class="en-num"></div>
+                </div>
+                <div class="row">
+                    <div class="input-group"><label>ترانزيت</label><input type="number" id="cf_transit_${i}" class="en-num"></div>
+                    <div class="input-group">
+                        <label>عدد المخرجين بنظام</label>
+                        <div style="display:flex; gap:5px;">
+                            <input type="number" id="cf_cleared_${i}" class="en-num" style="flex:1;">
+                            <button type="button" onclick="addCfExtra(${i})" style="background:var(--primary); color:white; border:none; border-radius:8px; padding:0 15px; font-weight:bold; cursor:pointer;">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="cf_extras_${i}"></div>
+            </div>`;
+        }
+    }
+
+    function addCfExtra(flightIndex) {
+        const container = document.getElementById(`cf_extras_${flightIndex}`);
+        const extraCount = container.children.length + 1;
+        const extraHtml = `
+            <div class="row" style="margin-top:10px;">
+                <input type="text" id="cf_extra_name_${flightIndex}_${extraCount}" placeholder="الاسم (مثال: الماينص)" style="flex:2;">
+                <input type="number" id="cf_extra_val_${flightIndex}_${extraCount}" placeholder="العدد" class="en-num" style="flex:1;">
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', extraHtml);
     }
 
     // === أقل من 6 أشهر ===
@@ -534,7 +560,6 @@
         }
         document.getElementById("l6_res").textContent = result;
         
-        // تعبئة بيانات المسافر الأول
         if(document.getElementById("l6_rm_1")) {
             document.getElementById("l6_rm_1").value = months;
             document.getElementById("l6_rd_1").value = days;
@@ -544,7 +569,6 @@
         }
     }
     function setDocType(type) {
-        // حفظ القيم الحالية قبل التغيير
         const count = document.getElementById('l6_count').value;
         let savedData = [];
         for(let i=1; i<=count; i++) {
@@ -567,7 +591,6 @@
         
         renderL6();
 
-        // استعادة القيم
         for(let i=1; i<=count; i++) {
             const data = savedData[i-1];
             if(data) {
@@ -656,7 +679,40 @@
         const val = (id) => { const e=document.getElementById(id); return e?e.value.trim():''; };
         const pad = (n) => n?n.toString().padStart(2,'0'):'';
 
-        if(currentForm === 'passError') {
+        if(currentForm === 'cancelledFlights') {
+            txt.push(`*الرحلات الملغية صالة ${val('cf_hall')}*`);
+            txt.push(`*اليوم :* ${val('cf_day')}`);
+            txt.push(`*التاريخ :* ${val('cf_date')}`);
+            txt.push(`*وقت الاستلام :* ${val('cf_time')}`);
+
+            const cnt = parseInt(val('cf_count')) || 1;
+            for(let i=1; i<=cnt; i++) {
+                txt.push(`———`);
+                txt.push(`*رقم الرحلة :* ${val(`cf_flt_${i}`)}`);
+                txt.push(`*الوجهة :* ${val(`cf_dest_${i}`)}`);
+                txt.push(`*وقت الاقلاع :* ${val(`cf_dtime_${i}`)}`);
+                txt.push(`*عدد الركاب :* ${val(`cf_pax_${i}`)}`);
+                txt.push(`*الطاقم :* ${val(`cf_crew_${i}`)}`);
+                txt.push(`*ترانزيت :* ${val(`cf_transit_${i}`)}`);
+                txt.push(`*عدد المخرجين بنظام :* ${val(`cf_cleared_${i}`)}`);
+                
+                const extrasContainer = document.getElementById(`cf_extras_${i}`);
+                if(extrasContainer) {
+                    const extraRows = extrasContainer.children.length;
+                    for(let j=1; j<=extraRows; j++) {
+                        const eName = val(`cf_extra_name_${i}_${j}`);
+                        const eVal = val(`cf_extra_val_${i}_${j}`);
+                        if(eName || eVal) {
+                            txt.push(`*${eName} :* ${eVal}`);
+                        }
+                    }
+                }
+            }
+            txt.push(`———`);
+            txt.push(`*السبب :*`);
+            txt.push(`${val('cf_reason')}`);
+        }
+        else if(currentForm === 'passError') {
             txt.push(`*اسم المسافر:* ${val('perr_name')}`);
             txt.push(`*رقم الجواز الصحيح*: ${val('perr_corr')}`);
             txt.push(`*رقم الجواز المسجل خطاء*: ${val('perr_wrong')}`);
