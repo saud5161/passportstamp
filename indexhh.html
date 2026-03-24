@@ -119,6 +119,156 @@
 
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* تنسيقات قسم الاقتراحات بالأسفل */
+        /* تنسيقات صندوق الاقتراحات الاحترافي */
+        .suggestion-wrapper {
+            background: var(--white);
+            border: 1px solid #e0e0e0;
+            border-radius: var(--radius);
+            margin-top: 40px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .suggestion-header-btn {
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background: linear-gradient(135deg, #fcfcfc, #f8f9fa);
+            border-bottom: 2px solid transparent;
+            transition: background 0.3s ease;
+        }
+        .suggestion-header-btn:hover {
+            background: #f1f3f5;
+        }
+        .suggestion-header-btn.active {
+            border-bottom-color: var(--gold);
+        }
+        .suggestion-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary-dark);
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+        .suggestion-title i {
+            color: var(--gold);
+            font-size: 1.3rem;
+        }
+        .transition-icon {
+            color: #888;
+            transition: transform 0.3s ease;
+        }
+        .transition-icon.rotate {
+            transform: rotate(180deg);
+        }
+        .suggestion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+            background: var(--white);
+            padding: 0 20px;
+        }
+        .suggestion-body.open {
+            max-height: 500px; /* لضمان فتح الصندوق بالكامل */
+            padding: 20px;
+        }
+        .suggestion-desc {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        #feedback-message {
+            line-height: 1.8;
+            resize: vertical;
+        }
+        .btn-submit-suggestion {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-submit-suggestion:hover {
+            background: var(--primary-dark);
+        }
+        .btn-submit-suggestion:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        /* زر عرض الاقتراحات */
+        .btn-view-suggestions {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .btn-view-suggestions:hover {
+            background: #5a6268;
+        }
+
+        /* نافذة الاقتراحات (Modal) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(3px);
+            animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background: var(--white); width: 90%; max-width: 500px;
+            border-radius: var(--radius); overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            display: flex; flex-direction: column; max-height: 80vh;
+        }
+        .modal-header {
+            padding: 15px 20px; border-bottom: 2px solid var(--gold);
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f8f9fa;
+        }
+        .close-modal-btn {
+            background: none; border: none; font-size: 1.5rem; color: #dc3545;
+            cursor: pointer; transition: 0.2s;
+        }
+        .close-modal-btn:hover { transform: scale(1.1); }
+        .feedbacks-list {
+            padding: 15px; overflow-y: auto; flex: 1; background: #fdfdfd;
+        }
+        .feedback-card {
+            background: #fff; border: 1px solid #eee; border-right: 4px solid var(--primary);
+            padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .feedback-date {
+            font-size: 0.8rem; color: #888; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 5px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .feedback-text {
+            font-size: 0.95rem; color: #333; line-height: 1.6; white-space: pre-wrap;
+        }
     </style>
 </head>
 <body>
@@ -147,9 +297,10 @@
             <div class="card" onclick="openForm('passportExp')"><i class="fas fa-passport" style="opacity:0.6"></i><span>جواز منتهي</span></div>
         </div>
 
-        <div class="section-title"><i class="fas fa-id-card"></i> المسافرين المقيمين</div>
+       <div class="section-title"><i class="fas fa-id-card"></i> المسافرين المقيمين</div>
         <div class="grid-menu">
             <div class="card" onclick="openForm('updut')"><i class="fas fa-sync-alt"></i><span>نقل معلومات</span></div>
+            <div class="card" onclick="openForm('diffNat')"><i class="fas fa-globe"></i><span>اختلاف جنسية</span></div>
         </div>
 
         <div class="section-title"><i class="fas fa-globe"></i> المواطنين</div>
@@ -337,9 +488,69 @@
     <div id="form-fingercon" class="form-section"><div class="form-title">ارتباط بصمة</div><div class="input-group"><label>الاسم</label><input type="text" id="fc_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="fc_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="fc_pass" class="en-num"></div><div class="input-group"><label>نوع التأشيرة</label><input type="text" id="fc_visa"></div><div class="input-group"><label>رقم الإقامة/الحدود</label><input type="text" id="fc_res" class="en-num"></div><div class="input-group"><label>الخطوط</label><input type="text" id="fc_air"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="fc_flight" class="en-num"></div><div class="input-group"><label>والمتجهة</label><input type="text" id="fc_dest"></div><div class="input-group"><label>جنسية الوافد الآخر</label><input type="text" id="fc_other" oninput="fillFCNote()"></div><div class="input-group"><label>النتيجة</label><select id="fc_res_type" onchange="fillFCNote()"><option value="موجود">موجود</option><option value="غير موجود">غير موجود</option></select></div><div class="input-group"><label>الملاحظة</label><textarea id="fc_note" rows="6"></textarea></div></div>
     <div id="form-noacspt" class="form-section"><div class="form-title">عدم قبول بصمة راكب</div><div class="input-group"><label>عدد المسافرين</label><select id="nf_count" onchange="renderNF()"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div id="nf_passengers"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="nf_h" placeholder="ساعة" class="en-num"><input type="number" id="nf_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="nf_gh" placeholder="ساعة" class="en-num"><input type="number" id="nf_gm" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الخطوط</label><input type="text" id="nf_air"></div><div class="input-group"><label>الملاحظة</label><textarea id="nf_note">عند الشروع في انهاء إجراءات مغادرته وتحقق من الخصائص الحيوية لم يتم قبول الخصائص الحيوية وحيث تم الاستعلام عن الخصائص الحيوية بالطرق الأربعة والنتيجة ( غير موجود ) والتشييك بنظام الممنوعين والمطلوبين ولم يوجد عليه أي ملاحظات</textarea></div></div>
     <div id="form-updut" class="form-section"><div class="form-title">نقل معلومات</div><div class="input-group"><label>الاسم</label><input type="text" id="up_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="up_nat"></div><div class="input-group"><label>الجواز الجديد</label><input type="text" id="up_new" class="en-num"></div><div class="input-group"><label>الجواز القديم</label><input type="text" id="up_old" class="en-num"></div><div class="input-group"><label>رقم الإقامة</label><input type="text" id="up_res" class="en-num"></div><div class="input-group"><label>المهنة</label><input type="text" id="up_job"></div><div class="input-group"><label>الكفيل</label><input type="text" id="up_sponsor"></div><div class="input-group"><label>الرحلة</label><input type="text" id="up_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="up_h" placeholder="ساعة" class="en-num"><input type="number" id="up_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="up_note">نقل معلومات وبحوزته الجواز الجديد والقديم وتعذر نقل معلوماته عن طريق ابشر</textarea></div></div>
-
+    
+    <div id="form-diffNat" class="form-section">
+        <div class="form-title">اختلاف جنسية مقيم</div>
+        <div class="input-group"><label>الاسم</label><input type="text" id="dfn_name"></div>
+        <div class="input-group"><label>الجنسية</label><input type="text" id="dfn_nat"></div>
+        <div class="input-group"><label>الجنسية بنظام المسافرين</label><input type="text" id="dfn_sys_nat"></div>
+        <div class="input-group"><label>رقم الجواز</label><input type="text" id="dfn_pass" class="en-num"></div>
+        <div class="input-group"><label>نوع التأشيرة</label><input type="text" id="dfn_visa"></div>
+        <div class="input-group"><label>رقم الرحلة</label><input type="text" id="dfn_flight" class="en-num"></div>
+        <div class="input-group"><label>جهة المغادرة</label><input type="text" id="dfn_dest"></div>
+        <div class="input-group">
+            <label>وقت الاقلاع</label>
+            <div class="row" style="direction:ltr">
+                <input type="number" id="dfn_h" placeholder="ساعة" class="en-num">
+                <input type="number" id="dfn_m" placeholder="دقيقة" class="en-num">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>الملاحظة</label>
+            <textarea id="dfn_note" rows="4">راجعنا المذكور بقصد المغادرة وعند الشروع في انهاء اجراءات خروجه تبين بأنه مقيم ولديه تباين في الجنسية المسجلة في نظام المسافرين وجواز السفر</textarea>
+        </div>
+    </div>
 </div>
+ <div class="suggestion-wrapper">
+        <div class="suggestion-header-btn" onclick="toggleSuggestionBox()">
+            <div class="suggestion-title">
+                <i class="fas fa-lightbulb"></i>
+                <span>لطلب اقتراح إضافة رسالة جديدة</span>
+            </div>
+            <i class="fas fa-chevron-down transition-icon" id="suggestion-icon"></i>
+        </div>
+        
+        <div class="suggestion-body" id="suggestion-body">
+            <p class="suggestion-desc">في حال الرغبة في إضافة رسائل جديدة للنظام، قم بتعبئة القالب أدناه (بدون معلومات حقيقية) والنقر على إرسال.</p>
+            
+            <input type="hidden" id="feedback-type" value="اقتراح رسالة جديدة">
+            
+            <div class="input-group">
+                <textarea id="feedback-message" rows="5" dir="rtl" placeholder="الاسم / &#10;الجنسية / &#10;الملاحظة / "></textarea>
+                <p id="feedback-status-msg" style="display: none; font-weight: bold; margin-top: 8px; font-size: 0.9rem; text-align: center;"></p>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button id="submit-feedback-btn" class="btn-submit-suggestion" style="flex: 2;" onclick="sendFeedbackToSupabase()">
+                    <i class="fas fa-paper-plane"></i> إرسال الاقتراح
+                </button>
+                <button id="view-feedbacks-btn" class="btn-view-suggestions" style="flex: 1;" onclick="showFeedbacksPrompt()">
+                    <i class="fas fa-eye"></i> عرض
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <div id="feedbacks-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0; color: var(--primary-dark);"><i class="fas fa-inbox"></i> الاقتراحات الواردة</h3>
+                <button class="close-modal-btn" onclick="closeFeedbacksModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="feedbacks-list" class="feedbacks-list">
+                </div>
+        </div>
+    </div>
 <div id="fab-actions" class="fab-container">
     <button class="btn btn-back" onclick="closeForm()"><i class="fas fa-arrow-right"></i> عودة</button>
     <button class="btn btn-send" onclick="sendWhatsApp()"><i class="fab fa-whatsapp"></i> إرسال</button>
@@ -905,10 +1116,21 @@
             txt.push(`*الملاحظة:* ${val('up_note')}`);
             txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
         }
-
+        else if(currentForm === 'diffNat') {
+            txt.push(`*الاسم:* ${val('dfn_name')}`);
+            txt.push(`*الجنسية:* ${val('dfn_nat')}`);
+            txt.push(`*الجنسية بنظام المسافرين:* ${val('dfn_sys_nat')}`);
+            txt.push(`*رقم الجواز:* ${val('dfn_pass')}`);
+            txt.push(`*نوع التأشيرة:* ${val('dfn_visa')}`);
+            txt.push(`*رقم الرحلة:* ${val('dfn_flight')}`);
+            txt.push(`*جهة المغادرة:* ${val('dfn_dest')}`);
+            if(val('dfn_h') || val('dfn_m')) txt.push(`*وقت الاقلاع:* ${pad(val('dfn_h'))}:${pad(val('dfn_m'))}`);
+            txt.push(`\n*الملاحظة:* ${val('dfn_note')}`);
+            txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
+        }
         window.location.href = `https://wa.me/?text=${encodeURIComponent(txt.join('\n'))}`;
     }
 </script>
-
+<script src="aqtrah.js"></script>
 </body>
 </html>
