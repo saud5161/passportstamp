@@ -440,8 +440,7 @@
         <div class="input-group"><label>تاريخ الانتهاء</label><div class="row"><select id="ve_d"><option value="">اليوم</option></select><select id="ve_m"><option value="">الشهر</option></select><select id="ve_y"><option>1447</option><option>1448</option><option>2025</option><option>2026</option></select></div></div>
         <div class="input-group"><label>مدة الانتهاء (أيام)</label><select id="ve_days"><option value="">-- اختر المدة --</option></select></div>
         <div class="input-group"><label>بيانات الرحلة</label><div class="row"><input type="text" id="ve_air" placeholder="الخطوط"><input type="text" id="ve_flt" placeholder="رقم الرحلة"></div></div>
-        <div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="ve_h" placeholder="ساعة" class="en-num"><input type="number" id="ve_m" placeholder="دقيقة" class="en-num"></div></div>
-        <div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="ve_gh" placeholder="ساعة" class="en-num"><input type="number" id="ve_gm" placeholder="دقيقة" class="en-num"></div></div>
+        <div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="ve_h" placeholder="ساعة" class="en-num"><input type="number" id="ve_min" placeholder="دقيقة" class="en-num"></div></div>        <div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="ve_gh" placeholder="ساعة" class="en-num"><input type="number" id="ve_gm" placeholder="دقيقة" class="en-num"></div></div>
         <div class="input-group"><label>ملاحظة</label><textarea id="ve_note" placeholder="في حال وجود ملاحظات اضافية اكتب هنا..."></textarea></div>
     </div>
 
@@ -1004,8 +1003,7 @@
             if(val('ve_d') && val('ve_m') && val('ve_y')) txt.push(`*المغادرة النهائية:* ${pad(val('ve_d'))}-${pad(val('ve_m'))}-${val('ve_y')}`);
             if(val('ve_air')) txt.push(`*خطوط الطيران:* ${val('ve_air')}`);
             if(val('ve_flt')) txt.push(`*رقم الرحلة:* ${val('ve_flt')}`);
-            if(val('ve_h') || val('ve_m')) txt.push(`*وقت الإقلاع:* ${pad(val('ve_h'))}:${pad(val('ve_m'))}`);
-            if(val('ve_gh') || val('ve_gm')) txt.push(`*موعد فتح البوابة:* ${pad(val('ve_gh'))}:${pad(val('ve_gm'))}`);
+            if(val('ve_h') || val('ve_min')) txt.push(`*وقت الإقلاع:* ${pad(val('ve_h'))}:${pad(val('ve_min'))}`);            if(val('ve_gh') || val('ve_gm')) txt.push(`*موعد فتح البوابة:* ${pad(val('ve_gh'))}:${pad(val('ve_gm'))}`);
             const veDays = val('ve_days');
             if (veDays) txt.push(`*الملاحظة/* التأشيرة منتهية (${veDays}) يوم`);
             else txt.push(`*الملاحظة/* التأشيرة منتهية`);
