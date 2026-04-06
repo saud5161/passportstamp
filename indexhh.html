@@ -269,6 +269,26 @@
         .feedback-text {
             font-size: 0.95rem; color: #333; line-height: 1.6; white-space: pre-wrap;
         }
+        /* تنسيق تأثير تكبير الصورة عند تمرير الماوس */
+            .gif-preview {
+                height: 65px;
+                width: auto;
+                border-radius: 6px;
+                border: 1px solid #cbd5e1;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                cursor: zoom-in; /* تغيير شكل الماوس ليدل على التكبير */
+                transition: transform 0.3s ease-in-out; /* حركة ناعمة */
+                position: relative;
+                z-index: 1;
+                transform-origin: left center; /* التكبير يبدأ من اليسار لليمين كي لا تخرج من الشاشة */
+            }
+            
+            .gif-preview:hover {
+                transform: scale(4.5); /* تكبير الصورة 4.5 أضعاف حجمها */
+                z-index: 9999; /* جعلها فوق كل العناصر الأخرى */
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                border-color: #2b579a;
+            }
     </style>
 </head>
 <body>
@@ -442,6 +462,34 @@
         <div class="input-group"><label>بيانات الرحلة</label><div class="row"><input type="text" id="ve_air" placeholder="الخطوط"><input type="text" id="ve_flt" placeholder="رقم الرحلة"></div></div>
         <div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="ve_h" placeholder="ساعة" class="en-num"><input type="number" id="ve_min" placeholder="دقيقة" class="en-num"></div></div>        <div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="ve_gh" placeholder="ساعة" class="en-num"><input type="number" id="ve_gm" placeholder="دقيقة" class="en-num"></div></div>
         <div class="input-group"><label>ملاحظة</label><textarea id="ve_note" placeholder="في حال وجود ملاحظات اضافية اكتب هنا..."></textarea></div>
+<div class="input-group" style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #c5a059;">
+            <label style="color:var(--primary-dark); font-size: 1.1rem; margin-bottom: 10px; font-weight: bold;">
+                <i class="fas fa-file-word" style="color: #2b579a;"></i> جدول مخصص للنسخ (Word)
+            </label>
+            
+            <div style="background-color: #f0f4f8; border: 1px solid #dce4ec; border-right: 4px solid #2b579a; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <div style="flex: 1; font-size: 0.85rem; color: #444; line-height: 1.5;">
+                    <strong style="color: #2b579a;"><i class="fas fa-info-circle"></i> تلميح:</strong><br>
+                    قم بإنشاء الجدول ونسخه، ثم ظلل الخلايا الفارغة في جدولك ببرنامج Word والصق البيانات.<br>
+                    <span style="font-size: 0.75rem; color: #888;">(مرر الماوس على الصورة للتكبير)</span>
+                </div>
+                <img src="SSS.gif" alt="شرح النسخ" class="gif-preview">
+            </div>
+            
+            <button type="button" style="width: 100%; background: #2b579a; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 15px;" onclick="generateVisaTable()">
+                <i class="fas fa-table"></i> إنشاء / تحديث الجدول
+            </button>
+            
+            <div id="ve_word_table_container" style="background: white; padding: 10px; border: 1px solid #ddd; border-radius: 8px; overflow-x: auto; display: none;">
+                </div>
+            
+            <button type="button" id="copy_ve_table_btn" style="margin-top: 10px; width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; display: none;" onclick="copyTableToClipboard('ve_word_table')">
+                <i class="fas fa-copy"></i> نسخ الجدول
+            </button>
+        </div>
+        
+
+
     </div>
 
     <div id="form-passError" class="form-section">
@@ -1126,8 +1174,136 @@
             txt.push(`\n*الملاحظة:* ${val('dfn_note')}`);
             txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
         }
-        window.location.href = `https://wa.me/?text=${encodeURIComponent(txt.join('\n'))}`;
+window.location.href = `https://wa.me/?text=${encodeURIComponent(txt.join('\n'))}`;
+    } // 👈👈 أضف قوس الإغلاق هذا هنا لإنهاء دالة الواتساب
+
+    // === دوال جدول انتهاء التأشيرة للـ Word ===
+
+// === دوال جدول انتهاء التأشيرة للـ Word ===
+
+    // 1. دالة لتحويل الأرقام الإنجليزية إلى أرقام عربية (١٢٣٤٥٦٧٨٩٠)
+    function toArabicNums(str) {
+        if (!str) return str;
+        const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        return str.toString().replace(/[0-9]/g, function(w) {
+            return arabicNumbers[w];
+        });
     }
+
+    // 2. دالة لإنشاء الجدول وسحب البيانات
+    function generateVisaTable() {
+        const count = parseInt(document.getElementById('ve_count').value) || 1;
+        
+        const getVal = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+        const pad = (n) => n ? n.toString().padStart(2, '0') : '';
+        
+        let visaType = getVal('ve_type_manual') || getVal('ve_type_select') || '-';
+        let flightNo = getVal('ve_flt') || '-';
+        
+        let expDate = '-';
+        if(getVal('ve_d') && getVal('ve_m') && getVal('ve_y')) {
+            expDate = `${pad(getVal('ve_d'))}/${pad(getVal('ve_m'))}/${getVal('ve_y')}`;
+        }
+
+        // بناء الجدول
+        let tableHTML = `
+            <table id="ve_word_table" style="width: 100%; border-collapse: collapse; text-align: center;" dir="rtl">
+                <tbody>
+        `;
+
+        for(let i = 1; i <= count; i++) {
+            let name = getVal(`ve_nm_${i}`) || '-';
+            let nat = getVal(`ve_nt_${i}`) || '-';
+            let border = getVal(`ve_br_${i}`) || '-';
+
+            // تحويل رقم الحدود إلى الأرقام العربية المشرقية
+            border = toArabicNums(border);
+
+            tableHTML += `
+                <tr>
+                    <td style="font-family: Arial, sans-serif; font-size: 12pt; padding: 2px;">${name}</td>
+                    <td style="font-family: Arial, sans-serif; font-size: 12pt; padding: 2px;">${nat}</td>
+                    <td style="font-family: Arial, sans-serif; font-size: 12pt; padding: 2px;">${border}</td>
+                    <td style="font-family: Arial, sans-serif; font-size: 12pt; padding: 2px;">${visaType}</td>
+                    <td dir="rtl" style="font-family: Arial, sans-serif; font-size: 12pt; padding: 2px;">${expDate}</td>
+                    <td style="direction: ltr; font-family: Arial, sans-serif; font-size: 12pt; padding: 2px;">${flightNo}</td>
+                </tr>
+            `;
+        }
+
+        tableHTML += `</tbody></table>`;
+
+        // عرض الجدول
+        document.getElementById('ve_word_table_container').innerHTML = tableHTML;
+        document.getElementById('ve_word_table_container').style.display = 'block';
+        document.getElementById('copy_ve_table_btn').style.display = 'block';
+
+        // --- حفظ الجدول في المتصفح لمدة ساعة ---
+        const now = new Date().getTime();
+        const expiryTime = now + (60 * 60 * 1000); // 60 دقيقة * 60 ثانية * 1000 ملي ثانية
+        const tableData = {
+            html: tableHTML,
+            expiry: expiryTime
+        };
+        localStorage.setItem('savedVisaTable', JSON.stringify(tableData));
+    }
+
+    // 3. دالة استرجاع الجدول المحفوظ عند فتح الصفحة أو تحديثها
+    function checkAndLoadSavedTable() {
+        const savedDataStr = localStorage.getItem('savedVisaTable');
+        if (savedDataStr) {
+            try {
+                const savedData = JSON.parse(savedDataStr);
+                const now = new Date().getTime();
+                
+                if (now > savedData.expiry) {
+                    // انتهت المدة (مرت ساعة)، نقوم بحذف الجدول
+                    localStorage.removeItem('savedVisaTable');
+                } else {
+                    // لم تنتهِ المدة، نعرض الجدول المحفوظ مباشرة
+                    document.getElementById('ve_word_table_container').innerHTML = savedData.html;
+                    document.getElementById('ve_word_table_container').style.display = 'block';
+                    document.getElementById('copy_ve_table_btn').style.display = 'block';
+                }
+            } catch (e) {
+                localStorage.removeItem('savedVisaTable');
+            }
+        }
+    }
+
+    // تشغيل دالة الاسترجاع بمجرد تحميل الصفحة
+    window.addEventListener('load', checkAndLoadSavedTable);
+
+    // 4. الدالة لنسخ الجدول إلى الحافظة
+    function copyTableToClipboard(tableId) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const range = document.createRange();
+        range.selectNode(table);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        try {
+            document.execCommand('copy');
+            const copyBtn = document.getElementById('copy_ve_table_btn');
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> تم النسخ بنجاح!';
+            copyBtn.style.background = '#198754';
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHTML;
+                copyBtn.style.background = 'var(--primary)';
+            }, 2000);
+            
+        } catch (err) {
+            alert('عذراً، حدث خطأ أثناء النسخ.');
+        }
+        
+        selection.removeAllRanges();
+    }
+    // === نهاية السكربت ===
 </script>
 <script src="aqtrah.js"></script>
 </body>
