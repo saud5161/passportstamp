@@ -343,6 +343,10 @@
             <div class="card" onclick="openForm('fingercon')"><i class="fas fa-fingerprint" style="color:#d32f2f;"></i><span>ارتباط بصمة</span></div>
             <div class="card" onclick="openForm('noacspt')"><i class="fas fa-hand-paper"></i><span>عدم قبول بصمة</span></div>
             <div class="card" onclick="openForm('want')"><i class="fas fa-bell"></i><span>إشعار</span></div>
+            <div class="card" onclick="openForm('arrestBan')">
+    <i class="fas fa-user-lock" style="color:#d32f2f;"></i>
+    <span>إشعار قبض/منع</span>
+</div>
         </div>
 
     </div>
@@ -558,6 +562,67 @@
         </div>
     </div>
 </div>
+<div id="form-arrestBan" class="form-section">
+        <div class="form-title">إشعار قبض / منع سفر</div>
+        
+        <div class="input-group">
+            <label>نوع الإشعار</label>
+            <div class="row">
+                <select id="ab_type" onchange="document.getElementById('ab_type_manual').value=this.value">
+                    <option value="إشعار قبض">إشعار قبض</option>
+                    <option value="إشعار منع سفر">إشعار منع سفر</option>
+                </select>
+                <input type="text" id="ab_type_manual" value="إشعار قبض" placeholder="أو اكتب هنا...">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>صالة المغادرة</label>
+            <select id="ab_hall">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="5">5</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>الاسم</label>
+            <input type="text" id="ab_name" value="**" readonly onclick="alert('تم إقفال هذا الحقل لسرية المعلومات')" style="background-color: #e9ecef; cursor: not-allowed; text-align: center; font-weight: bold; color: #dc3545;" title="تم إقفاله لسرية المعلومات">
+        </div>
+
+        <div class="input-group"><label>الجنسية</label><input type="text" id="ab_nat" placeholder="مثال: باكستان"></div>
+
+        <div class="input-group">
+            <label>رقم الجواز</label>
+            <input type="text" id="ab_pass" value="**" readonly onclick="alert('تم إقفال هذا الحقل لسرية المعلومات')" style="background-color: #e9ecef; cursor: not-allowed; text-align: center; font-weight: bold; color: #dc3545;" title="تم إقفاله لسرية المعلومات">
+        </div>
+
+        <div class="input-group"><label>الرحلة</label><input type="text" id="ab_flight" class="en-num" placeholder="مثال: RQ996"></div>
+        <div class="input-group"><label>جهة المغادرة</label><input type="text" id="ab_dest" placeholder="مثال: كابل"></div>
+
+        <div class="input-group">
+            <label>السبب الأول</label>
+            <select id="ab_reason">
+                <option value="قبض عند المغادرة">قبض عند المغادرة</option>
+                <option value="منع من السفر">منع من السفر</option>
+            </select>
+        </div>
+
+        <div class="input-group"><label>الجهة المدرجة</label><input type="text" id="ab_auth" placeholder="مثال: وزارة العدل"></div>
+
+        <div class="input-group">
+            <label>الإجراء المطلوب</label>
+            <select id="ab_action">
+                <option value="يقبض عليه">يقبض عليه</option>
+                <option value="المنع من السفر">المنع من السفر</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>ملاحظة الإجراء</label>
+            <textarea id="ab_note" rows="2">جارِ العمل على إكمال اللازم وتسليمه لجهة الإختصاص .</textarea>
+        </div>
+    </div>
  <div class="suggestion-wrapper">
         <div class="suggestion-header-btn" onclick="toggleSuggestionBox()">
             <div class="suggestion-title">
@@ -982,6 +1047,25 @@
             txt.push(`\n*الملاحظة:*`);
             txt.push(val('perr_note'));
             txt.push(`\n*بأمل اطلاع سعادتكم والتوجيه*`);
+        }
+        else if(currentForm === 'arrestBan') {
+            const abType = val('ab_type_manual');
+            const abHall = val('ab_hall');
+            
+            txt.push(`*${abType} مغادرة ${abHall}*`);
+            txt.push(``); // سطر فارغ
+            txt.push(`الاسم :   **`);
+            txt.push(`الجنسية :  *${val('ab_nat')}*`);
+            txt.push(`رقم الجواز : **`);
+            txt.push(`الرحلة : *${val('ab_flight')}*`);
+            txt.push(`جهة المغادرة :  *${val('ab_dest')}*`);
+            txt.push(`السبب :`);
+            txt.push(`- ${val('ab_reason')}`);
+            txt.push(`- ⁠الجهة المدرجة *${val('ab_auth')}*`);
+            txt.push(`- ⁠الاجراء المطلوب *${val('ab_action')}*`);
+            txt.push(` ${val('ab_note')}`);
+            txt.push(``); // سطر فارغ
+            txt.push(`*بإمل إطلاع سعادتكم والإحاطة*`);
         }
         else if(currentForm === 'custom') {
             txt.push(`*الاسم:* ${val('cust_name')}`);
