@@ -855,42 +855,52 @@
       const year = parseInt(parts.find(p=>p.type==='year').value);
       return { day, month, year };
     }
-    function calcHijriLess6() {
-        const inputDay = parseInt(document.getElementById("hDay").value);
-        const inputMonth = parseInt(document.getElementById("hMonth").value);
-        const inputYear = parseInt(document.getElementById("hYear").value);
-        if (isNaN(inputDay) || isNaN(inputMonth) || isNaN(inputYear)) {
-            document.getElementById("l6_res").textContent = "الرجاء إدخال تاريخ هجري صحيح.";
-            return;
-        }
-        const today = getTodayHijriParts();
-        const todayDays = today.year*354 + (today.month-1)*30 + today.day;
-        const inputDays = inputYear*354 + (inputMonth-1)*30 + inputDay;
-        let totalDiff = Math.floor(inputDays - todayDays);
-        const forward = totalDiff >= 0;
-        totalDiff = Math.abs(totalDiff);
-        const months = Math.floor(totalDiff/30);
-        const days = totalDiff%30;
-        let result = "";
-        const direction = forward ? "المتبقي" : "مرّ";
-        if(totalDiff===0) result="التاريخ هو اليوم.";
-        else {
-            const mText = months>0 ? `${months} شهر` : "";
-            const dText = days>0 ? `${days} يوم` : "";
-            if(mText && dText) result=`${direction} ${mText} و${dText}.`;
-            else if(mText) result=`${direction} ${mText}.`;
-            else result=`${direction} ${dText}.`;
-        }
-        document.getElementById("l6_res").textContent = result;
-        
-        if(document.getElementById("l6_rm_1")) {
-            document.getElementById("l6_rm_1").value = months;
-            document.getElementById("l6_rd_1").value = days;
-            document.getElementById("l6_ex_d_1").value = inputDay;
-            document.getElementById("l6_ex_m_1").value = inputMonth;
-            document.getElementById("l6_ex_y_1").value = inputYear;
-        }
+function calcHijriLess6() {
+    const inputDay = parseInt(document.getElementById("hDay").value);
+    const inputMonth = parseInt(document.getElementById("hMonth").value);
+    const inputYear = parseInt(document.getElementById("hYear").value);
+
+    if (isNaN(inputDay) || isNaN(inputMonth) || isNaN(inputYear)) {
+        document.getElementById("l6_res").textContent = "الرجاء إدخال تاريخ هجري صحيح.";
+        return;
     }
+
+    const today = getTodayHijriParts();
+
+    // الحل: توحيد الحسبة بحيث يكون العام 12 شهراً والشهر 30 يوماً (بإجمالي 360 يوم للسنة حسابياً)
+    // هذا يمنع ضياع 6 أيام عند الانتقال من سنة لأخرى
+    const todayDays = (today.year * 360) + ((today.month - 1) * 30) + today.day;
+    const inputDays = (inputYear * 360) + ((inputMonth - 1) * 30) + inputDay;
+    
+    let totalDiff = inputDays - todayDays;
+    const forward = totalDiff >= 0;
+    totalDiff = Math.abs(totalDiff);
+    
+    const months = Math.floor(totalDiff / 30);
+    const days = totalDiff % 30;
+
+    let result = "";
+    const direction = forward ? "المتبقي" : "مرّ";
+    if(totalDiff === 0) result = "التاريخ هو اليوم.";
+    else {
+        const mText = months > 0 ? `${months} شهر` : "";
+        const dText = days > 0 ? `${days} يوم` : "";
+        if(mText && dText) result = `${direction} ${mText} و${dText}.`;
+        else if(mText) result = `${direction} ${mText}.`;
+        else result = `${direction} ${dText}.`;
+    }
+    
+    document.getElementById("l6_res").textContent = result;
+    
+    // تحديث الحقول في المسافر الأول تلقائياً (إن وجدت)
+    if(document.getElementById("l6_rm_1")) {
+        document.getElementById("l6_rm_1").value = months;
+        document.getElementById("l6_rd_1").value = days;
+        document.getElementById("l6_ex_d_1").value = inputDay;
+        document.getElementById("l6_ex_m_1").value = inputMonth;
+        document.getElementById("l6_ex_y_1").value = inputYear;
+    }
+}
     function setDocType(type) {
         const count = document.getElementById('l6_count').value;
         let savedData = [];
