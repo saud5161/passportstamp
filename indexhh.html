@@ -437,8 +437,8 @@
         <div class="row"><div class="input-group"><label>وضع</label><input type="number" id="pr_birth" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>أمومة</label><input type="number" id="pr_mom" class="en-num pr-calc" oninput="calcPresence()"></div></div>
         <div class="input-group"><label>الموجود (تلقائي)</label><input type="text" id="pr_available" readonly style="background:#e2e8f0;text-align:center;"></div>
         <label>تفاصيل الموجود:</label>
-        <div class="row"><div class="input-group"><label>كاونتر</label><input type="number" id="pr_d_cnt" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>بوابة</label><input type="number" id="pr_d_gate" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>إداري</label><input type="number" id="pr_d_adm" class="en-num pr-dist" oninput="calcPresence()"></div></div>
-        <div class="row"><div class="input-group"><label>ر.أعمال</label><input type="number" id="pr_d_vip" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>قائمة</label><input type="number" id="pr_d_list" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>ذاتية</label><input type="number" id="pr_d_self" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>إرشاد</label><input type="number" id="pr_d_guide" class="en-num pr-dist" oninput="calcPresence()"></div></div>
+        <div class="row"><div class="input-group"><label>كاونتر</label><input type="number" id="pr_d_cnt" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>بوابة</label><input type="number" id="pr_d_gate" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>اعمال ادارية</label><input type="number" id="pr_d_adm" class="en-num pr-dist" oninput="calcPresence()"></div></div>
+        <div class="row"><div class="input-group"><label>رجال.أعمال</label><input type="number" id="pr_d_vip" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>قائمة</label><input type="number" id="pr_d_list" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>ذاتية</label><input type="number" id="pr_d_self" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>إرشاد</label><input type="number" id="pr_d_guide" class="en-num pr-dist" oninput="calcPresence()"></div></div>
         <p id="pr_err" style="color:red;display:none;text-align:center;">العدد غير مطابق!</p>
     </div>
 
@@ -461,8 +461,20 @@
         </div>
         <div class="input-group"><label>عدد المسافرين</label><select id="ve_count" onchange="renderVE()"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option></select></div>
         <div id="ve_passengers"></div>
-        <div class="input-group"><label>تاريخ الانتهاء</label><div class="row"><select id="ve_d"><option value="">اليوم</option></select><select id="ve_m"><option value="">الشهر</option></select><select id="ve_y"><option>1447</option><option>1448</option><option>2025</option><option>2026</option></select></div></div>
-        <div class="input-group"><label>مدة الانتهاء (أيام)</label><select id="ve_days"><option value="">-- اختر المدة --</option></select></div>
+<div class="input-group">
+    <label>تاريخ الانتهاء</label>
+    <div class="row">
+        <select id="ve_d" onchange="autoCalcVisaDays()"><option value="">اليوم</option></select>
+        <select id="ve_m" onchange="autoCalcVisaDays()"><option value="">الشهر</option></select>
+        <select id="ve_y" onchange="autoCalcVisaDays()">
+            <option value="">السنة</option>
+            <option>1447</option>
+            <option>1448</option>
+            <option>1449</option>
+            <option>1450</option>
+        </select>
+    </div>
+</div>        <div class="input-group"><label>مدة الانتهاء (أيام)</label><select id="ve_days"><option value="">-- اختر المدة --</option></select></div>
         <div class="input-group"><label>بيانات الرحلة</label><div class="row"><input type="text" id="ve_air" placeholder="الخطوط"><input type="text" id="ve_flt" placeholder="رقم الرحلة"></div></div>
         <div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="ve_h" placeholder="ساعة" class="en-num"><input type="number" id="ve_min" placeholder="دقيقة" class="en-num"></div></div>        <div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="ve_gh" placeholder="ساعة" class="en-num"><input type="number" id="ve_gm" placeholder="دقيقة" class="en-num"></div></div>
         <div class="input-group"><label>ملاحظة</label><textarea id="ve_note" placeholder="في حال وجود ملاحظات اضافية اكتب هنا..."></textarea></div>
@@ -704,9 +716,9 @@
         document.getElementById('perr_note').value = `وعند الشروع في انهاء اجراءت مغادرته تبين وجود خطا في رقم الجواز المسجل في نظام المسافرين علما بان منفذ الدخول ( ${port} ) ولايوجد لديه تأشيرة مسجلة على رقم الجواز الصحيح`;
     }
 
-    document.addEventListener('input', function(e) {
+document.addEventListener('input', function(e) {
         if(e.target.classList.contains('en-num')) {
-            const val = e.target.value;
+            let val = e.target.value;
             // السماح بالحروف الإنجليزية والأرقام للرحلات (مثل SV3255)
             if(e.target.id.startsWith('cf_flt_')) {
                 if(/[\u0600-\u06FF]/.test(val)) {
@@ -715,17 +727,10 @@
                 return;
             }
 
+            // تحويل الأرقام العربية (المشرقية والفارسية) إلى أرقام إنجليزية تلقائياً
             if(/[\u0660-\u0669\u06f0-\u06f9]/.test(val)) {
-                e.target.value = val.replace(/[\u0660-\u0669\u06f0-\u06f9]/g, '');
-                let errSpan = e.target.parentNode.querySelector('.input-error-msg');
-                if(!errSpan) {
-                    errSpan = document.createElement('div');
-                    errSpan.className = 'input-error-msg';
-                    errSpan.innerText = 'أرقام إنجليزية فقط';
-                    e.target.parentNode.appendChild(errSpan);
-                }
-                errSpan.style.display = 'block';
-                setTimeout(() => errSpan.style.display='none', 3000);
+                e.target.value = val.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+                                  .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
             }
         }
     });
@@ -1396,6 +1401,55 @@ window.location.href = `https://wa.me/?text=${encodeURIComponent(txt.join('\n'))
         }
         
         selection.removeAllRanges();
+    }
+    // دالة حساب مدة انتهاء التأشيرة تلقائياً
+    function autoCalcVisaDays() {
+        const d = parseInt(document.getElementById('ve_d').value);
+        const m = parseInt(document.getElementById('ve_m').value);
+        const y = parseInt(document.getElementById('ve_y').value);
+        
+        // التوقف إذا لم يتم اختيار التاريخ بالكامل
+        if (isNaN(d) || isNaN(m) || isNaN(y)) return;
+        
+        let diff = 0;
+        
+        // التحقق مما إذا كانت السنة المختارة هجرية (أقل من 2000) أو ميلادية
+        if (y < 2000) {
+            // حساب هجري (بناءً على طريقتك السابقة 360 يوم للسنة)
+            const today = getTodayHijriParts();
+            const todayDays = (today.year * 360) + ((today.month - 1) * 30) + today.day;
+            const expDays = (y * 360) + ((m - 1) * 30) + d;
+            diff = todayDays - expDays;
+        } else {
+            // حساب ميلادي
+            const today = new Date();
+            // تصحيح الأشهر الميلادية (في الجافاسكربت الأشهر تبدأ من 0)
+            const expDate = new Date(y, m - 1, d);
+            
+            // إزالة الساعات والدقائق من تاريخ اليوم ليكون الحساب دقيقاً
+            today.setHours(0, 0, 0, 0);
+            expDate.setHours(0, 0, 0, 0);
+            
+            const timeDiff = today.getTime() - expDate.getTime();
+            diff = Math.floor(timeDiff / (1000 * 3600 * 24));
+        }
+        
+        // بناءً على طلبك: إذا كان الانتهاء اليوم (أو تاريخ مستقبلي بالخطأ) نجعلها 1
+        if (diff <= 0) diff = 1; 
+        
+        const daysSelect = document.getElementById('ve_days');
+        
+        // التحقق مما إذا كان الرقم موجوداً أصلاً في القائمة المنسدلة
+        let optionExists = Array.from(daysSelect.options).some(opt => opt.value == diff);
+        
+        // إذا كان الرقم (مثلاً 120 يوم) غير موجود في القائمة، نضيفه تلقائياً
+        if (!optionExists) {
+            const newOption = new Option(diff, diff);
+            daysSelect.add(newOption);
+        }
+        
+        // اختيار الرقم المحسوب
+        daysSelect.value = diff;
     }
     // === نهاية السكربت ===
 </script>
