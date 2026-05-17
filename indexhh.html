@@ -434,11 +434,11 @@
         <div id="pr_abs_names_box" style="display:none; padding:10px; background:#fffbe6; margin-bottom:15px;"></div>
         <div class="row"><div class="input-group"><label>تكليف</label><input type="number" id="pr_task" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>دورة</label><input type="number" id="pr_course" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>انتداب</label><input type="number" id="pr_del" class="en-num pr-calc" oninput="calcPresence()"></div></div>
         <div class="row"><div class="input-group"><label>تأخير</label><input type="number" id="pr_delay" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>توقيف</label><input type="number" id="pr_jail" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>استئذان</label><input type="number" id="pr_perm" class="en-num pr-calc" oninput="calcPresence()"></div></div>
-        <div class="row"><div class="input-group"><label>وضع</label><input type="number" id="pr_birth" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>أمومة</label><input type="number" id="pr_mom" class="en-num pr-calc" oninput="calcPresence()"></div></div>
+        <div class="row"><div class="input-group"><label>اجازة وضع</label><input type="number" id="pr_birth" class="en-num pr-calc" oninput="calcPresence()"></div><div class="input-group"><label>أمومة</label><input type="number" id="pr_mom" class="en-num pr-calc" oninput="calcPresence()"></div></div>
         <div class="input-group"><label>الموجود (تلقائي)</label><input type="text" id="pr_available" readonly style="background:#e2e8f0;text-align:center;"></div>
         <label>تفاصيل الموجود:</label>
         <div class="row"><div class="input-group"><label>كاونتر</label><input type="number" id="pr_d_cnt" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>بوابة</label><input type="number" id="pr_d_gate" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>اعمال ادارية</label><input type="number" id="pr_d_adm" class="en-num pr-dist" oninput="calcPresence()"></div></div>
-        <div class="row"><div class="input-group"><label>رجال.أعمال</label><input type="number" id="pr_d_vip" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>قائمة</label><input type="number" id="pr_d_list" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>ذاتية</label><input type="number" id="pr_d_self" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>إرشاد</label><input type="number" id="pr_d_guide" class="en-num pr-dist" oninput="calcPresence()"></div></div>
+        <div class="row"><div class="input-group"><label>رجال.أعمال</label><input type="number" id="pr_d_vip" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>قائمة</label><input type="number" id="pr_d_list" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>مراقب ذاتية</label><input type="number" id="pr_d_self" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>إرشاد</label><input type="number" id="pr_d_guide" class="en-num pr-dist" oninput="calcPresence()"></div></div>
         <p id="pr_err" style="color:red;display:none;text-align:center;">العدد غير مطابق!</p>
     </div>
 
@@ -963,12 +963,23 @@ function calcHijriLess6() {
     }
 
     // === التكميل ===
-    function calcPresence() {
+function calcPresence() {
         const g=(id)=>parseInt(document.getElementById(id).value)||0;
         const f=g('pr_force'), d=g('pr_leave')+g('pr_absence')+g('pr_rest')+g('pr_task')+g('pr_course')+g('pr_del')+g('pr_delay')+g('pr_jail')+g('pr_perm')+g('pr_birth')+g('pr_mom');
-        document.getElementById('pr_available').value = f-d;
-        const dist=g('pr_d_cnt')+g('pr_d_gate')+g('pr_d_adm')+g('pr_d_vip')+g('pr_d_list')+g('pr_d_self')+g('pr_d_guide');
-        document.getElementById('pr_err').style.display = (parseInt(document.getElementById('pr_available').value)!==dist && dist>0)?'block':'none';
+        
+        const available = f - d;
+        document.getElementById('pr_available').value = available;
+        
+        const dist = g('pr_d_cnt') + g('pr_d_gate') + g('pr_d_adm') + g('pr_d_vip') + g('pr_d_list') + g('pr_d_self') + g('pr_d_guide');
+        
+        const errEl = document.getElementById('pr_err');
+        if (available !== dist && dist > 0) {
+            errEl.style.display = 'block';
+            const remaining = available - dist;
+            errEl.innerText = `العدد غير مطابق! متبقي عدد (${remaining})`;
+        } else {
+            errEl.style.display = 'none';
+        }
     }
     function handlePrAbsence() {
         calcPresence();
@@ -1095,24 +1106,61 @@ function calcHijriLess6() {
             txt.push(`\n*الملاحظة:* ${val('cust_note')}`);
             txt.push(`\n*بأمل اطلاع سعادتكم والتوجيه*`);
         }
-        else if(currentForm === 'presence') {
+  else if(currentForm === 'presence') {
             if(val('pr_officer')) localStorage.setItem('officerName', val('pr_officer'));
-            txt.push(`المناوبة / ${val('pr_shift')} صالة ${val('pr_hall')}`);
-            txt.push(`رئيس المناوبة`);
-            txt.push(`${val('pr_rank')} / ${val('pr_officer')}`);
-            txt.push(`القوة / ${val('pr_force')}`);
-            const add = (l,i) => {if(val(i)>0) txt.push(`${l} / ${val(i)}`)};
-            add('الراحة','pr_rest'); add('إجازة','pr_leave'); add('إجازة أمومة','pr_mom');
-            add('تكليف','pr_task'); add('غياب','pr_absence');
-            const absC = parseInt(val('pr_absence'))||0;
-            for(let i=1;i<=absC;i++) txt.push('- ' + document.getElementById('pr_an_'+i).value);
-            add('دورة','pr_course'); add('إجازة وضع','pr_birth'); add('تأخير','pr_delay');
-            add('توقيف','pr_jail'); add('انتداب','pr_del'); add('استئذان','pr_perm');
-            let d=[]; const adD=(l,i)=>{if(val(i)>0)d.push(`${val(i)} ${l}`)};
-            adD('كاونتر','pr_d_cnt'); adD('بوابة','pr_d_gate'); adD('أعمال إدارية','pr_d_adm'); adD('رجال أعمال','pr_d_vip');
-            adD('قائمة','pr_d_list'); adD('الذاتية','pr_d_self'); adD('إرشاد','pr_d_guide');
+            
+            // الهيدر
+            txt.push(`*رئيـــس منــــاوبة (${val('pr_shift')}) سـفــر (${val('pr_hall')})*`);
+            txt.push(`*${val('pr_rank')}/ ${val('pr_officer')}*`);
+            txt.push(`*القـوة/ ${val('pr_force')}*`);
+            
+            // النواقص (الغياب، الراحة، الخ)
+            const add = (l, i) => { 
+                const v = val(i);
+                if(v > 0) txt.push(`* (${v}) ${l}`); 
+            };
+            
+            add('راحة', 'pr_rest'); 
+            add('إجازة', 'pr_leave'); 
+            add('إجازة أمومة', 'pr_mom');
+            add('تكليف', 'pr_task'); 
+            
+            // معالجة الغياب والأسماء
+            const absC = parseInt(val('pr_absence')) || 0;
+            if (absC > 0) {
+                txt.push(`* (${absC}) غياب`);
+                for(let i = 1; i <= absC; i++) {
+                    const aName = document.getElementById('pr_an_' + i) ? document.getElementById('pr_an_' + i).value : '';
+                    if(aName) txt.push(`  - ${aName}`);
+                }
+            }
+            
+            add('دورة', 'pr_course'); 
+            add('إجازة وضع', 'pr_birth'); 
+            add('تأخير', 'pr_delay');
+            add('توقيف', 'pr_jail'); 
+            add('انتداب', 'pr_del'); 
+            add('استئذان', 'pr_perm');
+
+            // سطر فارغ للفصل
+            txt.push(''); 
+
+            // الموجود وتوزيعه
             const av = val('pr_available');
-            if(d.length>0) txt.push(`الموجود ${av} (${d.join(' + ')})`); else txt.push(`الموجود ${av}`);
+            txt.push(`(${av}) الموجود:`);
+            
+            const adD = (l, i) => { 
+                const v = val(i);
+                if(v > 0) txt.push(`* (${v}) ${l}`); 
+            };
+            
+            adD('كاونتر', 'pr_d_cnt'); 
+            adD('بوابة', 'pr_d_gate'); 
+            adD('أعمال إدارية', 'pr_d_adm'); 
+            adD('رجال أعمال', 'pr_d_vip');
+            adD('قائمة', 'pr_d_list'); 
+            adD('إرشاد', 'pr_d_guide');
+            adD('مراقب بوابة ذاتية', 'pr_d_self'); 
         }
         else if(currentForm === 'less6') {
             const num = parseInt(val("l6_count")) || 1;
