@@ -846,14 +846,17 @@ document.addEventListener('input', function(e) {
     }
 
     // === أقل من 6 أشهر ===
-    function displayTodayHijri() {
+function displayTodayHijri() {
         if(window.Intl) {
-            document.getElementById("todayHijri").textContent = new Intl.DateTimeFormat('ar-SA-u-ca-islamic',{day:'numeric',month:'long',year:'numeric'}).format(new Date());
+            // تم تغيير 'ca-islamic' إلى 'ca-islamic-umalqura'
+            document.getElementById("todayHijri").textContent = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {day:'numeric',month:'long',year:'numeric'}).format(new Date());
         }
     }
+
     function getTodayHijriParts() {
       const today = new Date();
-      const formatter = new Intl.DateTimeFormat('en-TN-u-ca-islamic', {year:'numeric',month:'numeric',day:'numeric'});
+      // تم تغيير 'en-TN-u-ca-islamic' إلى 'en-US-u-ca-islamic-umalqura' لضمان دقة الأرقام
+      const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {year:'numeric',month:'numeric',day:'numeric'});
       const parts = formatter.formatToParts(today);
       const day = parseInt(parts.find(p=>p.type==='day').value);
       const month = parseInt(parts.find(p=>p.type==='month').value);
