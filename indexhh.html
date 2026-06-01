@@ -315,7 +315,12 @@
                 <span>خطأ رقم جواز</span>
             </div>
             <div class="card" onclick="openForm('passportExp')"><i class="fas fa-passport" style="opacity:0.6"></i><span>جواز منتهي</span></div>
+            <div class="card" onclick="openForm('pilgrimDeparture')">
+    <i class="fas fa-kaaba"></i>
+    <span>إشعار حاج مغادر</span>
+</div>
         </div>
+
 
        <div class="section-title"><i class="fas fa-id-card"></i> المسافرين المقيمين</div>
         <div class="grid-menu">
@@ -461,20 +466,24 @@
         </div>
         <div class="input-group"><label>عدد المسافرين</label><select id="ve_count" onchange="renderVE()"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option></select></div>
         <div id="ve_passengers"></div>
-<div class="input-group">
+ <div class="input-group">
     <label>تاريخ الانتهاء</label>
     <div class="row">
         <select id="ve_d" onchange="autoCalcVisaDays()"><option value="">اليوم</option></select>
         <select id="ve_m" onchange="autoCalcVisaDays()"><option value="">الشهر</option></select>
         <select id="ve_y" onchange="autoCalcVisaDays()">
             <option value="">السنة</option>
-            <option>1447</option>
-            <option>1448</option>
-            <option>1449</option>
-            <option>1450</option>
+            <option value="1443">1443</option>
+            <option value="1444">1444</option>
+            <option value="1445">1445</option>
+            <option value="1446">1446</option>
+            <option value="1447">1447</option>
+            <option value="1448">1448</option>
+            <option value="1449">1449</option>
+            <option value="1450">1450</option>
         </select>
     </div>
-</div>        <div class="input-group"><label>مدة الانتهاء (أيام)</label><select id="ve_days"><option value="">-- اختر المدة --</option></select></div>
+</div>       <div class="input-group"><label>مدة الانتهاء (أيام)</label><select id="ve_days"><option value="">-- اختر المدة --</option></select></div>
         <div class="input-group"><label>بيانات الرحلة</label><div class="row"><input type="text" id="ve_air" placeholder="الخطوط"><input type="text" id="ve_flt" placeholder="رقم الرحلة"></div></div>
         <div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="ve_h" placeholder="ساعة" class="en-num"><input type="number" id="ve_min" placeholder="دقيقة" class="en-num"></div></div>        <div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="ve_gh" placeholder="ساعة" class="en-num"><input type="number" id="ve_gm" placeholder="دقيقة" class="en-num"></div></div>
         <div class="input-group"><label>ملاحظة</label><textarea id="ve_note" placeholder="في حال وجود ملاحظات اضافية اكتب هنا..."></textarea></div>
@@ -507,7 +516,64 @@
 
 
     </div>
+    <div id="form-pilgrimDeparture" class="form-section">
+    <div class="form-title">إشعار عن حاج مغادر</div>
+    
+    <div class="row">
+        <div class="input-group">
+            <label>اليوم</label>
+            <input type="text" id="pd_day" style="text-align:center;">
+        </div>
+        <div class="input-group">
+            <label>التاريخ الهجري</label>
+            <input type="text" id="pd_date" style="text-align:center; direction:ltr;">
+        </div>
+    </div>
 
+    <div class="input-group">
+        <label>وقت المغادرة</label>
+        <div class="row" style="direction:ltr">
+            <select id="pd_ampm" style="flex:0.5; border-color:#e0e0e0;">
+                <option value="ص">ص</option>
+                <option value="م">م</option>
+            </select>
+            <input type="number" id="pd_h" placeholder="ساعة" class="en-num">
+            <input type="number" id="pd_m" placeholder="دقيقة" class="en-num">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="input-group">
+            <label>الخطوط</label>
+            <input type="text" id="pd_airline" placeholder="مثال: السعودية">
+        </div>
+        <div class="input-group">
+            <label>رقم الرحلة</label>
+            <input type="text" id="pd_flight" class="en-num">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>المتجهة إلى</label>
+        <input type="text" id="pd_dest" placeholder="مثال: جاكرتا">
+    </div>
+
+    <div class="row">
+        <div class="input-group">
+            <label>عدد الذكور</label>
+            <input type="number" id="pd_male" class="en-num" oninput="calcPilgrims()">
+        </div>
+        <div class="input-group">
+            <label>عدد الإناث</label>
+            <input type="number" id="pd_female" class="en-num" oninput="calcPilgrims()">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>إجمالي الحجاج</label>
+        <input type="number" id="pd_total" class="en-num" style="text-align:center; font-size:1.2rem; font-weight:bold; color:var(--primary);">
+    </div>
+</div>
     <div id="form-passError" class="form-section">
         <div class="form-title">خطأ في رقم الجواز</div>
         <div class="input-group"><label>منفذ الدخول (اسم المطار):</label><input type="text" id="perr_port" oninput="updatePassErrNote()"></div>
@@ -550,7 +616,7 @@
     <div id="form-defname" class="form-section"><div class="form-title">اختلاف اسم عند المغادرة</div><div class="input-group"><label>الاسم</label><input type="text" id="dn_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="dn_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="dn_pass" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="dn_dest"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="dn_flight" class="en-num"></div><div class="input-group"><label>الملاحظة</label><textarea id="dn_note">وعند تسديد مغادرته تبين بأن الاسم في نظام المسافرين يختلف عن الوثيقة...</textarea></div></div>
     <div id="form-fingercon" class="form-section"><div class="form-title">ارتباط بصمة</div><div class="input-group"><label>الاسم</label><input type="text" id="fc_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="fc_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="fc_pass" class="en-num"></div><div class="input-group"><label>نوع التأشيرة</label><input type="text" id="fc_visa"></div><div class="input-group"><label>رقم الإقامة/الحدود</label><input type="text" id="fc_res" class="en-num"></div><div class="input-group"><label>الخطوط</label><input type="text" id="fc_air"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="fc_flight" class="en-num"></div><div class="input-group"><label>والمتجهة</label><input type="text" id="fc_dest"></div><div class="input-group"><label>جنسية الوافد الآخر</label><input type="text" id="fc_other" oninput="fillFCNote()"></div><div class="input-group"><label>النتيجة</label><select id="fc_res_type" onchange="fillFCNote()"><option value="موجود">موجود</option><option value="غير موجود">غير موجود</option></select></div><div class="input-group"><label>الملاحظة</label><textarea id="fc_note" rows="6"></textarea></div></div>
     <div id="form-noacspt" class="form-section"><div class="form-title">عدم قبول بصمة راكب</div><div class="input-group"><label>عدد المسافرين</label><select id="nf_count" onchange="renderNF()"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div id="nf_passengers"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="nf_h" placeholder="ساعة" class="en-num"><input type="number" id="nf_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="nf_gh" placeholder="ساعة" class="en-num"><input type="number" id="nf_gm" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الخطوط</label><input type="text" id="nf_air"></div><div class="input-group"><label>الملاحظة</label><textarea id="nf_note">عند الشروع في انهاء إجراءات مغادرته وتحقق من الخصائص الحيوية لم يتم قبول الخصائص الحيوية وحيث تم الاستعلام عن الخصائص الحيوية بالطرق الأربعة والنتيجة ( غير موجود ) والتشييك بنظام الممنوعين والمطلوبين ولم يوجد عليه أي ملاحظات</textarea></div></div>
-    <div id="form-updut" class="form-section"><div class="form-title">نقل معلومات</div><div class="input-group"><label>الاسم</label><input type="text" id="up_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="up_nat"></div><div class="input-group"><label>الجواز الجديد</label><input type="text" id="up_new" class="en-num"></div><div class="input-group"><label>الجواز القديم</label><input type="text" id="up_old" class="en-num"></div><div class="input-group"><label>رقم الإقامة</label><input type="text" id="up_res" class="en-num"></div><div class="input-group"><label>المهنة</label><input type="text" id="up_job"></div><div class="input-group"><label>الكفيل</label><input type="text" id="up_sponsor"></div><div class="input-group"><label>الرحلة</label><input type="text" id="up_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="up_h" placeholder="ساعة" class="en-num"><input type="number" id="up_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="up_note">نقل معلومات وبحوزته الجواز الجديد والقديم وتعذر نقل معلوماته عن طريق ابشر</textarea></div></div>
+    <div id="form-updut" class="form-section"><div class="form-title">نقل معلومات</div><div class="input-group"><label>الاسم</label><input type="text" id="up_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="up_nat"></div><div class="input-group"><label>الجواز الجديد</label><input type="text" id="up_new" class="en-num"></div><div class="input-group"><label>الجواز القديم</label><input type="text" id="up_old" class="en-num"></div><div class="input-group"><label>رقم الإقامة</label><input type="text" id="up_res" class="en-num"></div><div class="input-group"><label>المهنة</label><input type="text" id="up_job"></div><div class="input-group"><label>الكفيل</label><input type="text" id="up_sponsor"></div><div class="input-group"><label>الرحلة</label><input type="text" id="up_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="up_h" placeholder="ساعة" class="en-num"><input type="number" id="up_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="up_note">نقل معلومات وتعذر النقل عن طريق ابشر بسبب وجود اكثر من المدة المسموح بها لنقل المعلومات و بحوزته الجواز الجديد والقديم</textarea></div></div>
     
     <div id="form-diffNat" class="form-section">
         <div class="form-title">اختلاف جنسية مقيم</div>
@@ -734,7 +800,11 @@ document.addEventListener('input', function(e) {
             }
         }
     });
-
+    function calcPilgrims() {
+    const male = parseInt(document.getElementById('pd_male').value) || 0;
+    const female = parseInt(document.getElementById('pd_female').value) || 0;
+    document.getElementById('pd_total').value = male + female;
+}
     function openForm(id) {
         document.getElementById('mainMenu').style.display = 'none';
         document.getElementById('fab-actions').style.display = 'flex';
@@ -759,6 +829,16 @@ document.addEventListener('input', function(e) {
             if(!document.getElementById('cf_flights').innerHTML) renderCF();
         }
         window.scrollTo(0,0);
+        if (id === 'pilgrimDeparture') {
+    const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const today = new Date();
+    document.getElementById('pd_day').value = days[today.getDay()];
+    
+    // استخدام دالة getTodayHijriParts الموجودة مسبقاً في نظامك لاستخراج التاريخ الهجري (أم القرى)
+    const h = getTodayHijriParts(); 
+    const pad = (n) => n.toString().padStart(2, '0');
+    document.getElementById('pd_date').value = `${pad(h.day)} / ${pad(h.month)} / ${h.year}هـ`;
+}
     }
 
     function closeForm() {
@@ -853,16 +933,20 @@ function displayTodayHijri() {
         }
     }
 
-    function getTodayHijriParts() {
-      const today = new Date();
-      // تم تغيير 'en-TN-u-ca-islamic' إلى 'en-US-u-ca-islamic-umalqura' لضمان دقة الأرقام
-      const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {year:'numeric',month:'numeric',day:'numeric'});
-      const parts = formatter.formatToParts(today);
-      const day = parseInt(parts.find(p=>p.type==='day').value);
-      const month = parseInt(parts.find(p=>p.type==='month').value);
-      const year = parseInt(parts.find(p=>p.type==='year').value);
-      return { day, month, year };
-    }
+function getTodayHijriParts() {
+    const today = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {year:'numeric',month:'numeric',day:'numeric'});
+    const parts = formatter.formatToParts(today);
+    
+    const day = parseInt(parts.find(p => p.type === 'day').value);
+    const month = parseInt(parts.find(p => p.type === 'month').value);
+    
+    // الحل الجذري لمشكلة المتصفحات: البحث عن year أو relatedYear
+    const yearPart = parts.find(p => p.type === 'year') || parts.find(p => p.type === 'relatedYear');
+    const year = parseInt(yearPart.value);
+    
+    return { day, month, year };
+}
 function calcHijriLess6() {
     const inputDay = parseInt(document.getElementById("hDay").value);
     const inputMonth = parseInt(document.getElementById("hMonth").value);
@@ -1064,6 +1148,24 @@ function calcPresence() {
             txt.push(`*السبب :*`);
             txt.push(`${val('cf_reason')}`);
         }
+        else if(currentForm === 'pilgrimDeparture') {
+    const time = `${pad(val('pd_h'))}:${pad(val('pd_m'))} ${val('pd_ampm')}`;
+    const day = val('pd_day');
+    const date = val('pd_date');
+    const airline = val('pd_airline');
+    const flight = val('pd_flight');
+    const dest = val('pd_dest');
+    const total = val('pd_total');
+    const male = val('pd_male');
+    const female = val('pd_female');
+
+    txt.push(`أحيط سعادتكم أنه في هذا اليوم ( ${day} ) الموافق ${date} غادرت في تمام الساعة ( ${time} ) رحلة الخطوط ( ${airline} ) رقم ( ${flight} ) المتجهة الى ( ${dest} ) وعلى متنها عدد ( ${total} ) حجاج .`);
+    txt.push(`عدد الذكور : ( ${male} )`);
+    txt.push(`عدد الاناث : ( ${female} )`);
+    txt.push(``); // مسافة فارغة
+    txt.push(`*وتم انهاء اجراءات خروجهم بدون ملاحظات* .`);
+    txt.push(`*ولسعادتكم تحياتنا*`);
+}
         else if(currentForm === 'passError') {
             txt.push(`*اسم المسافر:* ${val('perr_name')}`);
             txt.push(`*رقم الجواز الصحيح*: ${val('perr_corr')}`);
