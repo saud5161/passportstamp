@@ -821,23 +821,25 @@
     }
 
 document.addEventListener('input', function(e) {
-        if(e.target.classList.contains('en-num')) {
-            let val = e.target.value;
-            // السماح بالحروف الإنجليزية والأرقام للرحلات (مثل SV3255)
-            if(e.target.id.startsWith('cf_flt_')) {
-                if(/[\u0600-\u06FF]/.test(val)) {
-                     e.target.value = val.replace(/[\u0600-\u06FF]/g, '');
-                }
-                return;
-            }
+    // التأكد من أن العنصر الحالي هو حقل إدخال نصي أو رقمي
+    if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        let val = e.target.value;
 
-            // تحويل الأرقام العربية (المشرقية والفارسية) إلى أرقام إنجليزية تلقائياً
-            if(/[\u0660-\u0669\u06f0-\u06f9]/.test(val)) {
-                e.target.value = val.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
-                                  .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+        // استثناء خاص بحقول أرقام الرحلات (مثل الملغية) لمنع الحروف العربية تماماً داخلها
+        if(e.target.id.startsWith('cf_flt_')) {
+            if(/[\u0600-\u06FF]/.test(val)) {
+                 e.target.value = val.replace(/[\u0600-\u06FF]/g, '');
             }
+            return;
         }
-    });
+
+        // تحويل الأرقام العربية (المشرقية والفارسية) إلى أرقام إنجليزية تلقائياً لجميع الحقول بلا استثناء
+        if(/[\u0660-\u0669\u06f0-\u06f9]/.test(val)) {
+            e.target.value = val.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+                              .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+        }
+    }
+});
     function calcPilgrims() {
     const male = parseInt(document.getElementById('pd_male').value) || 0;
     const female = parseInt(document.getElementById('pd_female').value) || 0;
