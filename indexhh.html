@@ -573,6 +573,44 @@
         <label>إجمالي الحجاج</label>
         <input type="number" id="pd_total" class="en-num" style="text-align:center; font-size:1.2rem; font-weight:bold; color:var(--primary);">
     </div>
+    <div style="margin-top: 30px; padding: 15px; border: 2px dashed var(--gold); border-radius: 10px; background-color: #fdfcf7;">
+        <h5 style="margin-top: 0; color: var(--primary-dark); text-align: center; font-weight: bold;">
+            <i class="fas fa-calculator" style="color: var(--gold);"></i> حاسبة الحجاج (اختياري)
+        </h5>
+        
+        <div class="row" style="margin-bottom: 10px;">
+            <div class="input-group">
+                <label style="font-size: 0.8rem; color: #555;">عدد الذكور قبل</label>
+                <input type="number" id="calc_male_before" class="en-num" oninput="runOptionalCalc()">
+            </div>
+            <div class="input-group">
+                <label style="font-size: 0.8rem; color: #555;">عدد الإناث قبل</label>
+                <input type="number" id="calc_female_before" class="en-num" oninput="runOptionalCalc()">
+            </div>
+        </div>
+
+        <div class="row" style="margin-bottom: 15px;">
+            <div class="input-group">
+                <label style="font-size: 0.8rem; color: #555;">عدد الذكور مع الحجاج</label>
+                <input type="number" id="calc_male_with" class="en-num" oninput="runOptionalCalc()">
+            </div>
+            <div class="input-group">
+                <label style="font-size: 0.8rem; color: #555;">عدد الإناث مع الحجاج</label>
+                <input type="number" id="calc_female_with" class="en-num" oninput="runOptionalCalc()">
+            </div>
+        </div>
+
+        <div class="row" style="background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #ddd; text-align: center;">
+            <div>
+                <span style="font-size: 0.85rem; font-weight: bold; color: #333;">الفرق عدد الذكور:</span>
+                <span id="res_male_diff" style="font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-right: 5px;">0</span>
+            </div>
+            <div>
+                <span style="font-size: 0.85rem; font-weight: bold; color: #333;">الفرق عدد الإناث:</span>
+                <span id="res_female_diff" style="font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-right: 5px;">0</span>
+            </div>
+        </div>
+    </div>
 </div>
     <div id="form-passError" class="form-section">
         <div class="form-title">خطأ في رقم الجواز</div>
@@ -839,6 +877,7 @@ document.addEventListener('input', function(e) {
     const pad = (n) => n.toString().padStart(2, '0');
     document.getElementById('pd_date').value = `${pad(h.day)} / ${pad(h.month)} / ${h.year}هـ`;
 }
+
     }
 
     function closeForm() {
@@ -881,7 +920,16 @@ document.addEventListener('input', function(e) {
             document.getElementById(`cf_dest_${index}`).value = match.dest;
         }
     }
-
+function runOptionalCalc() {
+    const maleBefore = parseInt(document.getElementById('calc_male_before').value) || 0;
+    const femaleBefore = parseInt(document.getElementById('calc_female_before').value) || 0;
+    const maleWith = parseInt(document.getElementById('calc_male_with').value) || 0;
+    const femaleWith = parseInt(document.getElementById('calc_female_with').value) || 0;
+    
+    // حساب الفروقات مباشرة وعرضها كنص على الشاشة
+    document.getElementById('res_male_diff').innerText = maleWith - maleBefore;
+    document.getElementById('res_female_diff').innerText = femaleWith - femaleBefore;
+}
     function renderCF() {
         const cnt = document.getElementById('cf_count').value;
         const box = document.getElementById('cf_flights');
