@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة اللجان والاجتماعات والوقوعات</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #3b82f6;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-nav {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn-main {
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: var(--card-bg);
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .btn-main.active, .btn-main:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sub-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sub {
+            padding: 10px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            background-color: #e2e8f0;
+            color: #475569;
+            transition: all 0.3s;
+        }
+
+        .btn-sub.active, .btn-sub:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .action-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            background-color: #cbd5e1;
+            color: #334155;
+        }
+
+        .btn-action.active.add-mode { background-color: var(--accent-success); color: white; }
+        .btn-action.active.search-mode { background-color: var(--accent-warning); color: white; }
+        .btn-action.active.view-mode { background-color: var(--primary-color); color: white; }
+
+        .content-section {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .section-divider {
+            grid-column: 1 / -1;
+            border-top: 2px dashed var(--border-color);
+            margin: 15px 0 5px 0;
+            padding-top: 15px;
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-submit {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .data-table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge.open { background-color: #dcfce7; color: #16a34a; }
+        .badge.closed { background-color: #fee2e2; color: #dc2626; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>نظام إدارة العمليات واللجان الإلكتروني</h1>
+        <p>واجهة العرض الذكية والربط السحابي</p>
+    </header>
+
+    <nav class="main-nav">
+        <button class="btn-main" id="btn-lejan" onclick="switchMainTab('lejan')">اللجان والاجتماعات</button>
+        <button class="btn-main" id="btn-waqoat" onclick="switchMainTab('waqoat')">متابعة الوقوعات</button>
+        <button class="btn-main" id="btn-instructions" onclick="switchMainTab('instructions')">التعليمات</button>
+    </nav>
+
+    <!-- ================= قسم اللجان والاجتماعات ================= -->
+    <div id="section-lejan" class="main-section" style="display: none;">
+        <div class="sub-nav">
+            <button class="btn-sub" id="btn-dawria" onclick="switchSubTab('dawria')">لجنة دورية</button>
+            <button class="btn-sub" id="btn-ejtema" onclick="switchSubTab('ejtema')">اجتماع</button>
+        </div>
+
+        <!-- محتوى: لجنة دورية -->
+        <div id="sub-content-dawria" class="sub-section-content" style="display: none;">
+            <div class="action-nav">
+                <button class="btn-action add-mode" id="btn-add-sec1" onclick="switchDawriaAction('sec1')">التحضيرات الأمنية</button>
+                <button class="btn-action add-mode" id="btn-add-sec2" onclick="switchDawriaAction('sec2')">التسهيلات</button>
+                <button class="btn-action add-mode" id="btn-add-sec3" onclick="switchDawriaAction('sec3')">الفرعية للتسهيلات</button>
+                <button class="btn-action search-mode" id="btn-search-dawria" onclick="switchDawriaAction('search')">البحث عن لجنة</button>
+                <button class="btn-action view-mode" id="btn-view-dawria" onclick="switchDawriaAction('view')">عرض جميع اللجان حسب التاريخ</button>
+            </div>
+
+            <!-- النموذج 1: التحضيرات الأمنية -->
+            <div id="form-dawria-sec1" class="content-section">
+                <form onsubmit="handleSubmit(event, 'حفظ لجنة - التحضيرات الأمنية')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>رقم اللجنة:</label>
+                            <input type="text" required placeholder="أدخل رقم اللجنة">
+                        </div>
+                        <div class="form-group">
+                            <label>موضوع اللجنة:</label>
+                            <input type="text" required placeholder="موضوع اللجنة الرئيسي">
+                        </div>
+                        <div class="form-group">
+                            <label>تاريخ اللجنة:</label>
+                            <input type="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>اسم الحضور المكلف:</label>
+                            <input type="text" required placeholder="اسم الحضور">
+                        </div>
+                        <div class="form-group">
+                            <label>موقع الاجتماع:</label>
+                            <input type="text" placeholder="موقع الاجتماع">
+                        </div>
+                        <div class="form-group">
+                            <label>حالة اللجنة:</label>
+                            <div class="radio-group">
+                                <label class="radio-label"><input type="radio" name="status_sec1" value="مفتوح" checked> مفتوح</label>
+                                <label class="radio-label"><input type="radio" name="status_sec1" value="مغلق"> مغلق</label>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>تجهيز المواضيع:</label>
+                            <textarea placeholder="اكتب تجهيز المواضيع هنا بالتفصيل..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>التحضيرات الأمنية:</label>
+                            <textarea placeholder="اكتب التحضيرات الأمنية بالتفصيل..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>ملاحظة جديدة:</label>
+                            <textarea placeholder="أي ملاحظات إضافية..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">حفظ البيانات</button>
+                </form>
+            </div>
+
+            <!-- النموذج 2: التسهيلات -->
+            <div id="form-dawria-sec2" class="content-section">
+                <form onsubmit="handleSubmit(event, 'حفظ لجنة - التسهيلات')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>رقم اللجنة:</label>
+                            <input type="text" required placeholder="أدخل رقم اللجنة">
+                        </div>
+                        <div class="form-group">
+                            <label>موضوع اللجنة:</label>
+                            <input type="text" required placeholder="موضوع اللجنة الرئيسي">
+                        </div>
+                        <div class="form-group">
+                            <label>تاريخ اللجنة:</label>
+                            <input type="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>التسهيلات:</label>
+                            <input type="text" required placeholder="أدخل تفاصيل التسهيلات">
+                        </div>
+                        <div class="form-group">
+                            <label>حالة اللجنة:</label>
+                            <div class="radio-group">
+                                <label class="radio-label"><input type="radio" name="status_sec2" value="مفتوح" checked> مفتوح</label>
+                                <label class="radio-label"><input type="radio" name="status_sec2" value="مغلق"> مغلق</label>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>تجهيز المواضيع:</label>
+                            <textarea placeholder="اكتب تجهيز المواضيع هنا بالتفصيل..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>التحضير:</label>
+                            <textarea placeholder="تفاصيل التحضير..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>ملاحظة جديدة:</label>
+                            <textarea placeholder="أي ملاحظات إضافية..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">حفظ البيانات</button>
+                </form>
+            </div>
+
+            <!-- النموذج 3: الفرعية للتسهيلات -->
+            <div id="form-dawria-sec3" class="content-section">
+                <form onsubmit="handleSubmit(event, 'حفظ لجنة - الفرعية للتسهيلات')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>رقم اللجنة:</label>
+                            <input type="text" required placeholder="أدخل رقم اللجنة">
+                        </div>
+                        <div class="form-group">
+                            <label>موضوع اللجنة:</label>
+                            <input type="text" required placeholder="موضوع اللجنة الرئيسي">
+                        </div>
+                        <div class="form-group">
+                            <label>تاريخ اللجنة:</label>
+                            <input type="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>التسهيلات الفرعية:</label>
+                            <input type="text" required placeholder="أدخل التسهيلات الفرعية">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم التقرير أو صادر العضو:</label>
+                            <input type="text" placeholder="رقم التقرير / الصادر">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم صادر الرد:</label>
+                            <input type="text" placeholder="رقم صادر الرد">
+                        </div>
+                        <div class="form-group">
+                            <label>حالة اللجنة:</label>
+                            <div class="radio-group">
+                                <label class="radio-label"><input type="radio" name="status_sec3" value="مفتوح" checked> مفتوح</label>
+                                <label class="radio-label"><input type="radio" name="status_sec3" value="مغلق"> مغلق</label>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>تجهيز المواضيع:</label>
+                            <textarea placeholder="اكتب تجهيز المواضيع هنا بالتفصيل..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>بعد الاجتماع تقرير العضو:</label>
+                            <textarea placeholder="تفاصيل تقرير العضو بعد الاجتماع..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>الردود والمشفوعات:</label>
+                            <textarea placeholder="اكتب تفاصيل الردود والمشفوعات..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>ملاحظة جديدة:</label>
+                            <textarea placeholder="أي ملاحظات إضافية..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">حفظ البيانات</button>
+                </form>
+            </div>
+
+            <!-- البحث عن لجنة دورية -->
+            <div id="form-search-dawria" class="content-section">
+                <form onsubmit="handleSubmit(event, 'البحث والتعديل على لجنة')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>البحث برقم اللجنة:</label>
+                            <input type="text" placeholder="رقم اللجنة">
+                        </div>
+                        <div class="form-group">
+                            <label>البحث بالموضوع:</label>
+                            <input type="text" placeholder="كلمة مفتاحية من الموضوع">
+                        </div>
+                        <div class="form-group">
+                            <label>البحث بالتاريخ:</label>
+                            <input type="date">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit" style="background-color: var(--accent-warning);">استعلام وتحديث</button>
+                </form>
+            </div>
+
+            <!-- عرض جميع اللجان حسب التاريخ -->
+            <div id="form-view-dawria" class="content-section">
+                <h3>جدول استعراض اللجان الدورية حسب التاريخ</h3>
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>تاريخ اللجنة</th>
+                                <th>رقم اللجنة</th>
+                                <th>الموضوع</th>
+                                <th>الحضور المكلف</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2026-06-15</td>
+                                <td>ل-102</td>
+                                <td>متابعة خطة الانتشار وتحديث أنظمة الدخول</td>
+                                <td>أحمد المنصور</td>
+                                <td><span class="badge open">مفتوح</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-06-10</td>
+                                <td>ل-99</td>
+                                <td>مراجعة التدابير والتجهيزات والتحضيرات الأمنية بالصالة الرئيسية</td>
+                                <td>خالد العتيبي</td>
+                                <td><span class="badge closed">مغلق</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- محتوى: اجتماع -->
+        <div id="sub-content-ejtema" class="sub-section-content" style="display: none;">
+            <div class="action-nav">
+                <button class="btn-action add-mode" id="btn-add-ejtema" onclick="switchEjtemaAction('add')">إضافة اجتماع</button>
+                <button class="btn-action search-mode" id="btn-search-ejtema" onclick="switchEjtemaAction('search')">البحث عن اجتماع</button>
+                <button class="btn-action view-mode" id="btn-view-ejtema" onclick="switchEjtemaAction('view')">عرض جميع الاجتماعات حسب التاريخ</button>
+            </div>
+
+            <!-- إضافة اجتماع -->
+            <div id="form-add-ejtema" class="content-section">
+                <form onsubmit="handleSubmit(event, 'إضافة اجتماع جديد')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>نوع الاجتماع:</label>
+                            <select required>
+                                <option value="">اختر النوع...</option>
+                                <option value="دعوة">دعوة</option>
+                                <option value="تكليف">تكليف</option>
+                                <option value="أخرى">أخرى</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>عنوان الاجتماع:</label>
+                            <input type="text" required placeholder="مثال: التنسيق الأمني للرحلات الإضافية">
+                        </div>
+                        <div class="form-group">
+                            <label>تاريخ الانعقاد:</label>
+                            <input type="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>اسم الحضور المكلف:</label>
+                            <input type="text" required placeholder="اسم العضو أو الأعضاء المكلفين">
+                        </div>
+                        <div class="form-group">
+                            <label>موقع الاجتماع:</label>
+                            <input type="text" placeholder="قاعة الاجتماعات الأمنية">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم التقرير العضو المكلف:</label>
+                            <input type="text" placeholder="رقم التقرير">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الصادر:</label>
+                            <input type="text" placeholder="رقم الصادر">
+                        </div>
+                        <div class="form-group">
+                            <label>حالة الاجتماع:</label>
+                            <div class="radio-group">
+                                <label class="radio-label"><input type="radio" name="meeting_status" value="مفتوح" checked> مفتوح</label>
+                                <label class="radio-label"><input type="radio" name="meeting_status" value="مغلق"> مغلق</label>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>رابط ملف الاجتماع:</label>
+                            <input type="url" placeholder="https://example.com/file">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>تجهيز المواضيع:</label>
+                            <textarea placeholder="اكتب تجهيز المواضيع هنا بالتفصيل..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>التحضير:</label>
+                            <textarea placeholder="تجهيزات وتحضيرات ما قبل الاجتماع..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>بعد الاجتماع:</label>
+                            <textarea placeholder="توصيات ومخرجات ما بعد الاجتماع..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>الردود والمشفوعات:</label>
+                            <textarea placeholder="تفاصيل المشفوعات والردود الواردة..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">حفظ بيانات الاجتماع</button>
+                </form>
+            </div>
+
+            <!-- البحث عن اجتماع -->
+            <div id="form-search-ejtema" class="content-section">
+                <form onsubmit="handleSubmit(event, 'البحث عن اجتماع')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>البحث بعنوان الاجتماع:</label>
+                            <input type="text" placeholder="أدخل جزء من العنوان">
+                        </div>
+                        <div class="form-group">
+                            <label>البحث بالتاريخ:</label>
+                            <input type="date">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم التقرير / الصادر:</label>
+                            <input type="text" placeholder="رقم التقرير أو الصادر">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit" style="background-color: var(--accent-warning);">بحث وتعديل</button>
+                </form>
+            </div>
+
+            <!-- عرض جميع الاجتماعات حسب التاريخ -->
+            <div id="form-view-ejtema" class="content-section">
+                <h3>جدول استعراض الاجتماعات حسب التاريخ</h3>
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>تاريخ الانعقاد</th>
+                                <th>عنوان الاجتماع</th>
+                                <th>النوع</th>
+                                <th>الحضور المكلف</th>
+                                <th>الموقع</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2026-06-18</td>
+                                <td>آلية التعامل مع البلاغات الطارئة بالصالة الدولية</td>
+                                <td>تكليف</td>
+                                <td>فهد الرويلي</td>
+                                <td>غرفة القيادة والسيطرة</td>
+                                <td><span class="badge open">مفتوح</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-06-05</td>
+                                <td>تنسيق خطط الطوارئ الافتراضية للرحلات</td>
+                                <td>دعوة</td>
+                                <td>سلطان القحطاني</td>
+                                <td>مكتب المشرف العام</td>
+                                <td><span class="badge closed">مغلق</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= قسم متابعة الوقوعات ================= -->
+    <div id="section-waqoat" class="main-section" style="display: none;">
+        <div class="sub-nav">
+            <button class="btn-sub" id="btn-waq-msf" onclick="switchWaqoatSubTab('msf')">وقوعات المسافرين</button>
+            <button class="btn-sub" id="btn-waq-rhlat" onclick="switchWaqoatSubTab('rhlat')">وقوعات الرحلات</button>
+            <button class="btn-sub" id="btn-waq-other" onclick="switchWaqoatSubTab('other')">وقوعات أخرى</button>
+        </div>
+
+        <!-- وقوعات المسافرين -->
+        <div id="sub-content-waq-msf" class="waqoat-sub-content" style="display: none;">
+            <div class="action-nav">
+                <button class="btn-action add-mode" id="btn-add-msf-act" onclick="switchWaqoatAction('msf', 'add')">إضافة حدث</button>
+                <button class="btn-action search-mode" id="btn-search-msf-act" onclick="switchWaqoatAction('msf', 'search')">البحث عن حدث</button>
+            </div>
+            
+            <div id="form-add-waq-msf" class="content-section">
+                <form onsubmit="handleSubmit(event, 'إضافة وقوع مسافرين')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>اتجاه الرحلة:</label>
+                            <select required>
+                                <option value="">اختر الاتجاه...</option>
+                                <option value="قدوم">قدوم</option>
+                                <option value="مغادرة">مغادرة</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>الاسم:</label>
+                            <input type="text" required placeholder="الاسم الكامل">
+                        </div>
+                        <div class="form-group">
+                            <label>الجنسية:</label>
+                            <input type="text" required placeholder="الجنسية">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الوثيقة:</label>
+                            <input type="text" required placeholder="رقم الجواز أو الهوية">
+                        </div>
+                        <div class="form-group">
+                            <label>الخطوط:</label>
+                            <input type="text" required placeholder="شركة الطيران">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الرحلة:</label>
+                            <input type="text" required placeholder="رقم الرحلة">
+                        </div>
+                        <div class="form-group">
+                            <label>التاريخ:</label>
+                            <input type="date" required>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label>الواقعة:</label>
+                            <textarea required placeholder="اكتب تفاصيل الواقعة هنا..."></textarea>
+                        </div>
+
+                        <div class="section-divider">المرفوعات</div>
+
+                        <div class="form-group">
+                            <label>رقم المرفوع (1):</label>
+                            <input type="text" placeholder="رقم المرفوع الأول">
+                        </div>
+                        <div class="form-group">
+                            <label>التاريخ (1):</label>
+                            <input type="date">
+                        </div>
+                        <div class="form-group">
+                            <label>الجهة (1):</label>
+                            <input type="text" placeholder="الجهة المرفوع لها">
+                        </div>
+
+                        <div class="section-divider">مرفوع 2</div>
+
+                        <div class="form-group">
+                            <label>رقم المرفوع (2):</label>
+                            <input type="text" placeholder="رقم المرفوع الثاني">
+                        </div>
+                        <div class="form-group">
+                            <label>التاريخ (2):</label>
+                            <input type="date">
+                        </div>
+                        <div class="form-group">
+                            <label>الجهة (2):</label>
+                            <input type="text" placeholder="الجهة المرفوع لها">
+                        </div>
+
+                        <div class="section-divider">الارتباطات الإدارية</div>
+                        <div class="form-group">
+                            <label>إضافة صادر سابق:</label>
+                            <input type="text" placeholder="رقم الصادر السابق">
+                        </div>
+                        <div class="form-group">
+                            <label>إضافة وارد:</label>
+                            <input type="text" placeholder="رقم الوارد">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">حفظ وقوعات المسافرين</button>
+                </form>
+            </div>
+
+            <div id="form-search-waq-msf" class="content-section">
+                <form onsubmit="handleSubmit(event, 'البحث في وقوعات المسافرين')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>البحث بالاسم أو رقم الوثيقة:</label>
+                            <input type="text" placeholder="أدخل الاسم أو رقم الجواز">
+                        </div>
+                        <div class="form-group">
+                            <label>البحث برقم الرحلة:</label>
+                            <input type="text" placeholder="رقم الرحلة">
+                        </div>
+                        <div class="form-group">
+                            <label>التاريخ:</label>
+                            <input type="date">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit" style="background-color: var(--accent-warning);">استعلام</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- وقوعات الرحلات -->
+        <div id="sub-content-waq-rhlat" class="waqoat-sub-content" style="display: none;">
+            <div class="action-nav">
+                <button class="btn-action add-mode" id="btn-add-rhlat-act" onclick="switchWaqoatAction('rhlat', 'add')">إضافة حدث</button>
+                <button class="btn-action search-mode" id="btn-search-rhlat-act" onclick="switchWaqoatAction('rhlat', 'search')">البحث عن حدث</button>
+            </div>
+
+            <div id="form-add-waq-rhlat" class="content-section">
+                <form onsubmit="handleSubmit(event, 'إضافة وقوع رحلات')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>اتجاه الرحلة:</label>
+                            <select required>
+                                <option value="">اختر الاتجاه...</option>
+                                <option value="قدوم">قدوم</option>
+                                <option value="مغادرة">مغادرة</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>عدد الركاب:</label>
+                            <input type="number" required placeholder="إجمالي عدد الركاب">
+                        </div>
+                        <div class="form-group">
+                            <label>عدد الملاحين:</label>
+                            <input type="number" required placeholder="عدد طاقم الملاحة">
+                        </div>
+                        <div class="form-group">
+                            <label>عدد المموحين:</label>
+                            <input type="number" required placeholder="عدد المموحين">
+                        </div>
+                        <div class="form-group">
+                            <label>عدد الملغين:</label>
+                            <input type="number" required placeholder="عدد الملغين">
+                        </div>
+                        <div class="form-group">
+                            <label>الخطوط:</label>
+                            <input type="text" required placeholder="شركة الطيران">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الرحلة:</label>
+                            <input type="text" required placeholder="رقم الرحلة">
+                        </div>
+                        <div class="form-group">
+                            <label>التاريخ:</label>
+                            <input type="date" required>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label>الواقعة:</label>
+                            <textarea required placeholder="اكتب تفاصيل الواقعة الخاصة بالرحلة هنا..."></textarea>
+                        </div>
+
+                        <div class="section-divider">المرفوعات</div>
+
+                        <div class="form-group">
+                            <label>رقم المرفوع (1):</label>
+                            <input type="text" placeholder="رقم المرفوع الأول">
+                        </div>
+                        <div class="form-group">
+                            <label>التاريخ (1):</label>
+                            <input type="date">
+                        </div>
+                        <div class="form-group">
+                            <label>الجهة (1):</label>
+                            <input type="text" placeholder="الجهة المرفوع لها">
+                        </div>
+
+                        <div class="section-divider">مرفوع 2</div>
+
+                        <div class="form-group">
+                            <label>رقم المرفوع (2):</label>
+                            <input type="text" placeholder="رقم المرفوع الثاني">
+                        </div>
+                        <div class="form-group">
+                            <label>التاريخ (2):</label>
+                            <input type="date">
+                        </div>
+                        <div class="form-group">
+                            <label>الجهة (2):</label>
+                            <input type="text" placeholder="الجهة المرفوع لها">
+                        </div>
+
+                        <div class="section-divider">الارتباطات الإدارية</div>
+                        <div class="form-group">
+                            <label>إضافة صادر سابق:</label>
+                            <input type="text" placeholder="رقم الصادر السابق">
+                        </div>
+                        <div class="form-group">
+                            <label>إضافة وارد:</label>
+                            <input type="text" placeholder="رقم الوارد">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">حفظ وقوعات الرحلة</button>
+                </form>
+            </div>
+
+            <div id="form-search-waq-rhlat" class="content-section">
+                <form onsubmit="handleSubmit(event, 'البحث في وقوعات الرحلات')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>البحث برقم الرحلة:</label>
+                            <input type="text" placeholder="أدخل رقم الرحلة">
+                        </div>
+                        <div class="form-group">
+                            <label>شركة الخطوط:</label>
+                            <input type="text" placeholder="الشركة">
+                        </div>
+                        <div class="form-group">
+                            <label>التاريخ:</label>
+                            <input type="date">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit" style="background-color: var(--accent-warning);">استعلام</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- وقوعات أخرى -->
+        <div id="sub-content-waq-other" class="waqoat-sub-content" style="display: none;">
+            <div class="action-nav" style="border-bottom: none;">
+                <button class="btn-action view-mode" id="btn-other-tarleemat">التعليمات</button>
+                <button class="btn-action view-mode" id="btn-other-mrayat">المرئيات</button>
+                <button class="btn-action view-mode" id="btn-other-moqtahat">المقترحات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= قسم التعليمات ================= -->
+    <div id="section-instructions" class="main-section" style="display: none;">
+        <div class="content-section active">
+            <h2>التعليمات والإرشادات العامة</h2>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://dkrtiuelioyshbjoocqm.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_ts5SGrWhODsG6EH5dUt9Wg_KUvsf-CF";
+
+    function switchMainTab(tabName) {
+        document.querySelectorAll('.btn-main').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.main-section').forEach(sec => sec.style.display = 'none');
+
+        if(tabName === 'lejan') {
+            document.getElementById('btn-lejan').classList.add('active');
+            document.getElementById('section-lejan').style.display = 'block';
+            switchSubTab('dawria');
+        } else if(tabName === 'waqoat') {
+            document.getElementById('btn-waqoat').classList.add('active');
+            document.getElementById('section-waqoat').style.display = 'block';
+            switchWaqoatSubTab('msf');
+        } else if(tabName === 'instructions') {
+            document.getElementById('btn-instructions').classList.add('active');
+            document.getElementById('section-instructions').style.display = 'block';
+        }
+    }
+
+    function switchSubTab(subTabName) {
+        document.querySelectorAll('.btn-sub').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.sub-section-content').forEach(sec => sec.style.display = 'none');
+
+        if(subTabName === 'dawria') {
+            document.getElementById('btn-dawria').classList.add('active');
+            document.getElementById('sub-content-dawria').style.display = 'block';
+            switchDawriaAction('sec1');
+        } else if(subTabName === 'ejtema') {
+            document.getElementById('btn-ejtema').classList.add('active');
+            document.getElementById('sub-content-ejtema').style.display = 'block';
+            switchEjtemaAction('add');
+        }
+    }
+
+    function switchDawriaAction(actionType) {
+        const ids = ['sec1', 'sec2', 'sec3', 'search', 'view'];
+        ids.forEach(id => {
+            document.getElementById(`btn-add-${id}`)?.classList.remove('active');
+            document.getElementById(`btn-search-dawria`)?.classList.remove('active');
+            document.getElementById(`btn-view-dawria`)?.classList.remove('active');
+            document.getElementById(`form-dawria-${id}`)?.classList.remove('active');
+            document.getElementById(`form-search-dawria`)?.classList.remove('active');
+            document.getElementById(`form-view-dawria`)?.classList.remove('active');
+        });
+
+        if (actionType === 'sec1' || actionType === 'sec2' || actionType === 'sec3') {
+            document.getElementById(`btn-add-${actionType}`).classList.add('active');
+            document.getElementById(`form-dawria-${actionType}`).classList.add('active');
+        } else if (actionType === 'search') {
+            document.getElementById('btn-search-dawria').classList.add('active');
+            document.getElementById('form-search-dawria').classList.add('active');
+        } else if (actionType === 'view') {
+            document.getElementById('btn-view-dawria').classList.add('active');
+            document.getElementById('form-view-dawria').classList.add('active');
+        }
+    }
+
+    function switchEjtemaAction(actionType) {
+        const ids = ['add', 'search', 'view'];
+        ids.forEach(id => {
+            document.getElementById(`btn-${id}-ejtema`).classList.remove('active');
+            document.getElementById(`form-${id}-ejtema`).classList.remove('active');
+        });
+
+        document.getElementById(`btn-${actionType}-ejtema`).classList.add('active');
+        document.getElementById(`form-${actionType}-ejtema`).classList.add('active');
+    }
+
+    // دالات التنقل لقسم الوقوعات الجديد
+    function switchWaqoatSubTab(type) {
+        document.querySelectorAll('#section-waqoat .btn-sub').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.waqoat-sub-content').forEach(sec => sec.style.display = 'none');
+
+        document.getElementById(`btn-waq-${type}`).classList.add('active');
+        document.getElementById(`sub-content-waq-${type}`).style.display = 'block';
+        
+        if(type !== 'other') {
+            switchWaqoatAction(type, 'add');
+        }
+    }
+
+    function switchWaqoatAction(parent, action) {
+        document.getElementById(`btn-add-${parent}-act`).classList.remove('active');
+        document.getElementById(`btn-search-${parent}-act`).classList.remove('active');
+        document.getElementById(`form-add-waq-${parent}`).classList.remove('active');
+        document.getElementById(`form-search-waq-${parent}`).classList.remove('active');
+
+        if(action === 'add') {
+            document.getElementById(`btn-add-${parent}-act`).classList.add('active');
+            document.getElementById(`form-add-waq-${parent}`).classList.add('active');
+        } else {
+            document.getElementById(`btn-search-${parent}-act`).classList.add('active');
+            document.getElementById(`form-search-waq-${parent}`).classList.add('active');
+        }
+    }
+
+    function handleSubmit(event, actionName) {
+        event.preventDefault();
+        alert(`تم تنفيذ الإجراء: (${actionName}). الواجهة جاهزة بالكامل لبدء الربط المباشر مع جداول قاعدة البيانات.`);
+    }
+
+    window.onload = function() {
+        switchMainTab('lejan');
+    };
+</script>
+
+</body>
+</html>
