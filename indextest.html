@@ -271,7 +271,8 @@
             <div class="action-nav">
                 <button class="btn-action add-mode" id="btn-add-sec1" onclick="switchDawriaAction('sec1')">التحضيرات الأمنية</button>
                 <button class="btn-action add-mode" id="btn-add-sec2" onclick="switchDawriaAction('sec2')">التسهيلات</button>
-                <button class="btn-action add-mode" id="btn-add-sec3" onclick="switchDawriaAction('sec3')">الفرعية للتسهيلات</button>
+                <button class="btn-action add-mode" id="btn-add-sec3" onclick="switchDawriaAction('sec3')">تسهيلات فرعية</button>
+                <button class="btn-action add-mode" id="btn-add-sec4" onclick="switchDawriaAction('sec4')">أخرى</button>
                 <button class="btn-action search-mode" id="btn-search-dawria" onclick="switchDawriaAction('search')">البحث عن لجنة</button>
                 <button class="btn-action view-mode" id="btn-view-dawria" onclick="switchDawriaAction('view')">عرض جميع اللجان حسب التاريخ</button>
             </div>
@@ -368,9 +369,9 @@
                 </form>
             </div>
 
-            <!-- النموذج 3: الفرعية للتسهيلات -->
+            <!-- النموذج 3: تسهيلات فرعية -->
             <div id="form-dawria-sec3" class="content-section">
-                <form onsubmit="handleSubmit(event, 'حفظ لجنة - الفرعية للتسهيلات')">
+                <form onsubmit="handleSubmit(event, 'حفظ لجنة - تسهيلات فرعية')">
                     <div class="form-grid">
                         <div class="form-group">
                             <label>رقم اللجنة:</label>
@@ -414,6 +415,50 @@
                         <div class="form-group full-width">
                             <label>الردود والمشفوعات:</label>
                             <textarea placeholder="اكتب تفاصيل الردود والمشفوعات..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>ملاحظة جديدة:</label>
+                            <textarea placeholder="أي ملاحظات إضافية..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">حفظ البيانات</button>
+                </form>
+            </div>
+
+            <!-- النموذج 4: أخرى (نفس خانات التسهيلات) -->
+            <div id="form-dawria-sec4" class="content-section">
+                <form onsubmit="handleSubmit(event, 'حفظ لجنة - أخرى')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>رقم اللجنة:</label>
+                            <input type="text" required placeholder="أدخل رقم اللجنة">
+                        </div>
+                        <div class="form-group">
+                            <label>موضوع اللجنة:</label>
+                            <input type="text" required placeholder="موضوع اللجنة الرئيسي">
+                        </div>
+                        <div class="form-group">
+                            <label>تاريخ اللجنة:</label>
+                            <input type="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>التسهيلات الإضافية / أخرى:</label>
+                            <input type="text" required placeholder="أدخل التفاصيل الأخرى">
+                        </div>
+                        <div class="form-group">
+                            <label>حالة اللجنة:</label>
+                            <div class="radio-group">
+                                <label class="radio-label"><input type="radio" name="status_sec4" value="مفتوح" checked> مفتوح</label>
+                                <label class="radio-label"><input type="radio" name="status_sec4" value="مغلق"> مغلق</label>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>تجهيز المواضيع:</label>
+                            <textarea placeholder="اكتب تجهيز المواضيع هنا بالتفصيل..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>التحضير:</label>
+                            <textarea placeholder="تفاصيل التحضير..."></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label>ملاحظة جديدة:</label>
@@ -911,7 +956,7 @@
     }
 
     function switchDawriaAction(actionType) {
-        const ids = ['sec1', 'sec2', 'sec3', 'search', 'view'];
+        const ids = ['sec1', 'sec2', 'sec3', 'sec4', 'search', 'view'];
         ids.forEach(id => {
             document.getElementById(`btn-add-${id}`)?.classList.remove('active');
             document.getElementById(`btn-search-dawria`)?.classList.remove('active');
@@ -921,7 +966,7 @@
             document.getElementById(`form-view-dawria`)?.classList.remove('active');
         });
 
-        if (actionType === 'sec1' || actionType === 'sec2' || actionType === 'sec3') {
+        if (actionType === 'sec1' || actionType === 'sec2' || actionType === 'sec3' || actionType === 'sec4') {
             document.getElementById(`btn-add-${actionType}`).classList.add('active');
             document.getElementById(`form-dawria-${actionType}`).classList.add('active');
         } else if (actionType === 'search') {
@@ -944,7 +989,6 @@
         document.getElementById(`form-${actionType}-ejtema`).classList.add('active');
     }
 
-    // دالات التنقل لقسم الوقوعات الجديد
     function switchWaqoatSubTab(type) {
         document.querySelectorAll('#section-waqoat .btn-sub').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.waqoat-sub-content').forEach(sec => sec.style.display = 'none');
