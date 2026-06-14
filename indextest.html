@@ -159,6 +159,46 @@
             font-size: 16px;
         }
 
+        .outgoing-records {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .outgoing-row {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) minmax(180px, 1fr) auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .btn-record {
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .btn-add-record {
+            background-color: var(--accent-success);
+        }
+
+        .btn-remove-record {
+            background-color: #dc2626;
+        }
+
+        @media (max-width: 650px) {
+            .outgoing-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
         label {
             font-weight: 600;
             color: #475569;
@@ -249,7 +289,7 @@
 
 <div class="container">
     <header>
-        <h1>نظام إدارة العمليات واللجان الإلكتروني</h1>
+        <h1>نظام إدارة اللجان</h1>
         <p>واجهة العرض الذكية والربط السحابي</p>
     </header>
 
@@ -749,9 +789,18 @@
                         </div>
 
                         <div class="section-divider">الارتباطات الإدارية</div>
-                        <div class="form-group">
-                            <label>إضافة صادر سابق:</label>
-                            <input type="text" placeholder="رقم الصادر السابق">
+                        <div class="outgoing-records">
+                            <div class="outgoing-row">
+                                <div class="form-group">
+                                    <label>رقم الصادر السابق:</label>
+                                    <input type="text" name="outgoing_number[]" placeholder="رقم الصادر السابق">
+                                </div>
+                                <div class="form-group">
+                                    <label>تاريخ الصادر:</label>
+                                    <input type="date" name="outgoing_date[]">
+                                </div>
+                                <button type="button" class="btn-record btn-add-record" onclick="addOutgoingRecord(this)" aria-label="إضافة صادر آخر" title="إضافة صادر آخر">+</button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>إضافة وارد:</label>
@@ -866,9 +915,18 @@
                         </div>
 
                         <div class="section-divider">الارتباطات الإدارية</div>
-                        <div class="form-group">
-                            <label>إضافة صادر سابق:</label>
-                            <input type="text" placeholder="رقم الصادر السابق">
+                        <div class="outgoing-records">
+                            <div class="outgoing-row">
+                                <div class="form-group">
+                                    <label>رقم الصادر السابق:</label>
+                                    <input type="text" name="outgoing_number[]" placeholder="رقم الصادر السابق">
+                                </div>
+                                <div class="form-group">
+                                    <label>تاريخ الصادر:</label>
+                                    <input type="date" name="outgoing_date[]">
+                                </div>
+                                <button type="button" class="btn-record btn-add-record" onclick="addOutgoingRecord(this)" aria-label="إضافة صادر آخر" title="إضافة صادر آخر">+</button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>إضافة وارد:</label>
@@ -1014,6 +1072,29 @@
             document.getElementById(`btn-search-${parent}-act`).classList.add('active');
             document.getElementById(`form-search-waq-${parent}`).classList.add('active');
         }
+    }
+
+    function addOutgoingRecord(button) {
+        const recordsContainer = button.closest('.outgoing-records');
+        const newRow = document.createElement('div');
+        newRow.className = 'outgoing-row';
+        newRow.innerHTML = `
+            <div class="form-group">
+                <label>رقم الصادر السابق:</label>
+                <input type="text" name="outgoing_number[]" placeholder="رقم الصادر السابق">
+            </div>
+            <div class="form-group">
+                <label>تاريخ الصادر:</label>
+                <input type="date" name="outgoing_date[]">
+            </div>
+            <button type="button" class="btn-record btn-remove-record" onclick="removeOutgoingRecord(this)" aria-label="حذف الصادر" title="حذف الصادر">−</button>
+        `;
+        recordsContainer.appendChild(newRow);
+        newRow.querySelector('input').focus();
+    }
+
+    function removeOutgoingRecord(button) {
+        button.closest('.outgoing-row').remove();
     }
 
     function handleSubmit(event, actionName) {
