@@ -116,6 +116,52 @@
         .checkbox-btn { background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; }
         .checkbox-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
         .checkbox-btn input { display: none; }
+        .ep-pick-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 6px;
+            max-height: 260px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-style: solid;
+            background: #fffdf7;
+        }
+        .ep-pick-list .checkbox-btn {
+            min-height: 34px;
+            border-radius: 7px;
+            padding: 7px 8px;
+            justify-content: flex-start;
+            text-align: right;
+            line-height: 1.25;
+            font-size: 0.78rem;
+        }
+        .ep-roster {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .ep-roster-row {
+            display: grid;
+            grid-template-columns: 72px 1fr;
+            gap: 8px;
+            align-items: center;
+            padding: 6px 8px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .ep-roster-row:last-child { border-bottom: 0; }
+        .ep-roster-row label {
+            margin: 0;
+            font-size: 0.78rem;
+            color: #555;
+        }
+        .ep-roster-row input {
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
 
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -303,8 +349,7 @@
         
         <div class="section-title"><i class="fas fa-clock"></i> أعمال المناوبة</div>
         <div class="grid-menu">
-            <div class="card" onclick="openForm('presence')"><i class="fas fa-clipboard-list"></i><span>التكميل</span></div>
-            <div class="card" onclick="window.location.href='https://saud5161.github.io/Special-document/Shifts.html'"><i class="fas fa-table"></i><span>جدول البريكات</span></div>
+            <div class="card" onclick="openForm('executivePresence')"><i class="fas fa-user-tie"></i><span>تكميل التنفيذي</span></div>
         </div>
 
         <div class="section-title"><i class="fas fa-users"></i> المسافرين الزيارة</div>
@@ -315,10 +360,6 @@
                 <span>خطأ رقم جواز</span>
             </div>
             <div class="card" onclick="openForm('passportExp')"><i class="fas fa-passport" style="opacity:0.6"></i><span>جواز منتهي</span></div>
-            <div class="card" onclick="openForm('pilgrimDeparture')">
-    <i class="fas fa-kaaba"></i>
-    <span>إشعار حاج مغادر</span>
-</div>
         </div>
 
 
@@ -326,6 +367,7 @@
         <div class="grid-menu">
             <div class="card" onclick="openForm('updut')"><i class="fas fa-sync-alt"></i><span>نقل معلومات</span></div>
             <div class="card" onclick="openForm('diffNat')"><i class="fas fa-globe"></i><span>اختلاف جنسية</span></div>
+            <div class="card" onclick="openForm('residentExecutive')"><i class="fas fa-user-shield"></i><span>تاشيرة خروج وعودة منتهية</span></div>
         </div>
 
         <div class="section-title"><i class="fas fa-globe"></i> المواطنين</div>
@@ -338,18 +380,13 @@
             <div class="card" onclick="openForm('diplomaticVisaExpired')"><i class="fas fa-id-badge"></i><span>جواز دبلوماسي تأشيرة منتهية</span></div>
         </div>
 
-        <div class="section-title"><i class="fas fa-plane-slash"></i> إشعار عن الرحلات ( ملغية / محولة )</div>
-        <div class="grid-menu">
-            <div class="card" onclick="openForm('cancelledFlights')"><i class="fas fa-ban" style="color:#d32f2f;"></i><span>رحلات ملغية</span></div>
-        </div>
-
         <div class="section-title"><i class="fas fa-folder-open"></i> أخرى</div>
         <div class="grid-menu">
             <div class="card" onclick="openForm('custom')"><i class="fas fa-edit"></i><span>نموذج جاهز</span></div>
             <div class="card" onclick="openForm('fingercon')"><i class="fas fa-fingerprint" style="color:#d32f2f;"></i><span>ارتباط بصمة</span></div>
             <div class="card" onclick="openForm('noacspt')"><i class="fas fa-hand-paper"></i><span>عدم قبول بصمة</span></div>
             <div class="card" onclick="openForm('want')"><i class="fas fa-bell"></i><span>إشعار</span></div>
-            <div class="card" onclick="openForm('stragglers')"><i class="fas fa-user-clock"></i><span>إشعار عن المتخلفين</span></div>
+            <div class="card" onclick="openForm('vipMovement')"><i class="fas fa-user"></i><span>اشعار مغادرة او قدوم</span></div>
             <div class="card" onclick="openForm('arrestBan')">
     <i class="fas fa-user-lock" style="color:#d32f2f;"></i>
     <span>إشعار قبض/منع</span>
@@ -447,6 +484,25 @@
         <div class="row"><div class="input-group"><label>كاونتر</label><input type="number" id="pr_d_cnt" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>بوابة</label><input type="number" id="pr_d_gate" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>اعمال ادارية</label><input type="number" id="pr_d_adm" class="en-num pr-dist" oninput="calcPresence()"></div></div>
         <div class="row"><div class="input-group"><label>رجال.أعمال</label><input type="number" id="pr_d_vip" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>قائمة</label><input type="number" id="pr_d_list" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>مراقب ذاتية</label><input type="number" id="pr_d_self" class="en-num pr-dist" oninput="calcPresence()"></div><div class="input-group"><label>إرشاد</label><input type="number" id="pr_d_guide" class="en-num pr-dist" oninput="calcPresence()"></div></div>
         <p id="pr_err" style="color:red;display:none;text-align:center;">العدد غير مطابق!</p>
+    </div>
+
+    <div id="form-executivePresence" class="form-section">
+        <div class="form-title">تكميل التنفيذي</div>
+        <div class="row">
+            <div class="input-group"><label>اليوم</label><input type="text" id="ep_day" readonly></div>
+            <div class="input-group"><label>التاريخ</label><input type="text" id="ep_date" readonly></div>
+        </div>
+        <div class="input-group"><label>مشرف الفترة بالمكتب التنفيذي</label><input type="text" id="ep_supervisor" placeholder="اسم المشرف مع رتبته" onchange="saveEPSupervisorName(this.value)"></div>
+        <label>قائمة المشرفين</label>
+        <div class="custom-options" id="ep_supervisor_list"></div>
+        <div class="input-group"><label>المناوبة</label><select id="ep_shift" onchange="renderEPNameLists()"><option value="ا">ا</option><option value="ب">ب</option><option value="ج">ج</option><option value="د">د</option></select></div>
+        <div class="input-group"><label>وقت المستلمين</label><div class="row"><input type="text" id="ep_staff_from" placeholder="من الساعة"><input type="text" id="ep_staff_to" placeholder="إلى الساعة"></div></div>
+        <label>قائمة المستلمين والراحات</label>
+        <div class="custom-options ep-pick-list" id="ep_people_list"></div>
+        <div class="input-group"><label>عدد المستلمين</label><input type="number" id="ep_staff_count" class="en-num" min="0" value="10" oninput="renderEPStaff(); renderEPRest();"></div>
+        <div id="ep_staff_box"></div>
+        <div class="input-group"><label>عدد الراحات</label><input type="number" id="ep_rest_count" class="en-num" min="0" value="3" oninput="renderEPRest()"></div>
+        <div id="ep_rest_box"></div>
     </div>
 
     <div id="form-visaExpiry" class="form-section">
@@ -650,6 +706,23 @@
 
     <div id="form-passportExp" class="form-section"><div class="form-title">جواز سفر منتهي</div><div class="input-group"><label>الاسم</label><input type="text" id="px_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="px_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="px_pass" class="en-num"></div><div class="input-group"><label>نوع التأشيرة</label><input type="text" id="px_visa"></div><div class="input-group"><label>المغادرة النهائية</label><input type="text" id="px_final"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="px_flight" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="px_dest"></div><div class="input-group"><label>وقت الاقلاع</label><input type="text" id="px_time"></div><div class="input-group"><label>الملاحظة</label><textarea id="px_note" rows="5">راجعنا المذكور بقصد المغادرة على متن رحلة الخطوط () رقم () والمتجهة الى () وعند الشروع في انهاء اجراءات خروجه تبين بأن جواز سفره منتهي () منذ ( يوم) مع العلم بأنه يحمل كرت صعود الى الطائرة (ويوجد- ولايوجد تمديد للجواز من السفارة)</textarea></div></div>
     <div id="form-want" class="form-section"><div class="form-title">إشعار</div><div class="input-group"><label>عدد المسافرين</label><select id="wt_count" onchange="renderWT()"><option value="1">1</option><option value="2">2</option></select></div><div id="wt_passengers"></div><div class="input-group"><label>الرحلة</label><input type="text" id="wt_flight" placeholder="قدوم/مغادرة"></div><div class="input-group"><label>السبب</label><select id="wt_reason" onchange="document.getElementById('wt_custom').style.display=this.value==='other'?'block':'none'"><option value="فترة طويلة">فترة طويلة</option><option value="قدوم من دول الصراع">قدوم من دول الصراع</option><option value="إدراج على القائمة بالاشعار">إدراج على القائمة بالاشعار</option><option value="other">أخرى</option></select><textarea id="wt_custom" style="display:none;margin-top:10px;" placeholder="اكتب السبب..."></textarea></div></div>
+    <div id="form-vipMovement" class="form-section">
+        <div class="form-title">اشعار مغادرة او قدوم</div>
+        <div class="input-group"><label>نوع الإشعار</label><select id="vm_type" onchange="updateVipMovementLabels()"><option value="اشعار مغادرة">اشعار مغادرة</option><option value="اشعار قدوم">اشعار قدوم</option></select></div>
+        <div class="input-group"><label>الاسم</label><input type="text" id="vm_name" placeholder="الاسم"></div>
+        <div class="input-group"><label>الجنسية</label><input type="text" id="vm_nat" placeholder="الجنسية"></div>
+        <div class="input-group"><label>رقم الجواز</label><input type="text" id="vm_pass" class="en-num" placeholder="رقم الجواز"></div>
+        <div class="input-group"><label>نوع الجواز</label><div class="row"><select id="vm_pass_type_select" onchange="document.getElementById('vm_pass_type').value=this.value"><option value="دبلوماسي">دبلوماسي</option><option value="خاص">خاص</option><option value="عادي">عادي</option></select><input type="text" id="vm_pass_type" value="دبلوماسي" placeholder="نوع الجواز"></div></div>
+        <div class="input-group"><label>المنصب</label><input type="text" id="vm_position" placeholder="المنصب"></div>
+        <div class="input-group"><label>رقم الإقامة</label><input type="text" id="vm_res" class="en-num" placeholder="رقم الإقامة"></div>
+        <div class="input-group"><label id="vm_dest_label">جهة المغادرة</label><input type="text" id="vm_dest" placeholder="الجهة"></div>
+        <div class="input-group"><label>رقم الرحلة</label><input type="text" id="vm_flight" class="en-num" placeholder="رقم الرحلة"></div>
+        <div class="row">
+            <div class="input-group"><label id="vm_date_label">تاريخ المغادرة</label><input type="text" id="vm_date" placeholder="التاريخ"></div>
+            <div class="input-group"><label id="vm_time_label">وقت المغادرة</label><input type="text" id="vm_time" placeholder="الوقت"></div>
+        </div>
+        <div class="input-group"><label>عدد المرافقين</label><input type="number" id="vm_companions" class="en-num" min="0" value="0"></div>
+    </div>
     <div id="form-stragglers" class="form-section">
         <div class="form-title">إشعار عن المتخلفين</div>
         <div class="row">
@@ -669,6 +742,18 @@
     <div id="form-diplomaticVisaExpired" class="form-section"><div class="form-title">جواز دبلوماسي تأشيرة منتهية</div><div class="input-group"><label>الاسم</label><input type="text" id="dpv_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="dpv_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="dpv_pass" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="dpv_dest"></div><div class="input-group"><label>نوع الجواز</label><select id="dpv_type" onchange="updateDiplomaticVisaNote()"><option value="دبلوماسي">دبلوماسي</option><option value="خاص">خاص</option></select></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="dpv_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="dpv_h" placeholder="ساعة" class="en-num"><input type="number" id="dpv_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="dpv_note" rows="4"></textarea></div></div>
     <div id="form-fingercon" class="form-section"><div class="form-title">ارتباط بصمة</div><div class="input-group"><label>الاسم</label><input type="text" id="fc_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="fc_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="fc_pass" class="en-num"></div><div class="input-group"><label>نوع التأشيرة</label><input type="text" id="fc_visa"></div><div class="input-group"><label>رقم الإقامة/الحدود</label><input type="text" id="fc_res" class="en-num"></div><div class="input-group"><label>الخطوط</label><input type="text" id="fc_air"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="fc_flight" class="en-num"></div><div class="input-group"><label>والمتجهة</label><input type="text" id="fc_dest"></div><div class="input-group"><label>جنسية الوافد الآخر</label><input type="text" id="fc_other" oninput="fillFCNote()"></div><div class="input-group"><label>النتيجة</label><select id="fc_res_type" onchange="fillFCNote()"><option value="موجود">موجود</option><option value="غير موجود">غير موجود</option></select></div><div class="input-group"><label>الملاحظة</label><textarea id="fc_note" rows="6"></textarea></div></div>
     <div id="form-noacspt" class="form-section"><div class="form-title">عدم قبول بصمة راكب</div><div class="input-group"><label>عدد المسافرين</label><select id="nf_count" onchange="renderNF()"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div id="nf_passengers"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="nf_h" placeholder="ساعة" class="en-num"><input type="number" id="nf_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="nf_gh" placeholder="ساعة" class="en-num"><input type="number" id="nf_gm" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الخطوط</label><input type="text" id="nf_air"></div><div class="input-group"><label>الملاحظة</label><textarea id="nf_note">عند الشروع في انهاء إجراءات مغادرته وتحقق من الخصائص الحيوية لم يتم قبول الخصائص الحيوية وحيث تم الاستعلام عن الخصائص الحيوية بالطرق الأربعة والنتيجة ( غير موجود ) والتشييك بنظام الممنوعين والمطلوبين ولم يوجد عليه أي ملاحظات</textarea></div></div>
+    <div id="form-residentExecutive" class="form-section">
+        <div class="form-title">تاشيرة خروج وعودة منتهية</div>
+        <div class="input-group"><label>الاسم</label><input type="text" id="rex_name" placeholder="اسم المسافر"></div>
+        <div class="input-group"><label>الجنسية</label><input type="text" id="rex_nat" placeholder="الجنسية"></div>
+        <div class="input-group"><label>رقم الجواز</label><input type="text" id="rex_pass" class="en-num" placeholder="رقم الجواز"></div>
+        <div class="input-group"><label>رقم الإقامة</label><input type="text" id="rex_res" class="en-num" placeholder="رقم الإقامة"></div>
+        <div class="input-group"><label>اسم صاحب العمل</label><input type="text" id="rex_employer" placeholder="اسم صاحب العمل"></div>
+        <div class="input-group"><label>المهنة</label><input type="text" id="rex_job" placeholder="المهنة"></div>
+        <div class="input-group"><label>رقم الرحلة</label><input type="text" id="rex_flight" class="en-num" placeholder="رقم الرحلة"></div>
+        <div class="input-group"><label>جهة القدوم</label><input type="text" id="rex_arrival" placeholder="جهة القدوم"></div>
+        <div class="input-group"><label>الملاحظة</label><textarea id="rex_note" rows="5">عند الشروع في أنهاء اجراءات دخولها ظهرت عبارة التأشيرة منتهية بتاريخ عودة نهائيه ... علماً انها برفقة ... وتم التواصل مع ... وافاد انه سيتم معالجة وضعها عن طريق ابشر لتمديد التأشيرة</textarea></div>
+    </div>
     <div id="form-updut" class="form-section"><div class="form-title">نقل معلومات</div><div class="input-group"><label>الاسم</label><input type="text" id="up_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="up_nat"></div><div class="input-group"><label>الجواز الجديد</label><input type="text" id="up_new" class="en-num"></div><div class="input-group"><label>الجواز القديم</label><input type="text" id="up_old" class="en-num"></div><div class="input-group"><label>رقم الإقامة</label><input type="text" id="up_res" class="en-num"></div><div class="input-group"><label>المهنة</label><input type="text" id="up_job"></div><div class="input-group"><label>الكفيل</label><input type="text" id="up_sponsor"></div><div class="input-group"><label>الرحلة</label><input type="text" id="up_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="up_h" placeholder="ساعة" class="en-num"><input type="number" id="up_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="up_note">نقل معلومات وتعذر النقل عن طريق ابشر بسبب وجود اكثر من المدة المسموح بها لنقل المعلومات و بحوزته الجواز الجديد والقديم</textarea></div></div>
     
     <div id="form-diffNat" class="form-section">
@@ -812,6 +897,7 @@
             if(s && s.options.length <= 1) for(let i=1;i<=max;i++) s.add(new Option(i,i));
         }
         fill('ve_d',31); fill('ve_m',12); fill('ve_days',90);
+        loadEPShiftDatabase();
 
         // جلب البيانات من ملف fly.json
         fetch('fly.json')
@@ -870,6 +956,13 @@ document.addEventListener('input', function(e) {
         if(id === 'want' && !document.getElementById('wt_passengers').innerHTML) renderWT();
         if(id === 'fingercon') fillFCNote();
         if(id === 'diplomaticVisaExpired') updateDiplomaticVisaNote();
+        if(id === 'vipMovement') {
+            const h = getTodayHijriParts();
+            const pad = (n) => n.toString().padStart(2, '0');
+            if(!document.getElementById('vm_date').value) document.getElementById('vm_date').value = `${h.year}/${pad(h.month)}/${pad(h.day)}هـ`;
+            if(!document.getElementById('vm_pass_type').value) document.getElementById('vm_pass_type').value = 'دبلوماسي';
+            updateVipMovementLabels();
+        }
         if(id === 'noacspt' && !document.getElementById('nf_passengers').innerHTML) renderNF();
         if(id === 'stragglers') {
             const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -881,6 +974,19 @@ document.addEventListener('input', function(e) {
             if(!document.getElementById('st_hall').value) document.getElementById('st_hall').value = '5';
             if(!document.getElementById('st_count').value) document.getElementById('st_count').value = 1;
             renderStragglers();
+        }
+        if(id === 'executivePresence') {
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const today = new Date();
+            const h = getTodayHijriParts();
+            const pad = (n) => n.toString().padStart(2, '0');
+            document.getElementById('ep_day').value = days[today.getDay()];
+            document.getElementById('ep_date').value = `${h.year}/${pad(h.month)}/${pad(h.day)}هـ`;
+            if(!document.getElementById('ep_staff_count').value) document.getElementById('ep_staff_count').value = 10;
+            if(!document.getElementById('ep_rest_count').value) document.getElementById('ep_rest_count').value = 3;
+            renderEPStaff();
+            renderEPRest();
+            renderEPNameLists();
         }
         if(id === 'cancelledFlights') {
             const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -921,6 +1027,8 @@ document.addEventListener('input', function(e) {
         document.getElementById('nf_passengers').innerHTML = '';
         document.getElementById('cf_flights').innerHTML = ''; 
         document.getElementById('st_passengers').innerHTML = '';
+        document.getElementById('ep_staff_box').innerHTML = '';
+        document.getElementById('ep_rest_box').innerHTML = '';
         document.getElementById('pr_abs_names_box').innerHTML = '';
         
         document.querySelectorAll('.custom-options input').forEach(c => { 
@@ -933,6 +1041,133 @@ document.addEventListener('input', function(e) {
         });
 
         currentForm = null;
+    }
+
+    const epSupervisorStorageKey = 'executivePresenceSupervisors';
+    const epPeopleStorageKey = 'executivePresencePeople';
+    const epDefaultSupervisors = [
+        'رقيب أول / فهد شاهر القحطاني',
+        'وكيل رقيب / مشاري سعد بندر العتيبي',
+        'وكيل رقيب / نواف منيف حمود القحطاني',
+        'وكيل رقيب / عبدالكريم عواض العتيبي',
+        'عريف / حسن عبدالله القفاري',
+        'وكيل رقيب / طلال دغيليب الغضياني',
+        'وكيل رقيب / ماجد فيصل السهلي'
+    ];
+    let epShiftDatabase = {};
+    let epActivePeopleInputId = null;
+    const epTemporarilyHiddenPeople = new Set();
+
+    function getEPNames(key) {
+        try {
+            const names = JSON.parse(localStorage.getItem(key) || '[]');
+            return Array.isArray(names) ? names : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function escapeEPText(text) {
+        return (text || '').replace(/[&<>"']/g, ch => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[ch]));
+    }
+
+    function saveEPName(key, name) {
+        const clean = (name || '').trim();
+        if(!clean) return;
+        const names = getEPNames(key).filter(item => item !== clean);
+        names.unshift(clean);
+        localStorage.setItem(key, JSON.stringify(names.slice(0, 40)));
+        renderEPNameLists();
+    }
+
+    function saveEPSupervisorName(name) {
+        saveEPName(epSupervisorStorageKey, name);
+    }
+
+    function saveEPPersonName(name) {
+        saveEPName(epPeopleStorageKey, name);
+    }
+
+    function uniqueEPNames(names) {
+        return names.filter((name, index, arr) => name && arr.indexOf(name) === index);
+    }
+
+    function formatEPName(person) {
+        if(typeof person === 'string') return person;
+        return `${person.rank} / ${person.name}`;
+    }
+
+    function getEPShiftNames() {
+        const shift = document.getElementById('ep_shift') ? document.getElementById('ep_shift').value : 'ا';
+        return (epShiftDatabase[shift] || []).map(formatEPName);
+    }
+
+    function loadEPShiftDatabase() {
+        return fetch('executive-shifts.json')
+            .then(response => response.json())
+            .then(data => {
+                epShiftDatabase = data || {};
+                renderEPNameLists();
+            })
+            .catch(err => console.log('تعذر تحميل قاعدة بيانات أسماء المناوبات executive-shifts.json:', err));
+    }
+
+    function renderEPList(containerId, key, type) {
+        const box = document.getElementById(containerId);
+        if(!box) return;
+        let names = getEPNames(key);
+        if(type === 'supervisor') names = uniqueEPNames([...epDefaultSupervisors, ...names]);
+        else names = uniqueEPNames([...getEPShiftNames(), ...names]).filter(name => !epTemporarilyHiddenPeople.has(name));
+        if(!names.length) {
+            box.innerHTML = '<span style="font-size:0.8rem;color:#777;">لا توجد أسماء محفوظة</span>';
+            return;
+        }
+        box.innerHTML = names.map(name => `<button type="button" class="checkbox-btn" data-name="${escapeEPText(name)}">${escapeEPText(name)}</button>`).join('');
+        box.querySelectorAll('button').forEach(btn => {
+            btn.onclick = () => {
+                if(type === 'supervisor') fillEPSupervisorName(btn.dataset.name);
+                else {
+                    fillEPPersonName(btn.dataset.name);
+                    epTemporarilyHiddenPeople.add(btn.dataset.name);
+                    renderEPNameLists();
+                }
+            };
+        });
+    }
+
+    function renderEPNameLists() {
+        renderEPList('ep_supervisor_list', epSupervisorStorageKey, 'supervisor');
+        renderEPList('ep_people_list', epPeopleStorageKey, 'people');
+    }
+
+    function fillEPSupervisorName(name) {
+        const input = document.getElementById('ep_supervisor');
+        input.value = name;
+        input.focus();
+    }
+
+    function fillEPPersonName(name) {
+        const inputs = Array.from(document.querySelectorAll('#ep_staff_box input, #ep_rest_box input'));
+        const activeInput = epActivePeopleInputId ? document.getElementById(epActivePeopleInputId) : null;
+        const input = activeInput || inputs.find(item => !item.value.trim()) || inputs[0];
+        if(input) {
+            input.value = name;
+            const currentIndex = inputs.indexOf(input);
+            const nextInput = inputs.slice(currentIndex + 1).find(item => !item.value.trim()) || inputs[currentIndex + 1];
+            if(nextInput) {
+                epActivePeopleInputId = nextInput.id;
+                nextInput.focus();
+            } else {
+                epActivePeopleInputId = input.id;
+                input.focus();
+            }
+        }
     }
 
     function toggleCustomField(divId, checkbox) {
@@ -1205,9 +1440,51 @@ function calcPresence() {
         });
     }
 
+    function renderEPStaff() {
+        const cnt = parseInt(document.getElementById('ep_staff_count').value) || 0;
+        const box = document.getElementById('ep_staff_box');
+        const saved = {};
+        box.querySelectorAll('input').forEach(input => saved[input.id] = input.value);
+        let rows = '';
+        for(let i=1; i<=cnt; i++) {
+            rows += `<div class="ep-roster-row"><label>المستلم ${i}</label><input type="text" id="ep_staff_${i}" placeholder="الرتبة / الاسم" onfocus="epActivePeopleInputId=this.id" onchange="saveEPPersonName(this.value)"></div>`;
+        }
+        box.innerHTML = `<div class="ep-roster">${rows}</div>`;
+        Object.keys(saved).forEach(id => {
+            const input = document.getElementById(id);
+            if(input) input.value = saved[id];
+        });
+    }
+
+    function renderEPRest() {
+        const cnt = parseInt(document.getElementById('ep_rest_count').value) || 0;
+        const staffCount = parseInt(document.getElementById('ep_staff_count').value) || 0;
+        const box = document.getElementById('ep_rest_box');
+        const saved = {};
+        box.querySelectorAll('input').forEach(input => saved[input.id] = input.value);
+        let rows = '';
+        for(let i=1; i<=cnt; i++) {
+            const lineNo = staffCount + i;
+            rows += `<div class="ep-roster-row"><label>راحة ${lineNo}</label><input type="text" id="ep_rest_${i}" placeholder="الرتبة / الاسم" onfocus="epActivePeopleInputId=this.id" onchange="saveEPPersonName(this.value)"></div>`;
+        }
+        box.innerHTML = `<div class="ep-roster">${rows}</div>`;
+        Object.keys(saved).forEach(id => {
+            const input = document.getElementById(id);
+            if(input) input.value = saved[id];
+        });
+    }
+
     function updateDiplomaticVisaNote() {
         const type = document.getElementById('dpv_type').value;
-        document.getElementById('dpv_note').value = `مواطن يحمل جواز ( ${type} ) وعند الشروع في مغادرته ظهرت عبارة ( التأشيرة منتهية )`;
+        document.getElementById('dpv_note').value = `التأشيرة منتهية الصلاحية لايوجد تاشيرة خروج للجواز ${type} وتتواصل مع الخارجية لاصدار التأشيرة للعلم والإحاطة سعادتكم`;
+    }
+
+    function updateVipMovementLabels() {
+        const type = document.getElementById('vm_type').value;
+        const isArrival = type === 'اشعار قدوم';
+        document.getElementById('vm_dest_label').textContent = isArrival ? 'جهة القدوم وتاريخه' : 'جهة المغادرة';
+        document.getElementById('vm_date_label').textContent = isArrival ? 'تاريخ القدوم' : 'تاريخ المغادرة';
+        document.getElementById('vm_time_label').textContent = isArrival ? 'وقت القدوم' : 'وقت المغادرة';
     }
 
     function fillFCNote() {
@@ -1271,6 +1548,33 @@ function calcPresence() {
     txt.push(``); // مسافة فارغة
     txt.push(`*وتم انهاء اجراءات خروجهم بدون ملاحظات* .`);
     txt.push(`*ولسعادتكم تحياتنا*`);
+}
+        else if(currentForm === 'executivePresence') {
+            txt.push(`الموقع: المكتب التنفيذي`);
+            txt.push(`اليوم : ${val('ep_day')}`);
+            txt.push(`التاريخ:${val('ep_date')}`);
+            txt.push(`المستلمين :`);
+            txt.push(`مشرف الفترة بالمكتب التنفيذي :`);
+            saveEPSupervisorName(val('ep_supervisor'));
+            txt.push(`${val('ep_supervisor')}`);
+            txt.push(``);
+            txt.push(`الوقت:من الساعة ${val('ep_staff_from')} إلى الساعة ${val('ep_staff_to')}`);
+
+            const staffCount = parseInt(val('ep_staff_count')) || 0;
+            for(let i=1; i<=staffCount; i++) {
+                saveEPPersonName(val(`ep_staff_${i}`));
+                txt.push(`${i}-${val(`ep_staff_${i}`)}`);
+            }
+
+            txt.push(``);
+            txt.push(`الملاحظات :`);
+            txt.push(`*الراحات*`);
+
+            const restCount = parseInt(val('ep_rest_count')) || 0;
+            for(let i=1; i<=restCount; i++) {
+                saveEPPersonName(val(`ep_rest_${i}`));
+                txt.push(`${staffCount + i}-${val(`ep_rest_${i}`)}`);
+            }
 }
         else if(currentForm === 'passError') {
             txt.push(`*اسم المسافر:* ${val('perr_name')}`);
@@ -1471,6 +1775,36 @@ function calcPresence() {
                 txt.push(`- تاريخ التخلف : ${val(`st_late_date_${i}`)}`);
             }
         }
+        else if(currentForm === 'vipMovement') {
+            const type = val('vm_type');
+            const isArrival = type === 'اشعار قدوم';
+            const destLabel = isArrival ? 'جهة القدوم وتاريخه' : 'جهة المغادرة';
+            const timeLabel = isArrival ? 'وقت القدوم' : 'وقت المغادرة';
+
+            txt.push(`*${type}*`);
+            txt.push(`*الاسم*`);
+            txt.push(`${val('vm_name')}`);
+            txt.push(`*الجنسية*`);
+            txt.push(`${val('vm_nat')}`);
+            txt.push(`*رقم الجواز*`);
+            txt.push(`${val('vm_pass')}`);
+            txt.push(`*نوع الجواز*`);
+            txt.push(`${val('vm_pass_type')}`);
+            txt.push(`*المنصب*`);
+            txt.push(`${val('vm_position')}`);
+            txt.push(`*رقم الاقامة*`);
+            txt.push(`${val('vm_res')}`);
+            txt.push(`*${destLabel}*`);
+            txt.push(`${val('vm_dest')}`);
+            if(isArrival) txt.push(`${val('vm_date')}`);
+            txt.push(`*رقم الرحلة*`);
+            txt.push(`${val('vm_flight')}`);
+            txt.push(`*${timeLabel}*`);
+            if(!isArrival) txt.push(`${val('vm_date')}`);
+            txt.push(`${val('vm_time')}`);
+            txt.push(`*عدد المرافقين:*`);
+            txt.push(`(${val('vm_companions')})`);
+        }
         else if(currentForm === 'want') {
             txt.push(`*إشعار*`);
             const cnt = val('wt_count');
@@ -1537,6 +1871,24 @@ function calcPresence() {
             txt.push(`\n*الملاحظة:*`);
             txt.push(val('fc_note'));
             txt.push('\n*بأمل اطلاع سعادتكم والتوجيه ابقائها نفسها*');
+        }
+        else if(currentForm === 'residentExecutive') {
+            txt.push(`*التنفيذي*`);
+            txt.push(``);
+            txt.push(`*الاسم:* ${val('rex_name')}`);
+            txt.push(`*الجنسية:* ${val('rex_nat')}`);
+            txt.push(`*رقم الجواز:* ${val('rex_pass')}`);
+            txt.push(`*رقم الإقامة:* ${val('rex_res')}`);
+            txt.push(`*اسم صاحب العمل :*`);
+            txt.push(`${val('rex_employer')}`);
+            txt.push(`*المهنة*:${val('rex_job')}`);
+            txt.push(`*رقم الرحلة:* ${val('rex_flight')}`);
+            txt.push(`جهة القدوم: ${val('rex_arrival')}`);
+            txt.push(``);
+            txt.push(`*الملاحظة:*`);
+            txt.push(`${val('rex_note')}`);
+            txt.push(``);
+            txt.push(`*بأمل اطلاع سعادتكم والتوجيه*`);
         }
         else if(currentForm === 'updut') {
             txt.push(`*الاسم:* ${val('up_name')}`);
