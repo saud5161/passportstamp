@@ -338,9 +338,10 @@
             <div class="card" onclick="openForm('diplomaticVisaExpired')"><i class="fas fa-id-badge"></i><span>جواز دبلوماسي تأشيرة منتهية</span></div>
         </div>
 
-        <div class="section-title"><i class="fas fa-plane-slash"></i> إشعار عن الرحلات ( ملغية / محولة )</div>
+        <div class="section-title"><i class="fas fa-plane-slash"></i> اشعار عن رحلات</div>
         <div class="grid-menu">
             <div class="card" onclick="openForm('cancelledFlights')"><i class="fas fa-ban" style="color:#d32f2f;"></i><span>رحلات ملغية</span></div>
+            <div class="card" onclick="openForm('flightNote')"><i class="fas fa-plane" style="color:#2b579a;"></i><span>ملاحظة على رحلة</span></div>
         </div>
 
         <div class="section-title"><i class="fas fa-folder-open"></i> أخرى</div>
@@ -401,6 +402,67 @@
         <div class="input-group" style="margin-top: 15px;">
             <label>السبب</label>
             <textarea id="cf_reason" rows="3" placeholder="مثال: اغلاق المجال الجوي في المطار"></textarea>
+        </div>
+    </div>
+
+    <div id="form-flightNote" class="form-section">
+        <div class="form-title">ملاحظة على رحلة</div>
+
+        <div class="row">
+            <div class="input-group"><label>اليوم</label><input type="text" id="fn_day"></div>
+            <div class="input-group"><label>التاريخ</label><input type="text" id="fn_date"></div>
+        </div>
+
+        <label>اختر الخانات المراد اضافتها</label>
+        <div class="custom-options">
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('fn_departure_time_field', this)"> وقت الاقلاع</label>
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('fn_clearance_time_field', this)"> وقت أعطى اذن الاقلاع</label>
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('fn_crew_count_field', this)"> عدد الطاقم</label>
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('fn_transit_count_field', this)"> عدد الترانزيت</label>
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('fn_passenger_count_field', this)"> عدد الركاب</label>
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('fn_manifest_time_field', this)"> وقت استلام المنفست</label>
+        </div>
+
+        <div class="row">
+            <div class="input-group"><label>الخطوط</label><input type="text" id="fn_airline" placeholder="اسم الخطوط"></div>
+            <div class="input-group"><label>رقم الرحلة</label><input type="text" id="fn_flight" list="flights_list_db" class="en-num" oninput="autoFillFlightNoteDest()"></div>
+        </div>
+
+        <div class="row">
+            <div class="input-group"><label>الوجهة</label><input type="text" id="fn_dest"></div>
+            <div id="fn_departure_time_field" style="display:none;" class="input-group"><label>وقت الاقلاع</label><input type="text" id="fn_departure_time" placeholder="مثال: 10:10"></div>
+        </div>
+
+        <div class="row">
+            <div id="fn_clearance_time_field" style="display:none;" class="input-group"><label>وقت أعطى اذن الاقلاع</label><input type="text" id="fn_clearance_time" placeholder="مثال: 8:57"></div>
+            <div id="fn_crew_count_field" style="display:none;" class="input-group"><label>عدد الطاقم</label><input type="number" id="fn_crew_count" class="en-num" min="0"></div>
+        </div>
+
+        <div class="row">
+            <div id="fn_transit_count_field" style="display:none;" class="input-group"><label>عدد الترانزيت</label><input type="number" id="fn_transit_count" class="en-num" min="0"></div>
+            <div id="fn_passenger_count_field" style="display:none;" class="input-group"><label>عدد الركاب</label><input type="number" id="fn_passenger_count" class="en-num" min="0"></div>
+        </div>
+
+        <div id="fn_manifest_time_field" style="display:none;" class="input-group">
+            <label>وقت استلام المنفست</label>
+            <input type="text" id="fn_manifest_time" placeholder="مثال: 8:30">
+        </div>
+
+        <div class="input-group">
+            <label>الملاحظة</label>
+            <textarea id="fn_note" rows="4" placeholder="اكتب الملاحظة هنا"></textarea>
+        </div>
+
+        <div class="custom-options">
+            <label class="checkbox-btn"><input type="checkbox" id="fn_add_names" onchange="toggleFlightNoteNames(this)"> إضافة أسماء</label>
+        </div>
+
+        <div id="fn_names_area" style="display:none;">
+            <div class="input-group">
+                <label>عدد الأسماء</label>
+                <input type="number" id="fn_names_count" class="en-num" min="1" value="1" oninput="renderFlightNoteNames()">
+            </div>
+            <div id="fn_names_box"></div>
         </div>
     </div>
     <div id="form-less6" class="form-section">
@@ -839,7 +901,7 @@ document.addEventListener('input', function(e) {
         if(e.target.classList.contains('en-num')) {
             let val = e.target.value;
             // السماح بالحروف الإنجليزية والأرقام للرحلات (مثل SV3255)
-            if(e.target.id.startsWith('cf_flt_')) {
+            if(e.target.id.startsWith('cf_flt_') || e.target.id === 'fn_flight') {
                 if(/[\u0600-\u06FF]/.test(val)) {
                      e.target.value = val.replace(/[\u0600-\u06FF]/g, '');
                 }
@@ -893,6 +955,18 @@ document.addEventListener('input', function(e) {
             
             if(!document.getElementById('cf_flights').innerHTML) renderCF();
         }
+        if(id === 'flightNote') {
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const today = new Date();
+            const h = getTodayHijriParts();
+            const pad = (n) => n.toString().padStart(2, '0');
+            document.getElementById('fn_day').value = days[today.getDay()];
+            document.getElementById('fn_date').value = `${h.year}/${pad(h.month)}/${pad(h.day)} هـ`;
+            if(!document.getElementById('fn_names_count').value) document.getElementById('fn_names_count').value = 1;
+            if(document.getElementById('fn_add_names').checked && !document.getElementById('fn_names_box').innerHTML) {
+                renderFlightNoteNames();
+            }
+        }
         window.scrollTo(0,0);
         if (id === 'pilgrimDeparture') {
     const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -921,16 +995,19 @@ document.addEventListener('input', function(e) {
         document.getElementById('nf_passengers').innerHTML = '';
         document.getElementById('cf_flights').innerHTML = ''; 
         document.getElementById('st_passengers').innerHTML = '';
+        document.getElementById('fn_names_box').innerHTML = '';
         document.getElementById('pr_abs_names_box').innerHTML = '';
         
         document.querySelectorAll('.custom-options input').forEach(c => { 
             c.checked = false; 
             c.parentElement.classList.remove('active'); 
         });
-        ['c_border', 'c_res', 'c_visa', 'c_entry', 'wt_custom', 'pr_abs_names_box', 'pr_err'].forEach(id => {
+        ['c_border', 'c_res', 'c_visa', 'c_entry', 'wt_custom', 'pr_abs_names_box', 'pr_err', 'fn_departure_time_field', 'fn_clearance_time_field', 'fn_crew_count_field', 'fn_transit_count_field', 'fn_passenger_count_field', 'fn_manifest_time_field'].forEach(id => {
             const el = document.getElementById(id);
             if(el) el.style.display = 'none';
         });
+        const fnNamesArea = document.getElementById('fn_names_area');
+        if(fnNamesArea) fnNamesArea.style.display = 'none';
 
         currentForm = null;
     }
@@ -947,6 +1024,42 @@ document.addEventListener('input', function(e) {
         if (match && match.dest) {
             document.getElementById(`cf_dest_${index}`).value = match.dest;
         }
+    }
+
+    function autoFillFlightNoteDest() {
+        const flight = document.getElementById('fn_flight').value.trim().toUpperCase();
+        const match = flightsDatabase.find(f => f.no && f.no.toUpperCase() === flight);
+        if(match && match.dest) {
+            document.getElementById('fn_dest').value = match.dest;
+        }
+    }
+
+    function toggleFlightNoteNames(checkbox) {
+        document.getElementById('fn_names_area').style.display = checkbox.checked ? 'block' : 'none';
+        checkbox.parentElement.classList.toggle('active', checkbox.checked);
+        if(checkbox.checked && !document.getElementById('fn_names_box').innerHTML) {
+            renderFlightNoteNames();
+        }
+    }
+
+    function renderFlightNoteNames() {
+        const count = parseInt(document.getElementById('fn_names_count').value) || 1;
+        const box = document.getElementById('fn_names_box');
+        const saved = {};
+        box.querySelectorAll('input').forEach(input => saved[input.id] = input.value);
+        box.innerHTML = '';
+        for(let i=1; i<=count; i++) {
+            box.innerHTML += `<div class="passenger-group">
+                <h5>راكب ${i}</h5>
+                <div class="input-group"><label>الاسم</label><input type="text" id="fn_name_${i}"></div>
+                <div class="input-group"><label>رقم الجواز</label><input type="text" id="fn_pass_${i}" class="en-num"></div>
+                <div class="input-group"><label>الجنسية</label><input type="text" id="fn_nat_${i}"></div>
+            </div>`;
+        }
+        Object.keys(saved).forEach(id => {
+            const input = document.getElementById(id);
+            if(input) input.value = saved[id];
+        });
     }
 function runOptionalCalc() {
     const maleBefore = parseInt(document.getElementById('calc_male_before').value) || 0;
@@ -1220,8 +1333,52 @@ function calcPresence() {
         let txt = [];
         const val = (id) => { const e=document.getElementById(id); return e?e.value.trim():''; };
         const pad = (n) => n?n.toString().padStart(2,'0'):'';
+        const isShown = (id) => {
+            const el = document.getElementById(id);
+            return el && el.style.display !== 'none';
+        };
 
-        if(currentForm === 'cancelledFlights') {
+        if(currentForm === 'flightNote') {
+            txt.push(`*اليوم :* ${val('fn_day')}`);
+            txt.push(`*التاريخ :* ${val('fn_date')}`);
+            txt.push(`———`);
+            txt.push(`*الخطوط:* ${val('fn_airline')}`);
+            txt.push(`*رقم الرحلة :* ${val('fn_flight')}`);
+            txt.push(`*الوجهة :* ${val('fn_dest')}`);
+            if(isShown('fn_departure_time_field')) txt.push(`*وقت الاقلاع :* ${val('fn_departure_time')}`);
+            if(isShown('fn_clearance_time_field')) txt.push(`*وقت أعطى اذن الاقلاع :* ${val('fn_clearance_time')}`);
+            if(isShown('fn_crew_count_field')) txt.push(`*عدد الطاقم:* ${val('fn_crew_count')}`);
+            if(isShown('fn_transit_count_field')) txt.push(`*عدد الترانزيت:* ${val('fn_transit_count')}`);
+            if(isShown('fn_passenger_count_field')) txt.push(`*عدد الركاب:* ${val('fn_passenger_count')}`);
+            if(isShown('fn_manifest_time_field')) txt.push(`*وقت استلام المنفست:* ${val('fn_manifest_time')}`);
+            txt.push(``);
+            txt.push(`———`);
+            txt.push(`*الملاحظة :*`);
+            txt.push(`${val('fn_note')}`);
+
+            if(document.getElementById('fn_add_names').checked) {
+                const count = parseInt(val('fn_names_count')) || 0;
+                const passengerRows = [];
+                for(let i=1; i<=count; i++) {
+                    const name = val(`fn_name_${i}`);
+                    const pass = val(`fn_pass_${i}`);
+                    const nat = val(`fn_nat_${i}`);
+                    if(name || pass || nat) {
+                        passengerRows.push([
+                            `الاسم / ${name}`,
+                            `رقم الجواز / ${pass}`,
+                            `الجنسية / ${nat}`
+                        ]);
+                    }
+                }
+                passengerRows.forEach((row, index) => {
+                    txt.push(``);
+                    row.forEach(line => txt.push(line));
+                    if(index < passengerRows.length - 1) txt.push(`---`);
+                });
+            }
+        }
+        else if(currentForm === 'cancelledFlights') {
             txt.push(`*الرحلات الملغية صالة ${val('cf_hall')}*`);
             txt.push(`*اليوم :* ${val('cf_day')}`);
             txt.push(`*التاريخ :* ${val('cf_date')}`);
