@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>اختيار بيانات الركاب</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <span class="eyebrow">معالجة محلية وآمنة</span>
+      <h1>اختيار بيانات الركاب</h1>
+      <p>استخرج الركاب من بيان PDF، اختر المطلوب، ثم أرسل القائمة كنص مرتب.</p>
+    </div>
+    <div class="privacy-badge">🔒 لا يتم رفع الملف إلى الإنترنت</div>
+  </header>
+
+  <main>
+    <section class="upload-panel" id="drop-zone">
+      <input id="pdf-input" type="file" accept="application/pdf,.pdf" hidden>
+      <div class="upload-icon">PDF</div>
+      <div class="upload-copy">
+        <h2>إرفاق بيان الركاب</h2>
+        <p id="file-status">اسحب ملف PDF هنا، أو اختره من الجهاز</p>
+      </div>
+      <button class="primary-button" id="choose-file" type="button">اختيار ملف PDF</button>
+    </section>
+
+    <section class="summary-bar" aria-live="polite">
+      <div><strong id="total-count">0</strong><span>إجمالي الركاب</span></div>
+      <div><strong id="visible-count">0</strong><span>نتائج البحث</span></div>
+      <div><strong id="selected-count">0</strong><span>تم اختيارهم</span></div>
+      <button id="reset-all" class="text-button danger" type="button">بدء بيان جديد</button>
+    </section>
+
+    <section class="workspace">
+      <article class="list-panel source-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="step-number">1</span>
+            <h2>قائمة جميع الركاب</h2>
+          </div>
+          <span class="hint">انقر على الراكب لإضافته</span>
+        </div>
+
+        <label class="search-box">
+          <span>⌕</span>
+          <input id="passenger-search" type="search"
+                 placeholder="ابحث بالاسم أو رقم الجواز أو المقعد..." autocomplete="off">
+          <button id="clear-search" type="button" title="تفريغ البحث">×</button>
+        </label>
+
+        <div id="source-list" class="passenger-list">
+          <div class="empty-state">
+            <span>📄</span>
+            <strong>لم يتم إرفاق بيان بعد</strong>
+            <p>ستظهر هنا أسماء الركاب فور قراءة ملف PDF.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="list-panel selected-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="step-number gold">2</span>
+            <h2>القائمة المختارة</h2>
+          </div>
+          <div class="heading-actions">
+            <button id="add-manual" class="small-button" type="button">＋ إضافة يدويًا</button>
+            <button id="clear-selected" class="small-button danger" type="button">حذف الكل</button>
+          </div>
+        </div>
+
+        <div id="selected-list" class="passenger-list editable-list">
+          <div class="empty-state">
+            <span>👤</span>
+            <strong>القائمة فارغة</strong>
+            <p>اختر الركاب من القائمة الأولى.</p>
+          </div>
+        </div>
+
+        <div class="message-preview">
+          <div class="preview-heading">
+            <h3>معاينة نص الرسالة</h3>
+            <button id="copy-message" class="small-button" type="button">نسخ النص</button>
+          </div>
+          <pre id="message-output">ستظهر الرسالة هنا بعد اختيار الركاب.</pre>
+        </div>
+
+        <button id="send-whatsapp" class="whatsapp-button" type="button" disabled>
+          <span>◉</span>
+          إرسال إلى واتساب
+        </button>
+      </article>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="vendor/pdf.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
