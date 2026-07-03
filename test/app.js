@@ -1,4 +1,4 @@
-/* global pdfjsLib */
+/* global pdfjsLib, Tesseract */
 "use strict";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "vendor/pdf.worker.min.js";
@@ -28,8 +28,23 @@ const elements = {
   clearSelected: document.getElementById("clear-selected"),
   reset: document.getElementById("reset-all"),
   addManual: document.getElementById("add-manual"),
+  alerts: document.getElementById("report-alerts"),
+  alertsCount: document.getElementById("alerts-count"),
+  imageImportPanel: document.getElementById("image-import-panel"),
+  toggleImageImport: document.getElementById("toggle-image-import"),
+  systemImageInput: document.getElementById("system-image-input"),
+  chooseSystemImage: document.getElementById("choose-system-image"),
+  analyzeSystemImage: document.getElementById("analyze-system-image"),
+  systemImagePreviewWrap: document.getElementById("system-image-preview-wrap"),
+  systemImagePreview: document.getElementById("system-image-preview"),
+  ocrStatus: document.getElementById("ocr-status"),
+  ocrProgress: document.getElementById("ocr-progress-bar"),
   toast: document.getElementById("toast")
 };
+
+let searchClearTimer = null;
+let systemImageFile = null;
+let systemImageUrl = "";
 
 function normalize(value) {
   return String(value || "")
@@ -37,6 +52,19 @@ function normalize(value) {
     .replace(/[،/]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function normalizePassport(value) {
+  return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+function comparableOcrText(value) {
+  return normalizePassport(value)
+    .replace(/[OQD]/g, "0")
+    .replace(/[IL]/g, "1")
+    .replace(/S/g, "5")
+    .replace(/Z/g, "2")
+    .replace(/G/g, "6");
 }
 
 function escapeHtml(value) {
@@ -56,7 +84,8 @@ function reportName(rawName) {
 
 function parsePassengerLines(lines) {
   const passengers = [];
-  const passengerPattern = /^(\d+)\.(.*?)\s+(?:(?:MR|MRS|MS|MISS|MSTR|PRCS)\s+)?[MFCI]\s+[A-Z]{3}\s+[A-Z]{3}\s+\S+\s+[A-Z]\s+(\d{2,3}[A-Z]?)$/i;
+  // المقعد غالبًا رقمي مثل 034C، لكنه قد يأتي كرمز تشغيلي مثل JPX1.
+  const passengerPattern = /^(\d+)\.(.*?)\s+(?:(?:MR|MRS|MS|MISS|MSTR|PRCS)\s+)?[MFCI]\s+[A-Z]{3}\s+[A-Z]{3}\s+\S+\s+[A-Z]\s+([A-Z0-9]{2,5})$/i;
   const passportPattern = /^([A-Z]{3})\s+([A-Z0-9<]+)$/i;
 
   for (let index = 0; index < lines.length; index += 1) {
@@ -162,6 +191,7 @@ async function handleFile(file) {
     elements.search.value = "";
     const flightLabel = state.flightNumber ? ` - الرحلة ${state.flightNumber}` : "";
     elements.fileStatus.textContent = `${file.name}${flightLabel} - تم استخراج ${passengers.length} راكب بنجاح`;
+    updateOcrAvailability();
     render();
     showToast(`تم استخراج ${passengers.length} راكب.`);
   } catch (error) {
@@ -171,6 +201,115 @@ async function handleFile(file) {
   } finally {
     elements.choose.disabled = false;
     elements.input.value = "";
+  }
+}
+
+function updateOcrAvailability() {
+  elements.analyzeSystemImage.disabled = !(systemImageFile && state.passengers.length);
+  if (!state.passengers.length) {
+    elements.ocrStatus.textContent = "أرفق بيان PDF أولًا، ثم اختر صورة النظام.";
+  } else if (!systemImageFile) {
+    elements.ocrStatus.textContent = "تم تجهيز قائمة الركاب. اختر الآن صورة نظام الجوازات.";
+  }
+}
+
+function setSystemImage(file) {
+  if (!file || !file.type.startsWith("image/")) {
+    showToast("يرجى اختيار صورة صحيحة بصيغة PNG أو JPG.");
+    return;
+  }
+
+  if (systemImageUrl) URL.revokeObjectURL(systemImageUrl);
+  systemImageFile = file;
+  systemImageUrl = URL.createObjectURL(file);
+  elements.systemImagePreview.src = systemImageUrl;
+  elements.systemImagePreviewWrap.classList.remove("is-empty");
+  elements.ocrProgress.style.width = "0";
+  elements.ocrStatus.textContent = state.passengers.length
+    ? `الصورة جاهزة: ${file.name}`
+    : "تم اختيار الصورة. أرفق بيان PDF قبل التحليل.";
+  updateOcrAvailability();
+}
+
+async function analyzeSystemImage() {
+  if (!systemImageFile || !state.passengers.length) {
+    showToast("أرفق بيان PDF وصورة النظام أولًا.");
+    return;
+  }
+
+  elements.analyzeSystemImage.disabled = true;
+  elements.chooseSystemImage.disabled = true;
+  elements.ocrProgress.style.width = "2%";
+  elements.ocrStatus.textContent = "جاري تجهيز محرك قراءة الصورة...";
+
+  let worker;
+  try {
+    const passportColumn = await preparePassportColumn(systemImageFile);
+    const adaptiveColumn = createAdaptiveThresholdCanvas(passportColumn);
+    const ocrPasses = [
+      { source: systemImageFile, pageMode: "11", label: "قراءة الصورة الأصلية" },
+      { source: passportColumn, pageMode: "11", label: "قراءة عمود الجوازات المحسّن" },
+      { source: adaptiveColumn, pageMode: "6", label: "إزالة الإضاءة والتموّج" }
+    ];
+    let currentPass = 0;
+
+    worker = await Tesseract.createWorker("eng", 1, {
+      workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js",
+      langPath: "https://tessdata.projectnaptha.com/4.0.0_fast",
+      corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5",
+      logger: message => {
+        const sourceProgress = message.progress || 0;
+        const overallProgress = Math.round(((currentPass + sourceProgress) / ocrPasses.length) * 100);
+        elements.ocrProgress.style.width = `${Math.max(2, overallProgress)}%`;
+        if (message.status === "recognizing text") {
+          elements.ocrStatus.textContent =
+            `${ocrPasses[currentPass]?.label || "تحليل الصورة"}... ${overallProgress}%`;
+        }
+      }
+    });
+
+    await worker.setParameters({
+      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/-",
+      preserve_interword_spaces: "1",
+      user_defined_dpi: "300"
+    });
+
+    const recognizedTexts = [];
+    for (currentPass = 0; currentPass < ocrPasses.length; currentPass += 1) {
+      await worker.setParameters({
+        tessedit_pageseg_mode: ocrPasses[currentPass].pageMode
+      });
+      const result = await worker.recognize(ocrPasses[currentPass].source, {
+        rotateAuto: currentPass === 0
+      });
+      recognizedTexts.push(result.data.text);
+    }
+
+    const matches = matchPassengersFromOcr(recognizedTexts.join("\n"));
+    let added = 0;
+
+    matches.forEach(passenger => {
+      if (!state.selected.some(selected => selected.id === passenger.id)) {
+        state.selected.push({ ...passenger });
+        added += 1;
+      }
+    });
+
+    elements.ocrProgress.style.width = "100%";
+    elements.ocrStatus.textContent = matches.length
+      ? `تمت مطابقة ${matches.length} راكب وإضافة ${added} جديد إلى القائمة المختارة.`
+      : "لم يتم العثور على رقم جواز مطابق. جرّب صورة أوضح أو أقرب للجدول.";
+    render();
+    showToast(matches.length ? `تم اختيار ${added} راكب من الصورة.` : "لم توجد مطابقات في الصورة.");
+  } catch (error) {
+    console.error("OCR error:", error);
+    elements.ocrProgress.style.width = "0";
+    elements.ocrStatus.textContent = "تعذر تحليل الصورة. تحقق من الاتصال ووضوح الصورة ثم حاول مجددًا.";
+    showToast("حدث خطأ أثناء تحليل الصورة.");
+  } finally {
+    if (worker) await worker.terminate();
+    elements.chooseSystemImage.disabled = false;
+    updateOcrAvailability();
   }
 }
 
@@ -188,6 +327,18 @@ function addPassenger(id) {
   if (!passenger) return;
   state.selected.push({ ...passenger });
   render();
+
+  if (state.query.trim()) {
+    const queryAtSelection = state.query;
+    clearTimeout(searchClearTimer);
+    searchClearTimer = setTimeout(() => {
+      if (state.query === queryAtSelection) {
+        state.query = "";
+        elements.search.value = "";
+        renderSource();
+      }
+    }, 1000);
+  }
 }
 
 function removePassenger(id) {
@@ -282,7 +433,142 @@ function messageText() {
     `${index + 1}. ${passenger.name.trim()} ${passenger.seat.trim()}\n   P/${passenger.passport.trim()}`
   ).join("\n");
 
-  return `الركاب الغير مسدد مغادرتهم على رحلة (${state.flightNumber})\n\n${passengerLines}\n\nاشعارنا فوراً عند وصول اي راكب على البوابة`;
+  return `الركاب المتبقين على رحلة (${state.flightNumber}) في نظام الجوازات\n\n${passengerLines}\n\nاشعارنا فوراً عند وصول اي راكب على البوابة`;
+}
+
+function matchPassengersFromOcr(ocrText) {
+  const compactLines = String(ocrText || "")
+    .toUpperCase()
+    .split(/\r?\n/)
+    .map(line => comparableOcrText(line))
+    .filter(line => line.length >= 5);
+
+  return state.passengers.filter(passenger => {
+    const passport = comparableOcrText(passenger.passport);
+    if (passport.length < 5) return false;
+    const lastFive = passport.slice(-5);
+    return compactLines.some(line => line.includes(passport) || line.includes(lastFive));
+  });
+}
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const url = URL.createObjectURL(file);
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("تعذر فتح الصورة."));
+    };
+    image.src = url;
+  });
+}
+
+function removeLongTableLines(canvas, pixels) {
+  const { width, height } = canvas;
+  const dark = index => pixels[index] < 105;
+  const horizontalLines = [];
+  const verticalLines = [];
+
+  for (let y = 0; y < height; y += 1) {
+    let darkPixels = 0;
+    for (let x = 0; x < width; x += 3) {
+      if (dark((y * width + x) * 4)) darkPixels += 1;
+    }
+    if (darkPixels > (width / 3) * 0.56) horizontalLines.push(y);
+  }
+
+  for (let x = 0; x < width; x += 1) {
+    let darkPixels = 0;
+    for (let y = 0; y < height; y += 4) {
+      if (dark((y * width + x) * 4)) darkPixels += 1;
+    }
+    if (darkPixels > (height / 4) * 0.62) verticalLines.push(x);
+  }
+
+  horizontalLines.forEach(y => {
+    for (let offset = -2; offset <= 2; offset += 1) {
+      const yy = y + offset;
+      if (yy < 0 || yy >= height) continue;
+      for (let x = 0; x < width; x += 1) {
+        const index = (yy * width + x) * 4;
+        pixels[index] = pixels[index + 1] = pixels[index + 2] = 255;
+      }
+    }
+  });
+
+  verticalLines.forEach(x => {
+    for (let offset = -2; offset <= 2; offset += 1) {
+      const xx = x + offset;
+      if (xx < 0 || xx >= width) continue;
+      for (let y = 0; y < height; y += 1) {
+        const index = (y * width + xx) * 4;
+        pixels[index] = pixels[index + 1] = pixels[index + 2] = 255;
+      }
+    }
+  });
+}
+
+async function preparePassportColumn(file) {
+  const image = await loadImage(file);
+  const cropX = Math.round(image.naturalWidth * 0.04);
+  const cropY = Math.round(image.naturalHeight * 0.30);
+  const cropWidth = Math.round(image.naturalWidth * 0.50);
+  const cropHeight = Math.round(image.naturalHeight * 0.60);
+  const scale = Math.max(2, Math.min(3, 1500 / Math.max(1, cropWidth)));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(cropWidth * scale);
+  canvas.height = Math.round(cropHeight * scale);
+
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  context.drawImage(
+    image,
+    cropX, cropY, cropWidth, cropHeight,
+    0, 0, canvas.width, canvas.height
+  );
+
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels = imageData.data;
+
+  for (let index = 0; index < pixels.length; index += 4) {
+    const gray = pixels[index] * 0.299 + pixels[index + 1] * 0.587 + pixels[index + 2] * 0.114;
+    const contrasted = Math.max(0, Math.min(255, (gray - 128) * 1.75 + 150));
+    pixels[index] = pixels[index + 1] = pixels[index + 2] = contrasted;
+  }
+
+  removeLongTableLines(canvas, pixels);
+  context.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
+function createAdaptiveThresholdCanvas(sourceCanvas) {
+  const blurredCanvas = document.createElement("canvas");
+  blurredCanvas.width = sourceCanvas.width;
+  blurredCanvas.height = sourceCanvas.height;
+  const blurredContext = blurredCanvas.getContext("2d", { willReadFrequently: true });
+  blurredContext.filter = "blur(18px)";
+  blurredContext.drawImage(sourceCanvas, 0, 0);
+
+  const outputCanvas = document.createElement("canvas");
+  outputCanvas.width = sourceCanvas.width;
+  outputCanvas.height = sourceCanvas.height;
+  const outputContext = outputCanvas.getContext("2d", { willReadFrequently: true });
+  outputContext.drawImage(sourceCanvas, 0, 0);
+
+  const sourceData = outputContext.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
+  const blurredData = blurredContext.getImageData(0, 0, blurredCanvas.width, blurredCanvas.height);
+
+  for (let index = 0; index < sourceData.data.length; index += 4) {
+    const value = sourceData.data[index] < blurredData.data[index] - 16 ? 0 : 255;
+    sourceData.data[index] = sourceData.data[index + 1] = sourceData.data[index + 2] = value;
+    sourceData.data[index + 3] = 255;
+  }
+
+  outputContext.putImageData(sourceData, 0, 0);
+  return outputCanvas;
 }
 
 function renderMessage() {
@@ -292,11 +578,89 @@ function renderMessage() {
   elements.send.disabled = !state.selected.length;
 }
 
+function reportWarnings() {
+  const passportGroups = new Map();
+
+  state.passengers.forEach(passenger => {
+    const passport = normalize(passenger.passport);
+    if (!passport) return;
+    if (!passportGroups.has(passport)) passportGroups.set(passport, []);
+    passportGroups.get(passport).push(passenger);
+  });
+
+  const duplicates = [...passportGroups.entries()]
+    .filter(([, passengers]) => passengers.length > 1)
+    .map(([passport, passengers]) => ({ passport, passengers }));
+
+  // المقاعد الصحيحة: ثلاثة أرقام فقط للطفل مثل 123،
+  // أو ثلاثة أرقام وحرف للمقعد المعتاد مثل 034C.
+  // الرموز التشغيلية غير القياسية مثل JPX1 تظهر ضمن التنبيهات.
+  const unclearSeats = state.passengers.filter(passenger =>
+    passenger.seat && !/^\d{3}[A-Z]?$/i.test(passenger.seat)
+  );
+
+  return { duplicates, unclearSeats };
+}
+
+function renderAlerts() {
+  if (!state.passengers.length) {
+    elements.alertsCount.textContent = "0 تنبيه";
+    elements.alerts.innerHTML = `
+      <div class="alerts-empty">
+        <span>✓</span><strong>لا توجد تنبيهات حاليًا</strong>
+        <p>سيتم فحص البيان تلقائيًا بعد إرفاقه.</p>
+      </div>`;
+    return;
+  }
+
+  const { duplicates, unclearSeats } = reportWarnings();
+  const count = duplicates.length + unclearSeats.length;
+  elements.alertsCount.textContent = `${count} ${count === 1 ? "تنبيه" : "تنبيهات"}`;
+
+  if (!count) {
+    elements.alerts.innerHTML = `
+      <div class="alerts-empty">
+        <span>✓</span><strong>تم فحص البيان ولا توجد ملاحظات</strong>
+        <p>لا توجد جوازات مكررة أو مقاعد غير واضحة.</p>
+      </div>`;
+    return;
+  }
+
+  const duplicateCards = duplicates.map(group => {
+    const passengerDetails = group.passengers.map(passenger =>
+      `<p><strong>${escapeHtml(passenger.name)}</strong> - المقعد <code>${escapeHtml(passenger.seat || "غير واضح")}</code></p>`
+    ).join("");
+
+    return `
+      <div class="report-alert duplicate">
+        <span class="report-alert-icon">≋</span>
+        <div>
+          <h3>هناك ركاب بجواز سفر مكرر</h3>
+          <p>رقم الجواز: <code>${escapeHtml(group.passport)}</code></p>
+          ${passengerDetails}
+        </div>
+      </div>`;
+  }).join("");
+
+  const seatCards = unclearSeats.map(passenger => `
+    <div class="report-alert seat-warning">
+      <span class="report-alert-icon">!</span>
+      <div>
+        <h3>الراكب ليس لديه مقعد واضح</h3>
+        <p><strong>${escapeHtml(passenger.name)}</strong></p>
+        <p>الجواز: <code>${escapeHtml(passenger.passport || "غير متوفر")}</code> - المقعد: <code>${escapeHtml(passenger.seat)}</code></p>
+      </div>
+    </div>`).join("");
+
+  elements.alerts.innerHTML = duplicateCards + seatCards;
+}
+
 function render() {
   elements.totalCount.textContent = state.passengers.length;
   renderSource();
   renderSelected();
   renderMessage();
+  renderAlerts();
 }
 
 let toastTimer;
@@ -309,6 +673,34 @@ function showToast(message) {
 
 elements.choose.addEventListener("click", () => elements.input.click());
 elements.input.addEventListener("change", event => handleFile(event.target.files[0]));
+elements.toggleImageImport.addEventListener("click", () => {
+  const collapsed = elements.imageImportPanel.classList.toggle("is-collapsed");
+  elements.toggleImageImport.setAttribute("aria-expanded", String(!collapsed));
+});
+elements.chooseSystemImage.addEventListener("click", () => elements.systemImageInput.click());
+elements.systemImageInput.addEventListener("change", event => {
+  setSystemImage(event.target.files[0]);
+  elements.systemImageInput.value = "";
+});
+elements.analyzeSystemImage.addEventListener("click", analyzeSystemImage);
+
+["dragenter", "dragover"].forEach(type => {
+  elements.chooseSystemImage.addEventListener(type, event => {
+    event.preventDefault();
+    elements.chooseSystemImage.classList.add("dragging");
+  });
+});
+
+["dragleave", "drop"].forEach(type => {
+  elements.chooseSystemImage.addEventListener(type, event => {
+    event.preventDefault();
+    elements.chooseSystemImage.classList.remove("dragging");
+  });
+});
+
+elements.chooseSystemImage.addEventListener("drop", event => {
+  setSystemImage(event.dataTransfer.files[0]);
+});
 
 ["dragenter", "dragover"].forEach(type => {
   elements.dropZone.addEventListener(type, event => {
@@ -332,6 +724,7 @@ elements.search.addEventListener("input", event => {
 });
 
 elements.clearSearch.addEventListener("click", () => {
+  clearTimeout(searchClearTimer);
   state.query = "";
   elements.search.value = "";
   renderSource();
@@ -382,6 +775,14 @@ elements.reset.addEventListener("click", () => {
   state.selected = [];
   state.query = "";
   state.flightNumber = "";
+  clearTimeout(searchClearTimer);
+  if (systemImageUrl) URL.revokeObjectURL(systemImageUrl);
+  systemImageFile = null;
+  systemImageUrl = "";
+  elements.systemImagePreview.removeAttribute("src");
+  elements.systemImagePreviewWrap.classList.add("is-empty");
+  elements.ocrProgress.style.width = "0";
+  updateOcrAvailability();
   elements.search.value = "";
   elements.fileStatus.textContent = "اسحب ملف PDF هنا، أو اختره من الجهاز";
   render();
@@ -401,3 +802,4 @@ elements.send.addEventListener("click", () => {
 });
 
 render();
+updateOcrAvailability();
