@@ -120,6 +120,30 @@ function parsePassengerLines(lines) {
   return passengers;
 }
 
+function parseInkCloudPassengerLines(lines) {
+  const passengers = [];
+  const passengerPattern =
+    /^(.+?)(MRS|MISS|MSTR|MR|MS)\s+([A-Z0-9-]{1,5})\s+([A-Z]{3})\s+([A-Z0-9#]+)\s+([A-Z]{3})-([A-Z]{3})$/i;
+
+  lines.forEach(lineValue => {
+    const line = lineValue.replace(/\s+/g, " ").trim();
+    const match = line.match(passengerPattern);
+    if (!match) return;
+
+    const passport = match[5].replace(/#+$/, "").toUpperCase();
+    passengers.push({
+      id: `ink-${passengers.length + 1}-${passport}`,
+      sourceNumber: passengers.length + 1,
+      name: reportName(match[1].toUpperCase()),
+      seat: match[3].toUpperCase(),
+      passport,
+      nationality: match[4].toUpperCase()
+    });
+  });
+
+  return passengers;
+}
+
 function extractFlightNumber(lines) {
   for (const line of lines.slice(0, 25)) {
     const match = line.toUpperCase().match(/\b([A-Z]{2}\d{2,4})\b/);
@@ -162,8 +186,13 @@ async function extractPassengers(file) {
     allLines.push(...linesFromTextContent(textContent));
   }
 
+  const alteaPassengers = parsePassengerLines(allLines);
+  const inkCloudPassengers = parseInkCloudPassengerLines(allLines);
+
   return {
-    passengers: parsePassengerLines(allLines),
+    passengers: inkCloudPassengers.length > alteaPassengers.length
+      ? inkCloudPassengers
+      : alteaPassengers,
     flightNumber: extractFlightNumber(allLines)
   };
 }
@@ -592,11 +621,11 @@ function reportWarnings() {
     .filter(([, passengers]) => passengers.length > 1)
     .map(([passport, passengers]) => ({ passport, passengers }));
 
-  // المقاعد الصحيحة: ثلاثة أرقام فقط للطفل مثل 123،
-  // أو ثلاثة أرقام وحرف للمقعد المعتاد مثل 034C.
+  // المقاعد الصحيحة: أرقام فقط للطفل مثل 123،
+  // أو رقم/أرقام وحرف للمقعد المعتاد مثل 6A و034C.
   // الرموز التشغيلية غير القياسية مثل JPX1 تظهر ضمن التنبيهات.
   const unclearSeats = state.passengers.filter(passenger =>
-    passenger.seat && !/^\d{3}[A-Z]?$/i.test(passenger.seat)
+    passenger.seat && !/^\d{1,3}[A-Z]?$/i.test(passenger.seat)
   );
 
   return { duplicates, unclearSeats };
