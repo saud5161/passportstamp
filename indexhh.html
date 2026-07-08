@@ -108,9 +108,19 @@
         /* تخصيصات النماذج */
         .passenger-group { background: #fff; border: 1px solid #eee; border-right: 4px solid var(--gold); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
         .hijri-box { background: #fdfcf5; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid var(--gold); color: #5a4a25; }
+        .l6-calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+        .l6-calc-card { background: #fff; border: 1px solid #eadba6; border-radius: 12px; padding: 12px; }
+        .l6-calc-card label { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; color: var(--primary); font-weight: 800; }
+        .l6-calc-result { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .l6-result-pill { background: #eef8f5; border: 1px solid #d2e7df; border-radius: 10px; padding: 10px; text-align: center; color: #14554b; font-weight: 800; }
+        .doc-type-title { display: flex; align-items: center; gap: 8px; margin: 10px 0 8px; color: var(--primary-dark); font-weight: 900; }
         .doc-buttons-container { display: flex; gap: 10px; margin-bottom: 15px; }
-        .doc-button { padding: 10px; flex: 1; border: none; border-radius: 8px; cursor: pointer; background: #eee; color: #555; font-weight: bold; transition: 0.3s; }
-        .doc-button.active { background: var(--primary); color: white; }
+        .doc-button { padding: 12px; flex: 1; border: 1px solid #d8e6e1; border-radius: 12px; cursor: pointer; background: #f4f7f6; color: #555; font-weight: bold; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .doc-button i { font-size: 1.2rem; }
+        .doc-button.active { background: var(--primary); color: white; box-shadow: 0 8px 18px rgba(0, 105, 92, .18); }
+        .l6-duration-box { background: #f8fbfa; border: 1px solid #e2ece8; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+        .l6-duration-box > label { color: var(--primary-dark); font-weight: 800; }
+        @media (max-width: 700px) { .l6-calc-grid, .l6-calc-result { grid-template-columns: 1fr; } .doc-buttons-container { flex-direction: column; } }
 
         .custom-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; background: #fdfdfd; padding: 10px; border: 1px dashed #ccc; border-radius: 8px; }
         .checkbox-btn { background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; }
@@ -471,19 +481,35 @@
         <div class="hijri-box">
             <label style="color:var(--primary); font-weight:bold;">تاريخ اليوم: <span id="todayHijri"></span></label>
             <hr style="border:0; border-top:1px solid #ccc; margin:10px 0;">
-            <label style="display:block; margin-bottom:8px;">حاسبة انتهاء الوثيقة (هجري):</label>
-            <div class="row">
-                <input type="number" id="hDay" placeholder="يوم" class="en-num">
-                <input type="number" id="hMonth" placeholder="شهر" class="en-num">
-                <input type="number" id="hYear" placeholder="سنة" class="en-num">
+            <div class="l6-calc-grid">
+                <div class="l6-calc-card">
+                    <label><i class="fas fa-moon"></i> حاسبة انتهاء الوثيقة (هجري)</label>
+                    <div class="row">
+                        <input type="number" id="hDay" placeholder="يوم" class="en-num" oninput="setL6CalcSource('hijri')">
+                        <input type="number" id="hMonth" placeholder="شهر" class="en-num" oninput="setL6CalcSource('hijri')">
+                        <input type="number" id="hYear" placeholder="سنة" class="en-num" oninput="setL6CalcSource('hijri')">
+                    </div>
+                </div>
+                <div class="l6-calc-card">
+                    <label><i class="fas fa-calendar-days"></i> حاسبة انتهاء الوثيقة (ميلادي)</label>
+                    <div class="row">
+                        <input type="number" id="gDay" placeholder="يوم" class="en-num" oninput="setL6CalcSource('gregorian')">
+                        <input type="number" id="gMonth" placeholder="شهر" class="en-num" oninput="setL6CalcSource('gregorian')">
+                        <input type="number" id="gYear" placeholder="سنة" class="en-num" oninput="setL6CalcSource('gregorian')">
+                    </div>
+                </div>
             </div>
-            <button onclick="calcHijriLess6()" style="width:100%; margin-top:10px; background:var(--primary); color:white; border:none; padding:12px; border-radius:8px; font-weight:bold;">احسب الفرق</button>
-            <div id="l6_res" style="text-align:center; margin-top:10px; font-weight:bold; color:#1e40af;"></div>
+            <button onclick="calcLess6()" style="width:100%; margin-top:10px; background:var(--primary); color:white; border:none; padding:12px; border-radius:8px; font-weight:bold;">احسب الفرق</button>
+            <div class="l6-calc-result">
+                <div id="l6_res" class="l6-result-pill">المدة المتبقية بالهجري تظهر هنا</div>
+                <div id="l6_greg_res" class="l6-result-pill">المدة المتبقية بالميلادي تظهر هنا</div>
+            </div>
         </div>
 
+        <div class="doc-type-title"><i class="fas fa-file-signature"></i> اختر نوع الوثيقة</div>
         <div class="doc-buttons-container">
-            <button type="button" id="passportButton" class="doc-button active" onclick="setDocType('passport')">جواز سفر</button>
-            <button type="button" id="idButton" class="doc-button" onclick="setDocType('id')">هوية</button>
+            <button type="button" id="passportButton" class="doc-button active" onclick="setDocType('passport')"><i class="fas fa-passport"></i><span>جواز سفر</span></button>
+            <button type="button" id="idButton" class="doc-button" onclick="setDocType('id')"><i class="fas fa-id-card"></i><span>هوية</span></button>
         </div>
 
         <div class="input-group"><label>عدد المسافرين</label><select id="l6_count" onchange="renderL6()"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
@@ -864,9 +890,24 @@
 <script>
     let currentForm = null;
     let l6DocType = 'passport';
+    let l6CalcSource = 'hijri';
     let flightsDatabase = []; // لتخزين بيانات ملف fly.json
 
+    function syncTextareaDefaults(root = document) {
+        root.querySelectorAll('textarea').forEach(area => {
+            if (!area.dataset.initialText) {
+                const initialText = String(area.defaultValue || area.textContent || '').trim();
+                if (initialText) area.dataset.initialText = initialText;
+            }
+
+            if (!String(area.value || '').trim() && area.dataset.initialText) {
+                area.value = area.dataset.initialText;
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        syncTextareaDefaults();
         const savedOfficer = localStorage.getItem('officerName');
         if(savedOfficer) document.getElementById('pr_officer').value = savedOfficer;
         const fill = (eid, max) => {
@@ -897,21 +938,29 @@
         document.getElementById('perr_note').value = `وعند الشروع في انهاء اجراءت مغادرته تبين وجود خطا في رقم الجواز المسجل في نظام المسافرين علما بان منفذ الدخول ( ${port} ) ولايوجد لديه تأشيرة مسجلة على رقم الجواز الصحيح`;
     }
 
-document.addEventListener('input', function(e) {
-        if(e.target.classList.contains('en-num')) {
-            let val = e.target.value;
-            // السماح بالحروف الإنجليزية والأرقام للرحلات (مثل SV3255)
-            if(e.target.id.startsWith('cf_flt_') || e.target.id === 'fn_flight') {
-                if(/[\u0600-\u06FF]/.test(val)) {
-                     e.target.value = val.replace(/[\u0600-\u06FF]/g, '');
-                }
-                return;
-            }
+function toEnglishDigits(value) {
+    return String(value ?? '')
+        .replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660))
+        .replace(/[\u06f0-\u06f9]/g, d => String(d.charCodeAt(0) - 0x06f0));
+}
 
-            // تحويل الأرقام العربية (المشرقية والفارسية) إلى أرقام إنجليزية تلقائياً
-            if(/[\u0660-\u0669\u06f0-\u06f9]/.test(val)) {
-                e.target.value = val.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
-                                  .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+document.addEventListener('input', function(e) {
+        if(!e.target.matches('input')) return;
+
+        const oldValue = e.target.value;
+        let newValue = toEnglishDigits(oldValue);
+
+        // خانات أرقام الرحلات تسمح بالحروف الإنجليزية والأرقام فقط مثل SV3255
+        if(e.target.id.startsWith('cf_flt_') || e.target.id === 'fn_flight') {
+            newValue = newValue.replace(/[\u0600-\u06FF]/g, '');
+        }
+
+        if(newValue !== oldValue) {
+            let cursor = null;
+            try { cursor = e.target.selectionStart; } catch (_) {}
+            e.target.value = newValue;
+            if(cursor !== null && typeof e.target.setSelectionRange === 'function') {
+                try { e.target.setSelectionRange(cursor, cursor); } catch (_) {}
             }
         }
     });
@@ -926,6 +975,7 @@ document.addEventListener('input', function(e) {
         document.querySelectorAll('.form-section').forEach(el => el.style.display = 'none');
         document.getElementById('form-' + id).style.display = 'block';
         currentForm = id;
+        syncTextareaDefaults(document.getElementById('form-' + id));
         
         if(id === 'less6') { displayTodayHijri(); if(!document.getElementById('l6_passengers').innerHTML) renderL6(); }
         if(id === 'visaExpiry' && !document.getElementById('ve_passengers').innerHTML) renderVE();
@@ -986,7 +1036,10 @@ document.addEventListener('input', function(e) {
         document.getElementById('fab-actions').style.display = 'none';
         document.querySelectorAll('.form-section').forEach(el => el.style.display = 'none');
 
-        document.querySelectorAll('input, textarea').forEach(input => input.value = '');
+        document.querySelectorAll('input').forEach(input => input.value = '');
+        document.querySelectorAll('textarea').forEach(area => {
+            area.value = area.dataset.initialText || area.defaultValue || '';
+        });
         document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
 
         document.getElementById('l6_passengers').innerHTML = '';
@@ -1136,51 +1189,151 @@ function getTodayHijriParts() {
     
     return { day, month, year };
 }
-function calcHijriLess6() {
-    const inputDay = parseInt(document.getElementById("hDay").value);
-    const inputMonth = parseInt(document.getElementById("hMonth").value);
-    const inputYear = parseInt(document.getElementById("hYear").value);
-
-    if (isNaN(inputDay) || isNaN(inputMonth) || isNaN(inputYear)) {
-        document.getElementById("l6_res").textContent = "الرجاء إدخال تاريخ هجري صحيح.";
-        return;
-    }
-
+function diffHijriLess6(inputDay, inputMonth, inputYear) {
     const today = getTodayHijriParts();
-
-    // الحل: توحيد الحسبة بحيث يكون العام 12 شهراً والشهر 30 يوماً (بإجمالي 360 يوم للسنة حسابياً)
-    // هذا يمنع ضياع 6 أيام عند الانتقال من سنة لأخرى
     const todayDays = (today.year * 360) + ((today.month - 1) * 30) + today.day;
     const inputDays = (inputYear * 360) + ((inputMonth - 1) * 30) + inputDay;
-    
     let totalDiff = inputDays - todayDays;
     const forward = totalDiff >= 0;
     totalDiff = Math.abs(totalDiff);
-    
-    const months = Math.floor(totalDiff / 30);
-    const days = totalDiff % 30;
+    return { months: Math.floor(totalDiff / 30), days: totalDiff % 30, forward, totalDays: totalDiff };
+}
 
-    let result = "";
-    const direction = forward ? "المتبقي" : "مرّ";
-    if(totalDiff === 0) result = "التاريخ هو اليوم.";
-    else {
-        const mText = months > 0 ? `${months} شهر` : "";
-        const dText = days > 0 ? `${days} يوم` : "";
-        if(mText && dText) result = `${direction} ${mText} و${dText}.`;
-        else if(mText) result = `${direction} ${mText}.`;
-        else result = `${direction} ${dText}.`;
+function diffGregorianLess6(targetDate) {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const target = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const forward = target >= start;
+    let from = forward ? start : target;
+    let to = forward ? target : start;
+    let months = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+    if (to.getDate() < from.getDate()) months -= 1;
+    let anchor = new Date(from.getFullYear(), from.getMonth() + months, from.getDate());
+    let days = Math.round((to - anchor) / 86400000);
+    if (days < 0) {
+        months -= 1;
+        anchor = new Date(from.getFullYear(), from.getMonth() + months, from.getDate());
+        days = Math.round((to - anchor) / 86400000);
     }
-    
-    document.getElementById("l6_res").textContent = result;
-    
-    // تحديث الحقول في المسافر الأول تلقائياً (إن وجدت)
+    return { months, days, forward };
+}
+
+function formatL6Diff(diff) {
+    const direction = diff.forward ? "المتبقي" : "مرّ";
+    if(!diff.months && !diff.days) return "التاريخ هو اليوم.";
+    const mText = diff.months > 0 ? `${diff.months} شهر` : "";
+    const dText = diff.days > 0 ? `${diff.days} يوم` : "";
+    if(mText && dText) return `${direction} ${mText} و${dText}.`;
+    if(mText) return `${direction} ${mText}.`;
+    return `${direction} ${dText}.`;
+}
+
+function getHijriFromGregorian(date) {
+    const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {year:'numeric',month:'numeric',day:'numeric'});
+    const parts = formatter.formatToParts(date);
+    return {
+        day: parseInt(parts.find(p => p.type === 'day').value),
+        month: parseInt(parts.find(p => p.type === 'month').value),
+        year: parseInt((parts.find(p => p.type === 'year') || parts.find(p => p.type === 'relatedYear')).value)
+    };
+}
+
+function hijriSerial(parts) {
+    return (parts.year * 360) + ((parts.month - 1) * 30) + parts.day;
+}
+
+function hijriToGregorianDate(day, month, year) {
+    if (![day, month, year].every(Number.isFinite) || day < 1 || day > 30 || month < 1 || month > 12 || year < 1200) {
+        return null;
+    }
+
+    const targetSerial = hijriSerial({ day, month, year });
+    const approxYear = year + 579;
+    const start = new Date(approxYear - 1, 0, 1);
+    const end = new Date(approxYear + 1, 11, 31);
+
+    for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+        const hijri = getHijriFromGregorian(date);
+        if (hijri.day === day && hijri.month === month && hijri.year === year) {
+            return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        }
+
+        if (hijriSerial(hijri) > targetSerial + 35) break;
+    }
+
+    return null;
+}
+
+function fillLess6FirstPassenger(sourceDay, sourceMonth, sourceYear, hijriDiff, gregDiff) {
     if(document.getElementById("l6_rm_1")) {
-        document.getElementById("l6_rm_1").value = months;
-        document.getElementById("l6_rd_1").value = days;
-        document.getElementById("l6_ex_d_1").value = inputDay;
-        document.getElementById("l6_ex_m_1").value = inputMonth;
-        document.getElementById("l6_ex_y_1").value = inputYear;
+        document.getElementById("l6_rm_1").value = hijriDiff.months;
+        document.getElementById("l6_rd_1").value = hijriDiff.days;
+        document.getElementById("l6_gm_1").value = gregDiff.months;
+        document.getElementById("l6_gd_1").value = gregDiff.days;
+        document.getElementById("l6_ex_d_1").value = sourceDay;
+        document.getElementById("l6_ex_m_1").value = sourceMonth;
+        document.getElementById("l6_ex_y_1").value = sourceYear;
     }
+}
+
+function setL6CalcSource(source) {
+    l6CalcSource = source;
+}
+
+function calcLess6() {
+    const hDay = parseInt(document.getElementById("hDay").value);
+    const hMonth = parseInt(document.getElementById("hMonth").value);
+    const hYear = parseInt(document.getElementById("hYear").value);
+    const gDay = parseInt(document.getElementById("gDay").value);
+    const gMonth = parseInt(document.getElementById("gMonth").value);
+    const gYear = parseInt(document.getElementById("gYear").value);
+    const hasHijri = !isNaN(hDay) && !isNaN(hMonth) && !isNaN(hYear);
+    const hasGregorian = !isNaN(gDay) && !isNaN(gMonth) && !isNaN(gYear);
+
+    if (!hasHijri && !hasGregorian) {
+        document.getElementById("l6_res").textContent = "أدخل تاريخ هجري أو ميلادي صحيح.";
+        document.getElementById("l6_greg_res").textContent = "أدخل تاريخ هجري أو ميلادي صحيح.";
+        return;
+    }
+
+    let hijriParts, gregDate, sourceDay, sourceMonth, sourceYear;
+    if (hasHijri && (!hasGregorian || l6CalcSource === 'hijri')) {
+        hijriParts = { day: hDay, month: hMonth, year: hYear };
+        gregDate = hijriToGregorianDate(hDay, hMonth, hYear);
+        sourceDay = hDay; sourceMonth = hMonth; sourceYear = hYear;
+        if (gregDate) {
+            document.getElementById("gDay").value = gregDate.getDate();
+            document.getElementById("gMonth").value = gregDate.getMonth() + 1;
+            document.getElementById("gYear").value = gregDate.getFullYear();
+        }
+    } else {
+        gregDate = new Date(gYear, gMonth - 1, gDay);
+        if (gregDate.getFullYear() !== gYear || gregDate.getMonth() !== gMonth - 1 || gregDate.getDate() !== gDay) {
+            document.getElementById("l6_res").textContent = "التاريخ الميلادي غير صحيح.";
+            document.getElementById("l6_greg_res").textContent = "التاريخ الميلادي غير صحيح.";
+            return;
+        }
+        hijriParts = getHijriFromGregorian(gregDate);
+        sourceDay = gDay; sourceMonth = gMonth; sourceYear = gYear;
+        document.getElementById("hDay").value = hijriParts.day;
+        document.getElementById("hMonth").value = hijriParts.month;
+        document.getElementById("hYear").value = hijriParts.year;
+    }
+
+    if (!gregDate || isNaN(gregDate.getTime())) {
+        document.getElementById("l6_res").textContent = "تعذر تحويل التاريخ. تحقق من اليوم والشهر والسنة.";
+        return;
+    }
+
+    const hijriDiff = diffHijriLess6(hijriParts.day, hijriParts.month, hijriParts.year);
+    const gregDiff = diffGregorianLess6(gregDate);
+    document.getElementById("l6_res").textContent = `المدة المتبقية بالهجري: ${formatL6Diff(hijriDiff)}`;
+    document.getElementById("l6_greg_res").textContent = `المدة المتبقية بالميلادي: ${formatL6Diff(gregDiff)}`;
+    fillLess6FirstPassenger(sourceDay, sourceMonth, sourceYear, hijriDiff, gregDiff);
+}
+
+function calcHijriLess6() {
+    calcLess6();
 }
     function setDocType(type) {
         const count = document.getElementById('l6_count').value;
@@ -1194,6 +1347,8 @@ function calcHijriLess6() {
                 ex_y: document.getElementById(`l6_ex_y_${i}`)?.value || '',
                 rm: document.getElementById(`l6_rm_${i}`)?.value || '',
                 rd: document.getElementById(`l6_rd_${i}`)?.value || '',
+                gm: document.getElementById(`l6_gm_${i}`)?.value || '',
+                gd: document.getElementById(`l6_gd_${i}`)?.value || '',
                 rsn: document.getElementById(`l6_rsn_${i}`)?.value || '',
                 not: document.getElementById(`l6_not_${i}`)?.value || ''
             });
@@ -1215,6 +1370,8 @@ function calcHijriLess6() {
                 if(document.getElementById(`l6_ex_y_${i}`)) document.getElementById(`l6_ex_y_${i}`).value = data.ex_y;
                 if(document.getElementById(`l6_rm_${i}`)) document.getElementById(`l6_rm_${i}`).value = data.rm;
                 if(document.getElementById(`l6_rd_${i}`)) document.getElementById(`l6_rd_${i}`).value = data.rd;
+                if(document.getElementById(`l6_gm_${i}`)) document.getElementById(`l6_gm_${i}`).value = data.gm;
+                if(document.getElementById(`l6_gd_${i}`)) document.getElementById(`l6_gd_${i}`).value = data.gd;
                 if(document.getElementById(`l6_rsn_${i}`)) document.getElementById(`l6_rsn_${i}`).value = data.rsn;
                 if(document.getElementById(`l6_not_${i}`)) document.getElementById(`l6_not_${i}`).value = data.not;
             }
@@ -1232,7 +1389,8 @@ function calcHijriLess6() {
             <div class="input-group"><label>${lbl}</label><input type="text" id="l6_num_${i}" class="en-num" style="direction:ltr"></div>
             <div class="input-group"><label>الجنسية</label><input type="text" id="l6_nat_${i}" value="سعودي"></div>
             <div class="input-group"><label>${lblExp}</label><div class="row"><input type="number" id="l6_ex_d_${i}" placeholder="يوم" class="en-num"><input type="number" id="l6_ex_m_${i}" placeholder="شهر" class="en-num"><input type="number" id="l6_ex_y_${i}" placeholder="سنة" class="en-num"></div></div>
-            <div class="input-group"><label>المدة المتبقية</label><div class="row"><input type="number" id="l6_rm_${i}" placeholder="شهر" class="en-num"><input type="number" id="l6_rd_${i}" placeholder="يوم" class="en-num"></div></div>
+            <div class="l6-duration-box"><label>المدة المتبقية بالهجري</label><div class="row"><input type="number" id="l6_rm_${i}" placeholder="شهر" class="en-num"><input type="number" id="l6_rd_${i}" placeholder="يوم" class="en-num"></div></div>
+            <div class="l6-duration-box"><label>المدة المتبقية بالميلادي</label><div class="row"><input type="number" id="l6_gm_${i}" placeholder="شهر" class="en-num"><input type="number" id="l6_gd_${i}" placeholder="يوم" class="en-num"></div></div>
             <div class="input-group"><label>سبب السفر</label><input type="text" id="l6_rsn_${i}"></div>
             <div class="input-group"><label>ملاحظة</label><textarea id="l6_not_${i}" placeholder="في حال وجود ملاحظات اضافية اكتب هنا مثل وبرفقة عائلته..."></textarea></div></div>`;
         }
@@ -1331,7 +1489,15 @@ function calcPresence() {
 
     function sendWhatsApp() {
         let txt = [];
-        const val = (id) => { const e=document.getElementById(id); return e?e.value.trim():''; };
+        const val = (id) => {
+            const e = document.getElementById(id);
+            if (!e) return '';
+            if (e.tagName !== 'TEXTAREA') return String(e.value ?? '').trim();
+            const candidates = [e.value, e.dataset.initialText, e.defaultValue, e.textContent, e.innerText];
+            const found = candidates.find(item => String(item ?? '').trim());
+            return found ? String(found).trim() : '';
+        };
+        syncTextareaDefaults();
         const pad = (n) => n?n.toString().padStart(2,'0'):'';
         const isShown = (id) => {
             const el = document.getElementById(id);
@@ -1539,7 +1705,8 @@ function calcPresence() {
                 txt.push(`*الجنسية:* ${val(`l6_nat_${i}`)}`);
                 const lblExp = l6DocType === 'passport' ? 'تاريخ انتهاء الجواز' : 'تاريخ انتهاء الهوية';
                 txt.push(`*${lblExp}:* ${val(`l6_ex_y_${i}`)}/${pad(val(`l6_ex_m_${i}`))}/${pad(val(`l6_ex_d_${i}`))}`);
-                txt.push(`*المدة المتبقية:* ${val(`l6_rm_${i}`)} شهر و ${val(`l6_rd_${i}`)} يوم`);
+                txt.push(`*المدة المتبقية بالهجري:* ${val(`l6_rm_${i}`)} شهر و ${val(`l6_rd_${i}`)} يوم`);
+                if (val(`l6_gm_${i}`) || val(`l6_gd_${i}`)) txt.push(`*المدة المتبقية بالميلادي:* ${val(`l6_gm_${i}`)} شهر و ${val(`l6_gd_${i}`)} يوم`);
                 txt.push(`*سبب السفر:* ${val(`l6_rsn_${i}`)}`);
                 
                 if (val("l6_h") || val("l6_m")) txt.push(`*وقت الإقلاع:* ${pad(val("l6_h"))}:${pad(val("l6_m"))}`);
