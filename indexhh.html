@@ -1264,15 +1264,15 @@ function hijriToGregorianDate(day, month, year) {
     return null;
 }
 
-function fillLess6FirstPassenger(sourceDay, sourceMonth, sourceYear, hijriDiff, gregDiff) {
+function fillLess6FirstPassenger(hijriParts, hijriDiff, gregDiff) {
     if(document.getElementById("l6_rm_1")) {
         document.getElementById("l6_rm_1").value = hijriDiff.months;
         document.getElementById("l6_rd_1").value = hijriDiff.days;
         document.getElementById("l6_gm_1").value = gregDiff.months;
         document.getElementById("l6_gd_1").value = gregDiff.days;
-        document.getElementById("l6_ex_d_1").value = sourceDay;
-        document.getElementById("l6_ex_m_1").value = sourceMonth;
-        document.getElementById("l6_ex_y_1").value = sourceYear;
+        document.getElementById("l6_ex_d_1").value = hijriParts.day;
+        document.getElementById("l6_ex_m_1").value = hijriParts.month;
+        document.getElementById("l6_ex_y_1").value = hijriParts.year;
     }
 }
 
@@ -1296,11 +1296,10 @@ function calcLess6() {
         return;
     }
 
-    let hijriParts, gregDate, sourceDay, sourceMonth, sourceYear;
+    let hijriParts, gregDate;
     if (hasHijri && (!hasGregorian || l6CalcSource === 'hijri')) {
         hijriParts = { day: hDay, month: hMonth, year: hYear };
         gregDate = hijriToGregorianDate(hDay, hMonth, hYear);
-        sourceDay = hDay; sourceMonth = hMonth; sourceYear = hYear;
         if (gregDate) {
             document.getElementById("gDay").value = gregDate.getDate();
             document.getElementById("gMonth").value = gregDate.getMonth() + 1;
@@ -1314,7 +1313,6 @@ function calcLess6() {
             return;
         }
         hijriParts = getHijriFromGregorian(gregDate);
-        sourceDay = gDay; sourceMonth = gMonth; sourceYear = gYear;
         document.getElementById("hDay").value = hijriParts.day;
         document.getElementById("hMonth").value = hijriParts.month;
         document.getElementById("hYear").value = hijriParts.year;
@@ -1329,7 +1327,7 @@ function calcLess6() {
     const gregDiff = diffGregorianLess6(gregDate);
     document.getElementById("l6_res").textContent = `المدة المتبقية بالهجري: ${formatL6Diff(hijriDiff)}`;
     document.getElementById("l6_greg_res").textContent = `المدة المتبقية بالميلادي: ${formatL6Diff(gregDiff)}`;
-    fillLess6FirstPassenger(sourceDay, sourceMonth, sourceYear, hijriDiff, gregDiff);
+    fillLess6FirstPassenger(hijriParts, hijriDiff, gregDiff);
 }
 
 function calcHijriLess6() {
