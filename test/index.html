@@ -31,7 +31,7 @@
     </section>
 
     <section class="image-import-panel is-collapsed" id="image-import-panel">
-      <input id="system-image-input" type="file" accept="image/*" hidden>
+      <input id="system-image-input" type="file" accept="image/*" capture="environment" hidden>
       <button class="image-import-heading" id="toggle-image-import" type="button"
               aria-expanded="false" aria-controls="image-import-body">
         <span class="step-chip">الخطوة 2</span>
@@ -52,8 +52,9 @@
           <span id="system-image-placeholder">لا توجد صورة مرفقة</span>
         </div>
         <div class="ocr-action">
+          <div id="ocr-match-flash" class="ocr-match-flash" aria-live="polite"></div>
           <button id="analyze-system-image" class="primary-button" type="button" disabled>
-            تحليل الصورة واختيار الركاب
+            إعادة تحليل الصورة
           </button>
           <div class="ocr-progress-track"><span id="ocr-progress-bar"></span></div>
           <p id="ocr-status">أرفق بيان PDF أولًا، ثم اختر صورة النظام.</p>

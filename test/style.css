@@ -199,6 +199,93 @@ main {
 .ocr-action .primary-button { width: 100%; padding: 10px 15px; }
 .ocr-action .primary-button:disabled { cursor: not-allowed; opacity: .5; box-shadow: none; }
 .ocr-action p { margin: 7px 2px 0; color: var(--muted); font-size: 10px; }
+
+.ocr-match-flash {
+  max-height: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity .28s ease, transform .28s ease, max-height .28s ease, margin-bottom .28s ease;
+}
+
+.ocr-match-flash.is-visible {
+  max-height: 170px;
+  margin-bottom: 8px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ocr-match-flash-card {
+  padding: 9px 10px;
+  border: 1px solid rgba(31, 112, 81, .18);
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(232, 247, 239, .98), rgba(255, 250, 229, .9));
+  box-shadow: inset 3px 0 0 var(--green-700), 0 8px 18px rgba(31, 112, 81, .08);
+}
+
+.ocr-match-flash-card > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  color: var(--green-900);
+  font-size: 11px;
+}
+
+.ocr-match-flash-card > div:first-child span {
+  color: #987415;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.ocr-match-flash-card.is-empty {
+  color: #a34747;
+  background: #fff5f5;
+  box-shadow: inset 3px 0 0 #df4b4b;
+}
+
+.ocr-match-flash-card.is-empty span {
+  display: block;
+  margin-top: 4px;
+  color: #a26a6a;
+  font-size: 10px;
+}
+
+.ocr-match-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ocr-match-pill {
+  padding: 5px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(31, 112, 81, .14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .78);
+  color: var(--green-900);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.ocr-match-pill small {
+  color: var(--green-700);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.ocr-match-pills em {
+  padding: 5px 8px;
+  color: #8b6f19;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .ocr-progress-track {
   height: 4px;
   margin-top: 8px;

@@ -37,6 +37,7 @@ const elements = {
   analyzeSystemImage: document.getElementById("analyze-system-image"),
   systemImagePreviewWrap: document.getElementById("system-image-preview-wrap"),
   systemImagePreview: document.getElementById("system-image-preview"),
+  ocrMatchFlash: document.getElementById("ocr-match-flash"),
   ocrStatus: document.getElementById("ocr-status"),
   ocrProgress: document.getElementById("ocr-progress-bar"),
   toast: document.getElementById("toast")
@@ -45,6 +46,9 @@ const elements = {
 let searchClearTimer = null;
 let systemImageFile = null;
 let systemImageUrl = "";
+let ocrIsAnalyzing = false;
+let ocrAutoTimer = null;
+let ocrMatchFlashTimer = null;
 
 function normalize(value) {
   return String(value || "")
@@ -56,6 +60,23 @@ function normalize(value) {
 
 function normalizePassport(value) {
   return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+function splitPassportValues(value) {
+  return String(value || "")
+    .toUpperCase()
+    .split(/[\/،,\s]+/)
+    .map(normalizePassport)
+    .filter(Boolean);
+}
+
+function joinPassports(values) {
+  const uniquePassports = [];
+  values.forEach(value => {
+    const passport = normalizePassport(value);
+    if (passport && !uniquePassports.includes(passport)) uniquePassports.push(passport);
+  });
+  return uniquePassports.join("/");
 }
 
 function comparableOcrText(value) {
@@ -86,14 +107,14 @@ function parsePassengerLines(lines) {
   const passengers = [];
   // المقعد غالبًا رقمي مثل 034C، لكنه قد يأتي كرمز تشغيلي مثل JPX1.
   const passengerPattern = /^(\d+)\.(.*?)\s+(?:(?:MR|MRS|MS|MISS|MSTR|PRCS)\s+)?[MFCI]\s+[A-Z]{3}\s+[A-Z]{3}\s+\S+\s+[A-Z]\s+([A-Z0-9]{2,5})$/i;
-  const passportPattern = /^([A-Z]{3})\s+([A-Z0-9<]+)$/i;
+  const passportPattern = /^([A-Z]{3})\s+([A-Z0-9<]{5,})(?:\s|$)/i;
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].replace(/\s+/g, " ").trim();
     const match = line.match(passengerPattern);
     if (!match) continue;
 
-    let passport = "";
+    const passports = [];
     let nationality = "";
 
     for (let next = index + 1; next < Math.min(lines.length, index + 5); next += 1) {
@@ -101,12 +122,12 @@ function parsePassengerLines(lines) {
       if (/^\d+\./.test(candidate)) break;
       const passportMatch = candidate.match(passportPattern);
       if (passportMatch) {
-        nationality = passportMatch[1].toUpperCase();
-        passport = passportMatch[2].toUpperCase();
-        break;
+        if (!nationality) nationality = passportMatch[1].toUpperCase();
+        passports.push(passportMatch[2]);
       }
     }
 
+    const passport = joinPassports(passports);
     passengers.push({
       id: `pdf-${match[1]}-${passport || index}`,
       sourceNumber: Number(match[1]),
@@ -123,14 +144,14 @@ function parsePassengerLines(lines) {
 function parseInkCloudPassengerLines(lines) {
   const passengers = [];
   const passengerPattern =
-    /^(.+?)(MRS|MISS|MSTR|MR|MS)\s+([A-Z0-9-]{1,5})\s+([A-Z]{3})\s+([A-Z0-9#]+)\s+([A-Z]{3})-([A-Z]{3})$/i;
+    /^(.+?)(MRS|MISS|MSTR|MR|MS)\s+([A-Z0-9-]{1,5})\s+([A-Z]{3})\s+([A-Z0-9#/]+)\s+([A-Z]{3})-([A-Z]{3})$/i;
 
   lines.forEach(lineValue => {
     const line = lineValue.replace(/\s+/g, " ").trim();
     const match = line.match(passengerPattern);
     if (!match) return;
 
-    const passport = match[5].replace(/#+$/, "").toUpperCase();
+    const passport = joinPassports(match[5].split("/").map(value => value.replace(/#+$/, "")));
     passengers.push({
       id: `ink-${passengers.length + 1}-${passport}`,
       sourceNumber: passengers.length + 1,
@@ -223,6 +244,7 @@ async function handleFile(file) {
     updateOcrAvailability();
     render();
     showToast(`تم استخراج ${passengers.length} راكب.`);
+    if (systemImageFile) scheduleAutoOcr();
   } catch (error) {
     console.error(error);
     elements.fileStatus.textContent = "تعذر قراءة البيان. تأكد أن الملف بنفس تنسيق تقرير Altea.";
@@ -234,12 +256,62 @@ async function handleFile(file) {
 }
 
 function updateOcrAvailability() {
-  elements.analyzeSystemImage.disabled = !(systemImageFile && state.passengers.length);
+  elements.analyzeSystemImage.disabled = !(systemImageFile && state.passengers.length) || ocrIsAnalyzing;
   if (!state.passengers.length) {
     elements.ocrStatus.textContent = "أرفق بيان PDF أولًا، ثم اختر صورة النظام.";
   } else if (!systemImageFile) {
     elements.ocrStatus.textContent = "تم تجهيز قائمة الركاب. اختر الآن صورة نظام الجوازات.";
   }
+}
+
+function scheduleAutoOcr() {
+  clearTimeout(ocrAutoTimer);
+  if (!systemImageFile || !state.passengers.length || ocrIsAnalyzing) return;
+  ocrAutoTimer = setTimeout(() => {
+    analyzeSystemImage({ automatic: true });
+  }, 250);
+}
+
+function showOcrMatchesFlash(matches, addedCount) {
+  clearTimeout(ocrMatchFlashTimer);
+
+  if (!elements.ocrMatchFlash) return;
+
+  if (!matches.length) {
+    elements.ocrMatchFlash.innerHTML = `
+      <div class="ocr-match-flash-card is-empty">
+        <strong>لم يتم العثور على ركاب مطابقين</strong>
+        <span>جرّب صورة أوضح أو قريبة من عمود أرقام الجوازات.</span>
+      </div>
+    `;
+  } else {
+    const preview = matches.slice(0, 6).map(passenger => `
+      <span class="ocr-match-pill">
+        <strong>${escapeHtml(passenger.name)}</strong>
+        <small>P/${escapeHtml(passenger.passport || "غير متوفر")}</small>
+      </span>
+    `).join("");
+    const extra = matches.length > 6 ? `<em>+${matches.length - 6} آخرين</em>` : "";
+    elements.ocrMatchFlash.innerHTML = `
+      <div class="ocr-match-flash-card">
+        <div>
+          <strong>تمت المطابقة مؤقتًا</strong>
+          <span>${matches.length} مطابق / ${addedCount} جديد</span>
+        </div>
+        <div class="ocr-match-pills">${preview}${extra}</div>
+      </div>
+    `;
+  }
+
+  elements.ocrMatchFlash.classList.add("is-visible");
+  ocrMatchFlashTimer = setTimeout(() => {
+    elements.ocrMatchFlash.classList.remove("is-visible");
+    setTimeout(() => {
+      if (!elements.ocrMatchFlash.classList.contains("is-visible")) {
+        elements.ocrMatchFlash.innerHTML = "";
+      }
+    }, 350);
+  }, 6500);
 }
 
 function setSystemImage(file) {
@@ -255,21 +327,26 @@ function setSystemImage(file) {
   elements.systemImagePreviewWrap.classList.remove("is-empty");
   elements.ocrProgress.style.width = "0";
   elements.ocrStatus.textContent = state.passengers.length
-    ? `الصورة جاهزة: ${file.name}`
+    ? `الصورة جاهزة: ${file.name} - سيبدأ التحليل تلقائيًا...`
     : "تم اختيار الصورة. أرفق بيان PDF قبل التحليل.";
   updateOcrAvailability();
+  scheduleAutoOcr();
 }
 
-async function analyzeSystemImage() {
+async function analyzeSystemImage(options = {}) {
   if (!systemImageFile || !state.passengers.length) {
     showToast("أرفق بيان PDF وصورة النظام أولًا.");
     return;
   }
+  if (ocrIsAnalyzing) return;
 
+  ocrIsAnalyzing = true;
   elements.analyzeSystemImage.disabled = true;
   elements.chooseSystemImage.disabled = true;
   elements.ocrProgress.style.width = "2%";
-  elements.ocrStatus.textContent = "جاري تجهيز محرك قراءة الصورة...";
+  elements.ocrStatus.textContent = options.automatic
+    ? "تم استلام الصورة، جاري تحليلها تلقائيًا..."
+    : "جاري تجهيز محرك قراءة الصورة...";
 
   let worker;
   try {
@@ -329,6 +406,7 @@ async function analyzeSystemImage() {
       ? `تمت مطابقة ${matches.length} راكب وإضافة ${added} جديد إلى القائمة المختارة.`
       : "لم يتم العثور على رقم جواز مطابق. جرّب صورة أوضح أو أقرب للجدول.";
     render();
+    showOcrMatchesFlash(matches, added);
     showToast(matches.length ? `تم اختيار ${added} راكب من الصورة.` : "لم توجد مطابقات في الصورة.");
   } catch (error) {
     console.error("OCR error:", error);
@@ -337,6 +415,7 @@ async function analyzeSystemImage() {
     showToast("حدث خطأ أثناء تحليل الصورة.");
   } finally {
     if (worker) await worker.terminate();
+    ocrIsAnalyzing = false;
     elements.chooseSystemImage.disabled = false;
     updateOcrAvailability();
   }
@@ -473,10 +552,12 @@ function matchPassengersFromOcr(ocrText) {
     .filter(line => line.length >= 5);
 
   return state.passengers.filter(passenger => {
-    const passport = comparableOcrText(passenger.passport);
-    if (passport.length < 5) return false;
-    const lastFive = passport.slice(-5);
-    return compactLines.some(line => line.includes(passport) || line.includes(lastFive));
+    const passports = splitPassportValues(passenger.passport).map(comparableOcrText);
+    return passports.some(passport => {
+      if (passport.length < 5) return false;
+      const lastFive = passport.slice(-5);
+      return compactLines.some(line => line.includes(passport) || line.includes(lastFive));
+    });
   });
 }
 
@@ -611,10 +692,10 @@ function reportWarnings() {
   const passportGroups = new Map();
 
   state.passengers.forEach(passenger => {
-    const passport = normalize(passenger.passport);
-    if (!passport) return;
-    if (!passportGroups.has(passport)) passportGroups.set(passport, []);
-    passportGroups.get(passport).push(passenger);
+    splitPassportValues(passenger.passport).forEach(passport => {
+      if (!passportGroups.has(passport)) passportGroups.set(passport, []);
+      passportGroups.get(passport).push(passenger);
+    });
   });
 
   const duplicates = [...passportGroups.entries()]
@@ -805,12 +886,18 @@ elements.reset.addEventListener("click", () => {
   state.query = "";
   state.flightNumber = "";
   clearTimeout(searchClearTimer);
+  clearTimeout(ocrAutoTimer);
+  clearTimeout(ocrMatchFlashTimer);
   if (systemImageUrl) URL.revokeObjectURL(systemImageUrl);
   systemImageFile = null;
   systemImageUrl = "";
   elements.systemImagePreview.removeAttribute("src");
   elements.systemImagePreviewWrap.classList.add("is-empty");
   elements.ocrProgress.style.width = "0";
+  if (elements.ocrMatchFlash) {
+    elements.ocrMatchFlash.classList.remove("is-visible");
+    elements.ocrMatchFlash.innerHTML = "";
+  }
   updateOcrAvailability();
   elements.search.value = "";
   elements.fileStatus.textContent = "اسحب ملف PDF هنا، أو اختره من الجهاز";
