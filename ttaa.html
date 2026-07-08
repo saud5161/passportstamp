@@ -932,7 +932,7 @@
         </div>
 
         <div class="scanner-actions">
-            <button type="button" class="scanner-btn secondary" onclick="capturePassportFrame()"><i class="fas fa-camera-retro"></i> التقاط وتحليل</button>
+            <button type="button" class="scanner-btn secondary" onclick="capturePassportFrame({ manual: true })"><i class="fas fa-camera-retro"></i> إعادة التقاط يدوي</button>
             <button type="button" class="scanner-btn" onclick="applyPassportScanResult()"><i class="fas fa-check"></i> تعبئة البيانات</button>
             <button type="button" class="scanner-btn ghost" onclick="closePassportScanner()">إغلاق</button>
         </div>
@@ -945,6 +945,10 @@
     let flightsDatabase = []; // لتخزين بيانات ملف fly.json
     let passportScannerStream = null;
     let passportScanData = null;
+    let passportAutoScanTimer = null;
+    let passportAutoScanActive = false;
+    let passportOcrBusy = false;
+    let passportAutoScanAttempt = 0;
 
     document.addEventListener('DOMContentLoaded', () => {
         const savedOfficer = localStorage.getItem('officerName');
@@ -2011,7 +2015,8 @@ async function openPassportScanner() {
         });
         video.srcObject = passportScannerStream;
         await video.play();
-        setPassportScanStatus('الكاميرا جاهزة. ضع الجواز داخل الإطار ثم اضغط التقاط وتحليل.', 8);
+        setPassportScanStatus('الكاميرا جاهزة. جاري البحث تلقائياً عن بيانات الجواز داخل الإطار...', 8);
+        startPassportAutoSearch();
     } catch (error) {
         console.error('Passport camera error:', error);
         setPassportScanStatus('تعذر فتح الكاميرا. تأكد من السماح للمتصفح باستخدام الكاميرا أو جرّب HTTPS/localhost.', 0);
@@ -2019,6 +2024,7 @@ async function openPassportScanner() {
 }
 
 function closePassportScanner(hideModal = true) {
+    stopPassportAutoSearch();
     if(passportScannerStream) {
         passportScannerStream.getTracks().forEach(track => track.stop());
         passportScannerStream = null;
@@ -2030,6 +2036,48 @@ function closePassportScanner(hideModal = true) {
         modal.classList.remove('active');
         modal.setAttribute('aria-hidden', 'true');
     }
+}
+
+function startPassportAutoSearch() {
+    stopPassportAutoSearch(false);
+    passportAutoScanActive = true;
+    passportAutoScanAttempt = 0;
+    schedulePassportAutoSearch(650);
+}
+
+function stopPassportAutoSearch(resetAttempt = true) {
+    passportAutoScanActive = false;
+    clearTimeout(passportAutoScanTimer);
+    passportAutoScanTimer = null;
+    if(resetAttempt) passportAutoScanAttempt = 0;
+}
+
+function schedulePassportAutoSearch(delay = 1300) {
+    clearTimeout(passportAutoScanTimer);
+    if(!passportAutoScanActive) return;
+    passportAutoScanTimer = setTimeout(() => runPassportAutoSearch(), delay);
+}
+
+async function runPassportAutoSearch() {
+    if(!passportAutoScanActive || passportOcrBusy) return schedulePassportAutoSearch(900);
+    passportAutoScanAttempt += 1;
+    setPassportScanStatus(`جاري البحث عن الجواز تلقائياً... محاولة ${passportAutoScanAttempt}`, Math.min(12 + passportAutoScanAttempt * 3, 38));
+    const data = await capturePassportFrame({ auto: true });
+    if(!passportAutoScanActive) return;
+
+    if(hasReliablePassportScan(data)) {
+        stopPassportAutoSearch(false);
+        setPassportScanStatus('تم العثور على بيانات الجواز. جاري تعبئة النموذج وإغلاق الكاميرا...', 100);
+        setTimeout(() => applyPassportScanResult(true), 650);
+        return;
+    }
+
+    setPassportScanStatus('لم تكتمل بيانات الجواز بعد. ثبّت الجواز داخل الإطار وسيستمر البحث تلقائياً...', 25);
+    schedulePassportAutoSearch(1200);
+}
+
+function hasReliablePassportScan(data) {
+    return !!(data && data.passport && data.expiry);
 }
 
 function normalizePassportOcrText(text) {
@@ -2105,17 +2153,23 @@ function parsePassportScanText(text) {
     return { name, passport, expiry };
 }
 
-async function capturePassportFrame() {
+async function capturePassportFrame(options = {}) {
+    if(passportOcrBusy) return passportScanData;
+    passportOcrBusy = true;
     const video = document.getElementById('passportScannerVideo');
     const canvas = document.getElementById('passportScannerCanvas');
     if(!video || !video.videoWidth) {
         setPassportScanStatus('الكاميرا غير جاهزة بعد.', 0);
+        passportOcrBusy = false;
         return;
     }
     if(!window.Tesseract) {
         setPassportScanStatus('محرك القراءة لم يتم تحميله. تحقق من اتصال الإنترنت ثم أعد المحاولة.', 0);
+        passportOcrBusy = false;
         return;
     }
+
+    if(options.manual) stopPassportAutoSearch(false);
 
     const scale = 1.4;
     canvas.width = Math.round(video.videoWidth * scale);
@@ -2132,13 +2186,13 @@ async function capturePassportFrame() {
     }
     ctx.putImageData(imageData, 0, 0);
 
-    setPassportScanStatus('جاري قراءة بيانات الجواز... 0%', 12);
+    setPassportScanStatus(options.auto ? 'يفحص الصورة بحثاً عن رقم الجواز والانتهاء... 0%' : 'جاري قراءة بيانات الجواز... 0%', 12);
     try {
         const result = await Tesseract.recognize(canvas, 'eng+ara', {
             logger: message => {
                 if(message.status === 'recognizing text') {
                     const pct = Math.round((message.progress || 0) * 86) + 12;
-                    setPassportScanStatus(`جاري قراءة بيانات الجواز... ${pct}%`, pct);
+                    setPassportScanStatus(options.auto ? `البحث التلقائي عن الجواز... ${pct}%` : `جاري قراءة بيانات الجواز... ${pct}%`, pct);
                 }
             }
         });
@@ -2147,10 +2201,18 @@ async function capturePassportFrame() {
         document.getElementById('scanPassportResult').value = passportScanData.passport || '';
         document.getElementById('scanExpiryResult').value = passportScanData.expiry || '';
         const found = [passportScanData.name && 'الاسم', passportScanData.passport && 'رقم الجواز', passportScanData.expiry && 'الانتهاء'].filter(Boolean).join('، ');
-        setPassportScanStatus(found ? `تم استخراج: ${found}. راجع النتيجة ثم اضغط تعبئة البيانات.` : 'لم يتم استخراج بيانات واضحة. قرّب الجواز وعدّل الإضاءة ثم أعد الالتقاط.', 100);
+        if(!options.auto) {
+            setPassportScanStatus(found ? `تم استخراج: ${found}. راجع النتيجة ثم اضغط تعبئة البيانات.` : 'لم يتم استخراج بيانات واضحة. قرّب الجواز وعدّل الإضاءة ثم أعد الالتقاط.', 100);
+        }
+        return passportScanData;
     } catch (error) {
         console.error('Passport OCR error:', error);
-        setPassportScanStatus('تعذر تحليل الصورة. جرّب صورة أوضح أو تأكد من اتصال الإنترنت لتحميل لغة OCR.', 0);
+        if(!options.auto) {
+            setPassportScanStatus('تعذر تحليل الصورة. جرّب صورة أوضح أو تأكد من اتصال الإنترنت لتحميل لغة OCR.', 0);
+        }
+        return null;
+    } finally {
+        passportOcrBusy = false;
     }
 }
 
