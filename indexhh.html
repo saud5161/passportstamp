@@ -120,6 +120,9 @@
         .doc-button.active { background: var(--primary); color: white; box-shadow: 0 8px 18px rgba(0, 105, 92, .18); }
         .l6-duration-box { background: #f8fbfa; border: 1px solid #e2ece8; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
         .l6-duration-box > label { color: var(--primary-dark); font-weight: 800; }
+        .quick-reason-buttons, .quick-airline-buttons { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+        .quick-reason-buttons button, .quick-airline-buttons button { border: 1px solid #d7e8e2; border-radius: 999px; padding: 7px 12px; background: #eef8f5; color: var(--primary-dark); font-weight: 800; cursor: pointer; transition: .2s; }
+        .quick-reason-buttons button:hover, .quick-airline-buttons button:hover { background: var(--primary); color: #fff; transform: translateY(-1px); }
         @media (max-width: 700px) { .l6-calc-grid, .l6-calc-result { grid-template-columns: 1fr; } .doc-buttons-container { flex-direction: column; } }
 
         .custom-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; background: #fdfdfd; padding: 10px; border: 1px dashed #ccc; border-radius: 8px; }
@@ -892,6 +895,8 @@
     let l6DocType = 'passport';
     let l6CalcSource = 'hijri';
     let flightsDatabase = []; // لتخزين بيانات ملف fly.json
+    const airlineInputIds = ['fn_airline', 've_air', 'pd_airline', 'perr_air', 'aa_line', 'ad_line', 'fc_air', 'nf_air'];
+    const airlineChoices = ['السعودية', 'ناس', 'اديل', 'الرياض'];
 
     function syncTextareaDefaults(root = document) {
         root.querySelectorAll('textarea').forEach(area => {
@@ -906,8 +911,39 @@
         });
     }
 
+    function setAirlineValue(inputId, airline) {
+        const input = document.getElementById(inputId);
+        if(input) {
+            input.value = airline;
+            input.focus();
+        }
+    }
+
+    function addAirlineQuickButtons() {
+        airlineInputIds.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            if(!input || document.getElementById(`${inputId}_airline_buttons`)) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'quick-airline-buttons';
+            wrapper.id = `${inputId}_airline_buttons`;
+            wrapper.innerHTML = airlineChoices.map(airline =>
+                `<button type="button" onclick="setAirlineValue('${inputId}', '${airline}')">${airline}</button>`
+            ).join('');
+
+            const rowParent = input.closest('.row');
+            const inputGroup = input.closest('.input-group');
+            if(rowParent && inputGroup && inputGroup.contains(rowParent)) {
+                rowParent.insertAdjacentElement('afterend', wrapper);
+            } else if(input.parentElement) {
+                input.insertAdjacentElement('afterend', wrapper);
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         syncTextareaDefaults();
+        addAirlineQuickButtons();
         const savedOfficer = localStorage.getItem('officerName');
         if(savedOfficer) document.getElementById('pr_officer').value = savedOfficer;
         const fill = (eid, max) => {
@@ -976,6 +1012,7 @@ document.addEventListener('input', function(e) {
         document.getElementById('form-' + id).style.display = 'block';
         currentForm = id;
         syncTextareaDefaults(document.getElementById('form-' + id));
+        addAirlineQuickButtons();
         
         if(id === 'less6') { displayTodayHijri(); if(!document.getElementById('l6_passengers').innerHTML) renderL6(); }
         if(id === 'visaExpiry' && !document.getElementById('ve_passengers').innerHTML) renderVE();
@@ -1389,8 +1426,23 @@ function calcHijriLess6() {
             <div class="input-group"><label>${lblExp}</label><div class="row"><input type="number" id="l6_ex_d_${i}" placeholder="يوم" class="en-num"><input type="number" id="l6_ex_m_${i}" placeholder="شهر" class="en-num"><input type="number" id="l6_ex_y_${i}" placeholder="سنة" class="en-num"></div></div>
             <div class="l6-duration-box"><label>المدة المتبقية بالهجري</label><div class="row"><input type="number" id="l6_rm_${i}" placeholder="شهر" class="en-num"><input type="number" id="l6_rd_${i}" placeholder="يوم" class="en-num"></div></div>
             <div class="l6-duration-box"><label>المدة المتبقية بالميلادي</label><div class="row"><input type="number" id="l6_gm_${i}" placeholder="شهر" class="en-num"><input type="number" id="l6_gd_${i}" placeholder="يوم" class="en-num"></div></div>
-            <div class="input-group"><label>سبب السفر</label><input type="text" id="l6_rsn_${i}"></div>
+            <div class="input-group"><label>سبب السفر</label><input type="text" id="l6_rsn_${i}">
+                <div class="quick-reason-buttons">
+                    <button type="button" onclick="setL6Reason(${i}, 'سياحة')">سياحة</button>
+                    <button type="button" onclick="setL6Reason(${i}, 'علاج')">علاج</button>
+                    <button type="button" onclick="setL6Reason(${i}, 'زيارة اقارب')">زيارة اقارب</button>
+                    <button type="button" onclick="setL6Reason(${i}, 'عمل')">عمل</button>
+                </div>
+            </div>
             <div class="input-group"><label>ملاحظة</label><textarea id="l6_not_${i}" placeholder="في حال وجود ملاحظات اضافية اكتب هنا مثل وبرفقة عائلته..."></textarea></div></div>`;
+        }
+    }
+
+    function setL6Reason(index, reason) {
+        const input = document.getElementById(`l6_rsn_${index}`);
+        if(input) {
+            input.value = reason;
+            input.focus();
         }
     }
 
