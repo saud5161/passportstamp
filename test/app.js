@@ -7,7 +7,8 @@ const state = {
   passengers: [],
   selected: [],
   query: "",
-  flightNumber: ""
+  flightNumber: "",
+  manifestExpectedCount: 0
 };
 
 const elements = {
@@ -144,7 +145,7 @@ function parsePassengerLines(lines) {
 function parseInkCloudPassengerLines(lines) {
   const passengers = [];
   const passengerPattern =
-    /^(.+?)(MRS|MISS|MSTR|MR|MS)\s+([A-Z0-9-]{1,5})\s+([A-Z]{3})\s+([A-Z0-9#/]+)\s+([A-Z]{3})-([A-Z]{3})$/i;
+    /^(.+?)(MASTER|MRS|MISS|MSTR|MR|MS)\s+([A-Z0-9-]{1,5})\s+([A-Z]{3})\s+([A-Z0-9#/]+)\s+([A-Z]{3})-([A-Z]{3})$/i;
 
   lines.forEach(lineValue => {
     const line = lineValue.replace(/\s+/g, " ").trim();
@@ -171,6 +172,24 @@ function extractFlightNumber(lines) {
     if (match) return match[1];
   }
   return "";
+}
+
+function extractManifestExpectedCount(lines) {
+  const subtotalCount = lines.reduce((total, line) => {
+    const match = line.replace(/\s+/g, " ").trim().match(/^Subtotal\s+(\d+)\s+Passengers\b/i);
+    return total + (match ? Number(match[1]) : 0);
+  }, 0);
+
+  if (subtotalCount) return subtotalCount;
+
+  for (const line of lines.slice(0, 30)) {
+    const match = line.replace(/\s+/g, " ").trim().match(/\bCKI Counts\s*:\s*F(\d+)\s+J(\d+)\s+W(\d+)\s+Y(\d+)/i);
+    if (match) {
+      return match.slice(1).reduce((total, value) => total + Number(value), 0);
+    }
+  }
+
+  return 0;
 }
 
 function linesFromTextContent(textContent) {
@@ -214,7 +233,8 @@ async function extractPassengers(file) {
     passengers: inkCloudPassengers.length > alteaPassengers.length
       ? inkCloudPassengers
       : alteaPassengers,
-    flightNumber: extractFlightNumber(allLines)
+    flightNumber: extractFlightNumber(allLines),
+    manifestExpectedCount: extractManifestExpectedCount(allLines)
   };
 }
 
@@ -238,9 +258,13 @@ async function handleFile(file) {
     state.selected = [];
     state.query = "";
     state.flightNumber = report.flightNumber;
+    state.manifestExpectedCount = report.manifestExpectedCount;
     elements.search.value = "";
     const flightLabel = state.flightNumber ? ` - الرحلة ${state.flightNumber}` : "";
-    elements.fileStatus.textContent = `${file.name}${flightLabel} - تم استخراج ${passengers.length} راكب بنجاح`;
+    const countLabel = state.manifestExpectedCount
+      ? ` من أصل ${state.manifestExpectedCount}`
+      : "";
+    elements.fileStatus.textContent = `${file.name}${flightLabel} - تم استخراج ${passengers.length}${countLabel} راكب بنجاح`;
     updateOcrAvailability();
     render();
     showToast(`تم استخراج ${passengers.length} راكب.`);
@@ -709,7 +733,14 @@ function reportWarnings() {
     passenger.seat && !/^\d{1,3}[A-Z]?$/i.test(passenger.seat)
   );
 
-  return { duplicates, unclearSeats };
+  const countMismatch = state.manifestExpectedCount && state.manifestExpectedCount !== state.passengers.length
+    ? {
+        expected: state.manifestExpectedCount,
+        extracted: state.passengers.length
+      }
+    : null;
+
+  return { duplicates, unclearSeats, countMismatch };
 }
 
 function renderAlerts() {
@@ -723,8 +754,8 @@ function renderAlerts() {
     return;
   }
 
-  const { duplicates, unclearSeats } = reportWarnings();
-  const count = duplicates.length + unclearSeats.length;
+  const { duplicates, unclearSeats, countMismatch } = reportWarnings();
+  const count = duplicates.length + unclearSeats.length + (countMismatch ? 1 : 0);
   elements.alertsCount.textContent = `${count} ${count === 1 ? "تنبيه" : "تنبيهات"}`;
 
   if (!count) {
@@ -762,7 +793,16 @@ function renderAlerts() {
       </div>
     </div>`).join("");
 
-  elements.alerts.innerHTML = duplicateCards + seatCards;
+  const countCard = countMismatch ? `
+    <div class="report-alert seat-warning">
+      <span class="report-alert-icon">!</span>
+      <div>
+        <h3>عدد الركاب لا يطابق مجموع المنفست</h3>
+        <p>المستخرج: <code>${escapeHtml(countMismatch.extracted)}</code> - مجموع البيان: <code>${escapeHtml(countMismatch.expected)}</code></p>
+      </div>
+    </div>` : "";
+
+  elements.alerts.innerHTML = countCard + duplicateCards + seatCards;
 }
 
 function render() {
@@ -885,6 +925,7 @@ elements.reset.addEventListener("click", () => {
   state.selected = [];
   state.query = "";
   state.flightNumber = "";
+  state.manifestExpectedCount = 0;
   clearTimeout(searchClearTimer);
   clearTimeout(ocrAutoTimer);
   clearTimeout(ocrMatchFlashTimer);
