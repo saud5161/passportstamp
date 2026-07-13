@@ -107,7 +107,7 @@ function reportName(rawName) {
 function parsePassengerLines(lines) {
   const passengers = [];
   // المقعد غالبًا رقمي مثل 034C، لكنه قد يأتي كرمز تشغيلي مثل JPX1.
-  const passengerPattern = /^(\d+)\.(.*?)\s+(?:(?:MR|MRS|MS|MISS|MSTR|PRCS)\s+)?[MFCI]\s+[A-Z]{3}\s+[A-Z]{3}\s+\S+\s+[A-Z]\s+([A-Z0-9]{2,5})$/i;
+const passengerPattern = /^(\d+)\.(.*?)\s+(?:(?:MR|MRS|MS|MISS|MSTR|PRCS)\s+)?[A-Z]\s+[A-Z]{3}\s+[A-Z]{3}\s+\S+\s+[A-Z]\s+([A-Z0-9]{2,5})$/i;
   const passportPattern = /^([A-Z]{3})\s+([A-Z0-9<]{5,})(?:\s|$)/i;
 
   for (let index = 0; index < lines.length; index += 1) {
