@@ -95,7 +95,13 @@
             <span class="step-number">1</span>
             <h2>قائمة جميع الركاب</h2>
           </div>
-          <span class="hint">انقر على الراكب لإضافته</span>
+          <div class="heading-actions">
+            <span class="hint">انقر على الراكب لإضافته</span>
+            <button id="toggle-bulk-match" class="small-button" type="button"
+                    aria-expanded="false" aria-controls="bulk-match-panel">
+              ⌕ بحث عن عدة ركاب
+            </button>
+          </div>
         </div>
 
         <label class="search-box">
@@ -104,6 +110,18 @@
                  placeholder="ابحث بالاسم أو رقم الجواز أو المقعد..." autocomplete="off">
           <button id="clear-search" type="button" title="تفريغ البحث">×</button>
         </label>
+
+        <div class="bulk-match-panel is-collapsed" id="bulk-match-panel">
+          <textarea id="bulk-match-input" class="bulk-match-textarea" rows="5"
+            placeholder="الصق أرقام جوازات أو أسماء الركاب هنا - سطر لكل راكب. يمكن لصق أرقام جوازات فقط، أو أسماء فقط، أو اسم مع رقم الجواز أو المقعد، أو حتى نفس تنسيق نص الرسالة."></textarea>
+          <div class="bulk-match-footer">
+            <span id="bulk-match-result" class="bulk-match-result"></span>
+            <div class="bulk-match-buttons">
+              <button id="bulk-match-clear" class="small-button" type="button">تفريغ</button>
+              <button id="bulk-match-run" class="primary-button" type="button">تحليل وإضافة للقائمة</button>
+            </div>
+          </div>
+        </div>
 
         <div id="source-list" class="passenger-list">
           <div class="empty-state">

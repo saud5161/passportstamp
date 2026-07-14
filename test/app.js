@@ -18,6 +18,12 @@ const elements = {
   fileStatus: document.getElementById("file-status"),
   search: document.getElementById("passenger-search"),
   clearSearch: document.getElementById("clear-search"),
+  toggleBulkMatch: document.getElementById("toggle-bulk-match"),
+  bulkMatchPanel: document.getElementById("bulk-match-panel"),
+  bulkMatchInput: document.getElementById("bulk-match-input"),
+  bulkMatchRun: document.getElementById("bulk-match-run"),
+  bulkMatchClear: document.getElementById("bulk-match-clear"),
+  bulkMatchResult: document.getElementById("bulk-match-result"),
   sourceList: document.getElementById("source-list"),
   selectedList: document.getElementById("selected-list"),
   message: document.getElementById("message-output"),
@@ -374,12 +380,13 @@ async function analyzeSystemImage(options = {}) {
 
   let worker;
   try {
-    const passportColumn = await preparePassportColumn(systemImageFile);
-    const adaptiveColumn = createAdaptiveThresholdCanvas(passportColumn);
+    let enhancedImage = null;
+    const getEnhancedImage = async () => enhancedImage || (enhancedImage = await enhanceFullImage(systemImageFile));
+
     const ocrPasses = [
-      { source: systemImageFile, pageMode: "11", label: "قراءة الصورة الأصلية" },
-      { source: passportColumn, pageMode: "11", label: "قراءة عمود الجوازات المحسّن" },
-      { source: adaptiveColumn, pageMode: "6", label: "إزالة الإضاءة والتموّج" }
+      { label: "قراءة الصورة الأصلية", rotateAuto: true, getSource: async () => systemImageFile },
+      { label: "تحسين التباين وإزالة خطوط الجدول", getSource: getEnhancedImage },
+      { label: "معالجة متقدمة للصورة الملتقطة", getSource: async () => createAdaptiveThresholdCanvas(await getEnhancedImage()) }
     ];
     let currentPass = 0;
 
@@ -398,26 +405,26 @@ async function analyzeSystemImage(options = {}) {
       }
     });
 
+    // مسافة وفاصلة مطلوبتان لقراءة الأسماء (وليس أرقام الجوازات فقط)، والمطابقة تتجاهل علامات الترقيم أصلاً.
     await worker.setParameters({
-      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/-",
+      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/,.:- ",
       preserve_interword_spaces: "1",
       user_defined_dpi: "300"
     });
 
-    const recognizedTexts = [];
+    let matches = [];
     for (currentPass = 0; currentPass < ocrPasses.length; currentPass += 1) {
-      await worker.setParameters({
-        tessedit_pageseg_mode: ocrPasses[currentPass].pageMode
+      const source = await ocrPasses[currentPass].getSource();
+      const words = await ocrWordsFromSource(worker, source, {
+        rotateAuto: !!ocrPasses[currentPass].rotateAuto
       });
-      const result = await worker.recognize(ocrPasses[currentPass].source, {
-        rotateAuto: currentPass === 0
-      });
-      recognizedTexts.push(result.data.text);
+      const rowTexts = groupWordsIntoRows(words);
+      // البحث عن رقم الجواز أولًا، ثم عن الاسم لأي راكب لم يُطابق برقم الجواز.
+      matches = matchPassengersFromBulkText(rowTexts.join("\n"));
+      if (matches.length) break;
     }
 
-    const matches = matchPassengersFromOcr(recognizedTexts.join("\n"));
     let added = 0;
-
     matches.forEach(passenger => {
       if (!state.selected.some(selected => selected.id === passenger.id)) {
         state.selected.push({ ...passenger });
@@ -428,7 +435,7 @@ async function analyzeSystemImage(options = {}) {
     elements.ocrProgress.style.width = "100%";
     elements.ocrStatus.textContent = matches.length
       ? `تمت مطابقة ${matches.length} راكب وإضافة ${added} جديد إلى القائمة المختارة.`
-      : "لم يتم العثور على رقم جواز مطابق. جرّب صورة أوضح أو أقرب للجدول.";
+      : "لم يتم العثور على راكب مطابق. جرّب صورة أوضح أو أقرب للجدول.";
     render();
     showOcrMatchesFlash(matches, added);
     showToast(matches.length ? `تم اختيار ${added} راكب من الصورة.` : "لم توجد مطابقات في الصورة.");
@@ -451,6 +458,51 @@ function filteredPassengers() {
   return state.passengers.filter(passenger =>
     normalize(`${passenger.name} ${passenger.passport} ${passenger.seat} ${passenger.nationality}`).includes(query)
   );
+}
+
+function extractPassportTokensFromText(text) {
+  return splitPassportValues(text).filter(token => token.length >= 5 && /\d/.test(token));
+}
+
+function matchPassengerByPassportToken(token) {
+  const compactToken = comparableOcrText(token);
+  return state.passengers.find(passenger =>
+    splitPassportValues(passenger.passport).some(passport => {
+      if (passport === token) return true;
+      const compactPassport = comparableOcrText(passport);
+      if (compactPassport.length < 5 || compactToken.length < 5) return false;
+      return compactPassport === compactToken || compactPassport.slice(-5) === compactToken.slice(-5);
+    })
+  );
+}
+
+function matchPassengersByNameLine(line) {
+  const normalizedLine = normalize(line);
+  if (normalizedLine.length < 3) return [];
+  return state.passengers.filter(passenger => {
+    const [surname = "", givenNames = ""] = passenger.name.split(",");
+    const surnameNorm = normalize(surname);
+    const givenNorm = normalize(givenNames).split(" ").filter(Boolean)[0] || "";
+    if (!surnameNorm) return false;
+    return givenNorm
+      ? normalizedLine.includes(surnameNorm) && normalizedLine.includes(givenNorm)
+      : normalizedLine.includes(surnameNorm);
+  });
+}
+
+function matchPassengersFromBulkText(text) {
+  const matched = new Map();
+  const addMatch = passenger => {
+    if (passenger && !matched.has(passenger.id)) matched.set(passenger.id, passenger);
+  };
+
+  extractPassportTokensFromText(text).forEach(token => addMatch(matchPassengerByPassportToken(token)));
+
+  String(text || "").split(/\r?\n/).forEach(line => {
+    if (line.trim()) matchPassengersByNameLine(line).forEach(addMatch);
+  });
+
+  return [...matched.values()];
 }
 
 function addPassenger(id) {
@@ -568,21 +620,40 @@ function messageText() {
   return `الركاب المتبقين على رحلة (${state.flightNumber}) في نظام الجوازات\n\n${passengerLines}\n\nاشعارنا فوراً عند وصول اي راكب على البوابة`;
 }
 
-function matchPassengersFromOcr(ocrText) {
-  const compactLines = String(ocrText || "")
-    .toUpperCase()
-    .split(/\r?\n/)
-    .map(line => comparableOcrText(line))
-    .filter(line => line.length >= 5);
+async function ocrWordsFromSource(worker, source, options = {}) {
+  await worker.setParameters({ tessedit_pageseg_mode: options.pageMode || "11" });
+  const result = await worker.recognize(source, { rotateAuto: !!options.rotateAuto });
+  return (result.data.words || [])
+    .filter(word => word.text && word.text.trim() && (word.confidence === undefined || word.confidence > 35))
+    .map(word => ({
+      text: word.text.trim(),
+      x: (word.bbox.x0 + word.bbox.x1) / 2,
+      y: (word.bbox.y0 + word.bbox.y1) / 2,
+      height: Math.max(1, word.bbox.y1 - word.bbox.y0)
+    }));
+}
 
-  return state.passengers.filter(passenger => {
-    const passports = splitPassportValues(passenger.passport).map(comparableOcrText);
-    return passports.some(passport => {
-      if (passport.length < 5) return false;
-      const lastFive = passport.slice(-5);
-      return compactLines.some(line => line.includes(passport) || line.includes(lastFive));
-    });
+// يجمع كلمات OCR في صفوف حسب إحداثي y بدل الاعتماد على ترتيب القراءة التلقائي،
+// كي تُقرأ جداول الأنظمة (اسم + جواز + جنسية...) بشكل صحيح بغض النظر عن ترتيب الأعمدة.
+function groupWordsIntoRows(words) {
+  if (!words.length) return [];
+  const sorted = [...words].sort((a, b) => a.y - b.y);
+  const heights = sorted.map(word => word.height).sort((a, b) => a - b);
+  const medianHeight = heights[Math.floor(heights.length / 2)] || 20;
+  const rowThreshold = Math.max(9, medianHeight * 0.65);
+
+  const rows = [];
+  sorted.forEach(word => {
+    const row = rows.find(candidate => Math.abs(candidate.y - word.y) <= rowThreshold);
+    if (row) {
+      row.words.push(word);
+      row.y = row.words.reduce((sum, item) => sum + item.y, 0) / row.words.length;
+    } else {
+      rows.push({ y: word.y, words: [word] });
+    }
   });
+
+  return rows.map(row => row.words.sort((a, b) => a.x - b.x).map(word => word.text).join(" "));
 }
 
 function loadImage(file) {
@@ -646,30 +717,22 @@ function removeLongTableLines(canvas, pixels) {
   });
 }
 
-async function preparePassportColumn(file) {
+async function enhanceFullImage(file) {
   const image = await loadImage(file);
-  const cropX = Math.round(image.naturalWidth * 0.04);
-  const cropY = Math.round(image.naturalHeight * 0.30);
-  const cropWidth = Math.round(image.naturalWidth * 0.50);
-  const cropHeight = Math.round(image.naturalHeight * 0.60);
-  const scale = Math.max(2, Math.min(3, 1500 / Math.max(1, cropWidth)));
+  const scale = Math.max(1, Math.min(2.4, 1900 / Math.max(1, image.naturalWidth)));
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(cropWidth * scale);
-  canvas.height = Math.round(cropHeight * scale);
+  canvas.width = Math.round(image.naturalWidth * scale);
+  canvas.height = Math.round(image.naturalHeight * scale);
 
   const context = canvas.getContext("2d", { willReadFrequently: true });
-  context.drawImage(
-    image,
-    cropX, cropY, cropWidth, cropHeight,
-    0, 0, canvas.width, canvas.height
-  );
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
   const pixels = imageData.data;
 
   for (let index = 0; index < pixels.length; index += 4) {
     const gray = pixels[index] * 0.299 + pixels[index + 1] * 0.587 + pixels[index + 2] * 0.114;
-    const contrasted = Math.max(0, Math.min(255, (gray - 128) * 1.75 + 150));
+    const contrasted = Math.max(0, Math.min(255, (gray - 128) * 1.6 + 148));
     pixels[index] = pixels[index + 1] = pixels[index + 2] = contrasted;
   }
 
@@ -881,6 +944,40 @@ elements.clearSearch.addEventListener("click", () => {
   elements.search.focus();
 });
 
+elements.toggleBulkMatch.addEventListener("click", () => {
+  const collapsed = elements.bulkMatchPanel.classList.toggle("is-collapsed");
+  elements.toggleBulkMatch.setAttribute("aria-expanded", String(!collapsed));
+  elements.toggleBulkMatch.classList.toggle("is-active", !collapsed);
+  if (!collapsed) elements.bulkMatchInput.focus();
+});
+
+elements.bulkMatchClear.addEventListener("click", () => {
+  elements.bulkMatchInput.value = "";
+  elements.bulkMatchResult.textContent = "";
+  elements.bulkMatchInput.focus();
+});
+
+elements.bulkMatchRun.addEventListener("click", () => {
+  const text = elements.bulkMatchInput.value.trim();
+  if (!state.passengers.length) return showToast("أرفق بيان PDF أولًا.");
+  if (!text) return showToast("الصق أسماء أو أرقام جوازات أولاً.");
+
+  const matches = matchPassengersFromBulkText(text);
+  let added = 0;
+  matches.forEach(passenger => {
+    if (!state.selected.some(selected => selected.id === passenger.id)) {
+      state.selected.push({ ...passenger });
+      added += 1;
+    }
+  });
+
+  render();
+  elements.bulkMatchResult.textContent = matches.length
+    ? `تم العثور على ${matches.length} راكب وإضافة ${added} جديد.`
+    : "لم يتم العثور على أي راكب مطابق.";
+  showToast(matches.length ? `تم إضافة ${added} راكب من القائمة الملصقة.` : "لم توجد مطابقات في النص الملصق.");
+});
+
 elements.sourceList.addEventListener("click", event => {
   const row = event.target.closest("[data-add-id]");
   if (row) addPassenger(row.dataset.addId);
@@ -941,6 +1038,11 @@ elements.reset.addEventListener("click", () => {
   }
   updateOcrAvailability();
   elements.search.value = "";
+  elements.bulkMatchInput.value = "";
+  elements.bulkMatchResult.textContent = "";
+  elements.bulkMatchPanel.classList.add("is-collapsed");
+  elements.toggleBulkMatch.setAttribute("aria-expanded", "false");
+  elements.toggleBulkMatch.classList.remove("is-active");
   elements.fileStatus.textContent = "اسحب ملف PDF هنا، أو اختره من الجهاز";
   render();
 });
