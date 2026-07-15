@@ -571,40 +571,146 @@ main {
 
 .report-alerts {
   margin-top: 15px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
 }
 
-.report-alert {
-  padding: 13px;
+/* صف تنبيه مبسّط: أيقونة + نوع التنبيه + عدده - بلا تفاصيل حتى يُنقر عليه */
+.alert-row {
+  padding: 13px 14px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 11px;
-  border: 1px solid #ecdca5;
+  border: 1px solid transparent;
   border-radius: 13px;
   background: #fff;
+  box-shadow: 0 2px 7px rgba(20, 62, 48, .04);
+  transition: .16s ease;
+}
+.alert-row.clickable { cursor: pointer; }
+.alert-row.clickable:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(20, 62, 48, .08); }
+.alert-row.clickable:active { transform: translateY(0); }
+.alert-row.is-open { border-radius: 13px 13px 0 0; }
+
+.alert-row-icon {
+  width: 34px; height: 34px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  border-radius: 10px; font-size: 16px; font-weight: 900;
 }
 
-.report-alert.duplicate { border-right: 4px solid #d38b24; }
-.report-alert.seat-warning { border-right: 4px solid #c24a4a; }
+.alert-row-title { flex: 1; min-width: 0; color: #33403a; font-size: 13px; font-weight: 800; }
+.alert-row-count {
+  flex: 0 0 auto; min-width: 24px; padding: 3px 10px;
+  border-radius: 999px; text-align: center;
+  font-size: 12px; font-weight: 900;
+}
+.alert-row-chevron {
+  flex: 0 0 auto; color: #a7b3ad; font-size: 18px; font-weight: 900;
+  transition: transform .2s ease;
+}
+.alert-row-chevron.is-open { transform: rotate(90deg); color: inherit; }
 
-.report-alert-icon {
-  width: 30px; height: 30px; display: grid; place-items: center;
-  flex: 0 0 auto; border-radius: 9px;
-  color: #8b6509; background: #fff2c5; font-weight: 900;
+.alert-row--warning { border-color: #f1d38a; background: #fffaf0; }
+.alert-row--warning .alert-row-icon { color: #9a6b06; background: #ffe9b3; }
+.alert-row--warning .alert-row-count { color: #7a5205; background: #ffdd8a; }
+
+.alert-row--seat { border-color: #f0c7a8; background: #fff7f1; }
+.alert-row--seat .alert-row-icon { color: #a1490f; background: #ffdcb8; }
+.alert-row--seat .alert-row-count { color: #7d380b; background: #ffcb96; }
+
+.alert-row--name { border-color: #d8c7f2; background: #faf7ff; }
+.alert-row--name .alert-row-icon { color: #5b2e9e; background: #e8dcfb; }
+.alert-row--name .alert-row-count { color: #4a2380; background: #ddc9f7; }
+
+.alert-row--doc { border-color: #cdd4d9; background: #f8fafb; }
+.alert-row--doc .alert-row-icon { color: #435159; background: #e4e9ec; }
+.alert-row--doc .alert-row-count { color: #33404a; background: #dbe2e6; }
+
+.alert-row--alsaud { border-color: #f0b8b3; background: #fff6f5; }
+.alert-row--alsaud .alert-row-icon { color: #9c231a; background: #ffd9d5; }
+.alert-row--alsaud .alert-row-count { color: #7d1a12; background: #ffc4bd; }
+
+/* بطاقة خطر: جواز سفر مكرر - تظهر مفصّلة مباشرة بدون الحاجة للنقر */
+.danger-alert {
+  padding: 15px 16px;
+  border: 2px solid #e5504a;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #fff5f4, #fffefe);
+  box-shadow: 0 8px 22px rgba(213, 62, 54, .14);
+}
+.danger-alert-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.danger-alert-icon {
+  width: 38px; height: 38px; flex: 0 0 auto;
+  display: grid; place-items: center; border-radius: 11px;
+  color: #fff; background: linear-gradient(135deg, #e5504a, #b5241e);
+  font-size: 18px; font-weight: 900;
+  box-shadow: 0 4px 10px rgba(181, 36, 30, .32);
+}
+.danger-alert-title { flex: 1; min-width: 0; }
+.danger-alert-title h3 { margin: 0; color: #7d1a12; font-size: 13.5px; }
+.danger-alert-title span { color: #a1443c; font-size: 10.5px; font-weight: 800; }
+.danger-copy-btn {
+  flex: 0 0 auto; padding: 8px 12px; border: 1px solid #f1b3af; border-radius: 9px;
+  color: #b5241e; background: #fff; font-size: 11px; font-weight: 800;
+}
+.danger-passport-tag {
+  display: inline-block; margin-bottom: 9px; padding: 5px 11px; border-radius: 9px;
+  color: #7d1a12; background: #ffe1de; font: 800 12px Consolas, monospace;
+}
+.danger-passenger-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 11px; margin-top: 6px; border-radius: 10px;
+  border: 1px solid #f6d9d7; background: #fff;
+  color: #5a2b27; font-size: 12px;
+}
+.danger-passenger-row strong { color: #7d1a12; }
+
+.alert-detail-panel {
+  padding: 13px 14px;
+  border: 1px dashed #d8dee1;
+  border-top: 0;
+  border-radius: 0 0 13px 13px;
+  background: #fbfcfc;
+  margin-top: -9px;
 }
 
-.seat-warning .report-alert-icon { color: #a42f2f; background: #ffeded; }
-.report-alert h3 { margin: 0 0 5px; font-size: 13px; }
-.report-alert p { margin: 2px 0; color: #4f655c; font-size: 11px; line-height: 1.6; }
-.report-alert code {
-  padding: 2px 6px; border-radius: 6px;
-  color: #513f0c; background: #fff4cd; font: 800 11px Consolas, monospace;
+.alert-detail-group { margin-bottom: 12px; }
+.alert-detail-group:last-child { margin-bottom: 0; }
+.alert-detail-group-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.alert-detail-group-head > strong { color: var(--green-800); font-size: 12px; }
+
+.alert-detail-toolbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+
+.alert-copy-btn {
+  padding: 5px 10px;
+  border: 1px solid #d8dee1;
+  border-radius: 8px;
+  color: #435159;
+  background: #fff;
+  font-size: 10.5px;
+  font-weight: 800;
+  white-space: nowrap;
 }
+.alert-copy-btn:hover { border-color: #b5c1c7; }
+
+.alert-detail-rows { display: flex; flex-direction: column; gap: 6px; }
+
+/* صف بيانات راكب واحد: عناصر منفصلة بتخطيط مرن بدل نص واحد يخلط عربي وأرقام بلا تنسيق */
+.alert-detail-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #e7ebee;
+  border-radius: 9px;
+  background: #fff;
+}
+.alert-detail-item strong { flex: 0 1 auto; min-width: 0; color: #33403a; font-size: 12px; font-weight: 800; }
+.alert-detail-item span { flex: 0 0 auto; color: #5c6f68; font-size: 11px; direction: ltr; }
 
 .alerts-empty {
-  grid-column: 1 / -1;
   padding: 22px;
   display: flex; flex-direction: column; align-items: center;
   color: var(--muted); text-align: center;
@@ -632,7 +738,6 @@ main {
   .workspace { grid-template-columns: 1fr; }
   .selected-panel { grid-row: 2; }
   .passenger-list { height: 430px; }
-  .report-alerts { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 620px) {
@@ -656,4 +761,21 @@ main {
   .bulk-match-buttons .primary-button { flex: 1; }
   .edit-fields { grid-template-columns: 1fr 82px; }
   .edit-fields input:first-child { grid-column: 1 / -1; }
+
+  .alert-row { padding: 12px; gap: 9px; }
+  .alert-row-icon { width: 30px; height: 30px; font-size: 14px; }
+  .alert-row-title { font-size: 12px; }
+  .alert-row-count { font-size: 11px; padding: 3px 8px; }
+  .alert-detail-panel { padding: 11px; }
+
+  .danger-alert { padding: 12px; }
+  .danger-alert-head { flex-wrap: wrap; }
+  .danger-alert-title { min-width: 60%; }
+  .danger-copy-btn { width: 100%; order: 3; }
+  .danger-passenger-row { flex-direction: column; align-items: flex-start; gap: 3px; }
+
+  .alert-detail-item { flex-direction: column; align-items: flex-start; gap: 3px; }
+  .alert-detail-item span { direction: rtl; }
+  .alert-detail-group-head { flex-wrap: wrap; }
+  .alert-copy-btn { width: 100%; text-align: center; }
 }

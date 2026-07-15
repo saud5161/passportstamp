@@ -56,6 +56,7 @@ let systemImageUrl = "";
 let ocrIsAnalyzing = false;
 let ocrAutoTimer = null;
 let ocrMatchFlashTimer = null;
+let openAlertPanels = new Set();
 
 function normalize(value) {
   return String(value || "")
@@ -464,14 +465,15 @@ function extractPassportTokensFromText(text) {
   return splitPassportValues(text).filter(token => token.length >= 5 && /\d/.test(token));
 }
 
+// آخر 4 خانات من رقم الجواز كافية للمطابقة - تتحمل أخطاء القراءة في بداية الرقم.
 function matchPassengerByPassportToken(token) {
   const compactToken = comparableOcrText(token);
   return state.passengers.find(passenger =>
     splitPassportValues(passenger.passport).some(passport => {
       if (passport === token) return true;
       const compactPassport = comparableOcrText(passport);
-      if (compactPassport.length < 5 || compactToken.length < 5) return false;
-      return compactPassport === compactToken || compactPassport.slice(-5) === compactToken.slice(-5);
+      if (compactPassport.length < 4 || compactToken.length < 4) return false;
+      return compactPassport === compactToken || compactPassport.slice(-4) === compactToken.slice(-4);
     })
   );
 }
@@ -490,16 +492,38 @@ function matchPassengersByNameLine(line) {
   });
 }
 
+// رقم الجواز هو أساس المطابقة؛ الاسم مجرد تعزيز يُستخدم فقط حين يتعذر قراءة
+// رقم الجواز في نفس السطر - ولا يُسمح له وحده بإضافة راكب مختلف عن صاحب الرقم المقروء.
+function matchPassengerFromLine(line) {
+  const tokens = extractPassportTokensFromText(line);
+  for (const token of tokens) {
+    const passenger = matchPassengerByPassportToken(token);
+    if (passenger) return passenger;
+  }
+
+  const nameCandidates = matchPassengersByNameLine(line);
+  if (!nameCandidates.length) return null;
+  if (nameCandidates.length === 1) return nameCandidates[0];
+
+  // أكثر من راكب بنفس الاسم: يلزم تأكيد باستخدام آخر أرقام الجواز الظاهرة في السطر نفسه.
+  const lineDigits = comparableOcrText(line);
+  const reinforced = nameCandidates.filter(passenger =>
+    splitPassportValues(passenger.passport).some(passport => {
+      const compactPassport = comparableOcrText(passport);
+      return compactPassport.length >= 4 && lineDigits.includes(compactPassport.slice(-4));
+    })
+  );
+
+  return reinforced.length === 1 ? reinforced[0] : null;
+}
+
 function matchPassengersFromBulkText(text) {
   const matched = new Map();
-  const addMatch = passenger => {
-    if (passenger && !matched.has(passenger.id)) matched.set(passenger.id, passenger);
-  };
-
-  extractPassportTokensFromText(text).forEach(token => addMatch(matchPassengerByPassportToken(token)));
 
   String(text || "").split(/\r?\n/).forEach(line => {
-    if (line.trim()) matchPassengersByNameLine(line).forEach(addMatch);
+    if (!line.trim()) return;
+    const passenger = matchPassengerFromLine(line);
+    if (passenger && !matched.has(passenger.id)) matched.set(passenger.id, passenger);
   });
 
   return [...matched.values()];
@@ -775,19 +799,61 @@ function renderMessage() {
   elements.send.disabled = !state.selected.length;
 }
 
+function isAlSaudSurname(name) {
+  const surname = normalize(String(name || "").split(",")[0]).replace(/\s+/g, "");
+  return surname === "ALSAUD";
+}
+
+function hasSuspiciousAlSaudDocument(passenger) {
+  if (!isAlSaudSurname(passenger.name)) return false;
+  const passports = splitPassportValues(passenger.passport);
+  if (!passports.length) return true;
+  return passports.some(passport => /^1\d{9}$/.test(passport));
+}
+
+function passengerOrderLabel(passenger) {
+  return passenger.sourceNumber ? `ترتيبه في البيان: ${passenger.sourceNumber}` : "";
+}
+
 function reportWarnings() {
   const passportGroups = new Map();
+  const seatGroups = new Map();
+  const nameGroups = new Map();
 
   state.passengers.forEach(passenger => {
     splitPassportValues(passenger.passport).forEach(passport => {
       if (!passportGroups.has(passport)) passportGroups.set(passport, []);
       passportGroups.get(passport).push(passenger);
     });
+
+    const seatKey = normalize(passenger.seat);
+    if (seatKey) {
+      if (!seatGroups.has(seatKey)) seatGroups.set(seatKey, []);
+      seatGroups.get(seatKey).push(passenger);
+    }
+
+    const nameKey = normalize(passenger.name);
+    if (nameKey) {
+      if (!nameGroups.has(nameKey)) nameGroups.set(nameKey, []);
+      nameGroups.get(nameKey).push(passenger);
+    }
   });
 
   const duplicates = [...passportGroups.entries()]
     .filter(([, passengers]) => passengers.length > 1)
     .map(([passport, passengers]) => ({ passport, passengers }));
+
+  const duplicateSeats = [...seatGroups.entries()]
+    .filter(([, passengers]) => passengers.length > 1)
+    .map(([, passengers]) => ({ seat: passengers[0].seat, passengers }));
+
+  const duplicateNames = [...nameGroups.entries()]
+    .filter(([, passengers]) => passengers.length > 1)
+    .map(([, passengers]) => ({ name: passengers[0].name, passengers }));
+
+  const noDocument = state.passengers.filter(passenger => !splitPassportValues(passenger.passport).length);
+
+  const alSaudFlags = state.passengers.filter(hasSuspiciousAlSaudDocument);
 
   // المقاعد الصحيحة: أرقام فقط للطفل مثل 123،
   // أو رقم/أرقام وحرف للمقعد المعتاد مثل 6A و034C.
@@ -803,7 +869,59 @@ function reportWarnings() {
       }
     : null;
 
-  return { duplicates, unclearSeats, countMismatch };
+  return { duplicates, unclearSeats, duplicateSeats, duplicateNames, noDocument, alSaudFlags, countMismatch };
+}
+
+function duplicatePassportMessage(group) {
+  const lines = [`*جواز سفر مكرر: ${group.passport}*`];
+  group.passengers.forEach((passenger, index) => {
+    lines.push(`${index + 1}. ${passenger.name} - المقعد ${passenger.seat || "غير واضح"} - ${passengerOrderLabel(passenger)}`);
+  });
+  return lines.join("\n");
+}
+
+// صف بيانات راكب واحد داخل تفاصيل التنبيه - عناصر منفصلة بتخطيط مرن بدل نص واحد مختلط
+// الاتجاه، حتى لا تتداخل الكلمات العربية مع الأرقام والمقاعد الإنجليزية بصريًا.
+function passengerDetailItem(passenger, { showPassport = false } = {}) {
+  const parts = [];
+  if (showPassport) parts.push(`P/${escapeHtml(passenger.passport || "بدون وثيقة")}`);
+  parts.push(`المقعد ${escapeHtml(passenger.seat || "-")}`);
+  parts.push(escapeHtml(passengerOrderLabel(passenger)));
+  return `
+    <div class="alert-detail-item">
+      <strong>${escapeHtml(passenger.name)}</strong>
+      <span>${parts.join(" - ")}</span>
+    </div>`;
+}
+
+function passengerListMessage(title, passengers, { showPassport = false } = {}) {
+  const lines = [`*${title}*`];
+  passengers.forEach((passenger, index) => {
+    const parts = [];
+    if (showPassport) parts.push(`P/${passenger.passport || "بدون وثيقة"}`);
+    parts.push(`المقعد ${passenger.seat || "-"}`);
+    parts.push(passengerOrderLabel(passenger));
+    lines.push(`${index + 1}. ${passenger.name} - ${parts.join(" - ")}`);
+  });
+  return lines.join("\n");
+}
+
+function copyGroupButtonHtml(type, key) {
+  return `<button class="alert-copy-btn" type="button" data-copy-group="${type}" data-copy-key="${escapeHtml(key)}">⧉ نسخ</button>`;
+}
+
+// صف تنبيه واحد قابل للطي: أيقونة + نوع التنبيه + عدده، ولا تظهر الأسماء إلا بعد النقر عليه.
+function alertSummaryRow({ key, colorClass, icon, title, count, detailHtml }) {
+  if (!count) return "";
+  const isOpen = openAlertPanels.has(key);
+  const row = `
+    <div class="alert-row ${colorClass} clickable ${isOpen ? "is-open" : ""}" data-alert-toggle="${key}">
+      <span class="alert-row-icon">${icon}</span>
+      <span class="alert-row-title">${title}</span>
+      <span class="alert-row-count">${count}</span>
+      <span class="alert-row-chevron ${isOpen ? "is-open" : ""}">›</span>
+    </div>`;
+  return row + (isOpen ? `<div class="alert-detail-panel">${detailHtml}</div>` : "");
 }
 
 function renderAlerts() {
@@ -817,8 +935,10 @@ function renderAlerts() {
     return;
   }
 
-  const { duplicates, unclearSeats, countMismatch } = reportWarnings();
-  const count = duplicates.length + unclearSeats.length + (countMismatch ? 1 : 0);
+  const { duplicates, unclearSeats, duplicateSeats, duplicateNames, noDocument, alSaudFlags, countMismatch } = reportWarnings();
+  const count = duplicates.length + (unclearSeats.length ? 1 : 0) + (duplicateSeats.length ? 1 : 0)
+    + (duplicateNames.length ? 1 : 0) + (noDocument.length ? 1 : 0)
+    + (alSaudFlags.length ? 1 : 0) + (countMismatch ? 1 : 0);
   elements.alertsCount.textContent = `${count} ${count === 1 ? "تنبيه" : "تنبيهات"}`;
 
   if (!count) {
@@ -830,42 +950,95 @@ function renderAlerts() {
     return;
   }
 
+  // خطر: جواز سفر مكرر يظهر مباشرة وبالتفصيل الكامل دون الحاجة للنقر، لأنه يعتبر تنبيهًا حرجًا.
   const duplicateCards = duplicates.map(group => {
-    const passengerDetails = group.passengers.map(passenger =>
-      `<p><strong>${escapeHtml(passenger.name)}</strong> - المقعد <code>${escapeHtml(passenger.seat || "غير واضح")}</code></p>`
+    const passengerRows = group.passengers.map(passenger => `
+      <div class="danger-passenger-row">
+        <strong>${escapeHtml(passenger.name)}</strong>
+        <span>المقعد ${escapeHtml(passenger.seat || "غير واضح")} - ${escapeHtml(passengerOrderLabel(passenger))}</span>
+      </div>`
     ).join("");
 
     return `
-      <div class="report-alert duplicate">
-        <span class="report-alert-icon">≋</span>
-        <div>
-          <h3>هناك ركاب بجواز سفر مكرر</h3>
-          <p>رقم الجواز: <code>${escapeHtml(group.passport)}</code></p>
-          ${passengerDetails}
+      <div class="danger-alert">
+        <div class="danger-alert-head">
+          <span class="danger-alert-icon">⛔</span>
+          <div class="danger-alert-title">
+            <h3>جواز سفر مكرر بين أكثر من راكب</h3>
+            <span>تنبيه حرج - يلزم التحقق فورًا</span>
+          </div>
+          <button class="danger-copy-btn" type="button" data-copy-passport="${escapeHtml(group.passport)}">⧉ نسخ للواتساب</button>
         </div>
+        <span class="danger-passport-tag">رقم الجواز: ${escapeHtml(group.passport)}</span>
+        ${passengerRows}
       </div>`;
   }).join("");
 
-  const seatCards = unclearSeats.map(passenger => `
-    <div class="report-alert seat-warning">
-      <span class="report-alert-icon">!</span>
-      <div>
-        <h3>الراكب ليس لديه مقعد واضح</h3>
-        <p><strong>${escapeHtml(passenger.name)}</strong></p>
-        <p>الجواز: <code>${escapeHtml(passenger.passport || "غير متوفر")}</code> - المقعد: <code>${escapeHtml(passenger.seat)}</code></p>
-      </div>
-    </div>`).join("");
-
   const countCard = countMismatch ? `
-    <div class="report-alert seat-warning">
-      <span class="report-alert-icon">!</span>
-      <div>
-        <h3>عدد الركاب لا يطابق مجموع المنفست</h3>
-        <p>المستخرج: <code>${escapeHtml(countMismatch.extracted)}</code> - مجموع البيان: <code>${escapeHtml(countMismatch.expected)}</code></p>
-      </div>
+    <div class="alert-row alert-row--warning">
+      <span class="alert-row-icon">!</span>
+      <span class="alert-row-title">عدد الركاب لا يطابق مجموع المنفست: مستخرج ${escapeHtml(countMismatch.extracted)} من ${escapeHtml(countMismatch.expected)}</span>
     </div>` : "";
 
-  elements.alerts.innerHTML = countCard + duplicateCards + seatCards;
+  const unclearSeatsRow = alertSummaryRow({
+    key: "unclear-seats", colorClass: "alert-row--warning", icon: "!",
+    title: "ركاب بدون مقعد واضح", count: unclearSeats.length,
+    detailHtml: `
+      <div class="alert-detail-toolbar">${copyGroupButtonHtml("unclear-seats", "")}</div>
+      <div class="alert-detail-rows">${unclearSeats.map(passenger => passengerDetailItem(passenger, { showPassport: true })).join("")}</div>`
+  });
+
+  const duplicateSeatsDetail = duplicateSeats.map(group => `
+    <div class="alert-detail-group">
+      <div class="alert-detail-group-head">
+        <strong>المقعد ${escapeHtml(group.seat || "غير واضح")}</strong>
+        ${copyGroupButtonHtml("dup-seat", group.seat || "")}
+      </div>
+      <div class="alert-detail-rows">
+        ${group.passengers.map(passenger => passengerDetailItem(passenger, { showPassport: true })).join("")}
+      </div>
+    </div>`).join("");
+  const duplicateSeatsRow = alertSummaryRow({
+    key: "dup-seats", colorClass: "alert-row--seat", icon: "⌗",
+    title: "ركاب بنفس رقم المقعد", count: duplicateSeats.length,
+    detailHtml: duplicateSeatsDetail
+  });
+
+  const duplicateNamesCount = duplicateNames.reduce((sum, group) => sum + group.passengers.length, 0);
+  const duplicateNamesDetail = duplicateNames.map(group => `
+    <div class="alert-detail-group">
+      <div class="alert-detail-group-head">
+        <strong>${escapeHtml(group.name)}</strong>
+        ${copyGroupButtonHtml("dup-name", group.name)}
+      </div>
+      <div class="alert-detail-rows">
+        ${group.passengers.map(passenger => passengerDetailItem(passenger, { showPassport: true })).join("")}
+      </div>
+    </div>`).join("");
+  const duplicateNamesRow = alertSummaryRow({
+    key: "dup-names", colorClass: "alert-row--name", icon: "⧉",
+    title: "ركاب بأسماء مكررة", count: duplicateNamesCount,
+    detailHtml: duplicateNamesDetail
+  });
+
+  const noDocumentRow = alertSummaryRow({
+    key: "no-doc", colorClass: "alert-row--doc", icon: "🛂",
+    title: "ركاب بدون وثيقة سفر", count: noDocument.length,
+    detailHtml: `
+      <div class="alert-detail-toolbar">${copyGroupButtonHtml("no-doc", "")}</div>
+      <div class="alert-detail-rows">${noDocument.map(passenger => passengerDetailItem(passenger, { showPassport: false })).join("")}</div>`
+  });
+
+  const alSaudRow = alertSummaryRow({
+    key: "alsaud", colorClass: "alert-row--alsaud", icon: "⚑",
+    title: "ركاب من عائلة آل سعود بوثيقة تحتاج مراجعة", count: alSaudFlags.length,
+    detailHtml: `
+      <div class="alert-detail-toolbar">${copyGroupButtonHtml("alsaud", "")}</div>
+      <div class="alert-detail-rows">${alSaudFlags.map(passenger => passengerDetailItem(passenger, { showPassport: true })).join("")}</div>`
+  });
+
+  elements.alerts.innerHTML = duplicateCards + countCard + unclearSeatsRow
+    + duplicateSeatsRow + duplicateNamesRow + noDocumentRow + alSaudRow;
 }
 
 function render() {
@@ -996,6 +1169,62 @@ elements.selectedList.addEventListener("input", event => {
   }
 });
 
+elements.alerts.addEventListener("click", event => {
+  const toggle = event.target.closest("[data-alert-toggle]");
+  if (toggle) {
+    const key = toggle.dataset.alertToggle;
+    if (openAlertPanels.has(key)) openAlertPanels.delete(key);
+    else openAlertPanels.add(key);
+    renderAlerts();
+    return;
+  }
+
+  const copyButton = event.target.closest("[data-copy-passport]");
+  if (copyButton) {
+    const { duplicates } = reportWarnings();
+    const group = duplicates.find(item => item.passport === copyButton.dataset.copyPassport);
+    if (group) {
+      navigator.clipboard.writeText(duplicatePassportMessage(group));
+      showToast("تم نسخ نص الجواز المكرر.");
+    }
+    return;
+  }
+
+  const copyGroupButton = event.target.closest("[data-copy-group]");
+  if (copyGroupButton) {
+    const type = copyGroupButton.dataset.copyGroup;
+    const key = copyGroupButton.dataset.copyKey || "";
+    const warnings = reportWarnings();
+    let title = "";
+    let passengers = [];
+    let showPassport = false;
+
+    if (type === "unclear-seats") {
+      title = "ركاب بدون مقعد واضح";
+      passengers = warnings.unclearSeats;
+      showPassport = true;
+    } else if (type === "dup-seat") {
+      const group = warnings.duplicateSeats.find(item => item.seat === key);
+      if (group) { title = `مقعد مكرر: ${group.seat}`; passengers = group.passengers; showPassport = true; }
+    } else if (type === "dup-name") {
+      const group = warnings.duplicateNames.find(item => item.name === key);
+      if (group) { title = `اسم مكرر: ${group.name}`; passengers = group.passengers; showPassport = true; }
+    } else if (type === "no-doc") {
+      title = "ركاب بدون وثيقة سفر";
+      passengers = warnings.noDocument;
+    } else if (type === "alsaud") {
+      title = "ركاب من عائلة آل سعود بحاجة مراجعة";
+      passengers = warnings.alSaudFlags;
+      showPassport = true;
+    }
+
+    if (passengers.length) {
+      navigator.clipboard.writeText(passengerListMessage(title, passengers, { showPassport }));
+      showToast("تم نسخ النص.");
+    }
+  }
+});
+
 elements.addManual.addEventListener("click", () => {
   state.selected.push({
     id: `manual-${Date.now()}`,
@@ -1043,6 +1272,7 @@ elements.reset.addEventListener("click", () => {
   elements.bulkMatchPanel.classList.add("is-collapsed");
   elements.toggleBulkMatch.setAttribute("aria-expanded", "false");
   elements.toggleBulkMatch.classList.remove("is-active");
+  openAlertPanels.clear();
   elements.fileStatus.textContent = "اسحب ملف PDF هنا، أو اختره من الجهاز";
   render();
 });
