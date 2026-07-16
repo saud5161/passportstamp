@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1180">
+  <title>نظام إدارة ومتابعة رحلات المنفست</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="fly.css?v=20260716c">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <span class="eyebrow">نظام تشغيلي إدارة رحلات</span>
+      <h1>نظام إدارة ومتابعة رحلات المنفست</h1>
+      <p id="today-label">-</p>
+    </div>
+    <div class="privacy-badge" id="connection-badge">🔄 جاري تشغيل النظام...</div>
+  </header>
+
+  <nav class="page-tabs-wrap">
+    <div class="page-tabs">
+      <button class="page-tab active" id="tab-add" type="button">
+        <span class="page-tab-icon">➕</span>
+        <span>إضافة رحلات</span>
+      </button>
+      <button class="page-tab" id="tab-track" type="button">
+        <span class="page-tab-icon">📊</span>
+        <span>متابعة الرحلات</span>
+      </button>
+    </div>
+    <button id="reset-db-btn" class="reset-db-button" type="button">🗑️ إعادة تعيين جميع الرحلات</button>
+  </nav>
+
+  <main>
+    <section id="view-add">
+      <section class="upload-panel" id="drop-zone">
+        <input id="flights-input" type="file" accept="application/pdf,.pdf" hidden>
+        <div class="upload-icon">PDF</div>
+        <div class="upload-copy">
+          <h2>إرفاق ملف الرحلات</h2>
+          <p id="file-status">اسحب ملف الرحلات هنا، أو اختره من الجهاز</p>
+        </div>
+        <div class="upload-actions">
+          <button class="primary-button" id="choose-file" type="button">اختيار ملف الرحلات</button>
+          <button id="reset-all" class="secondary-button danger" type="button">بدء من جديد</button>
+        </div>
+      </section>
+
+      <section class="list-panel add-tools-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="step-number">+</span>
+            <h2>إضافة رحلات إضافية</h2>
+          </div>
+          <span class="hint">يدويًا رحلة واحدة، أو عدة رحلات دفعة واحدة من نص</span>
+        </div>
+        <div class="add-tools-grid">
+          <div class="add-tool-box">
+            <h3>إضافة يدوية</h3>
+            <div class="manual-mini-grid">
+              <input id="manual-flight-number" type="text" placeholder="رقم الرحلة SV708" style="text-transform:uppercase">
+              <input id="manual-destination" type="text" placeholder="الوجهة KHI" maxlength="3" style="text-transform:uppercase">
+              <input id="manual-time" type="text" inputmode="numeric" maxlength="5" placeholder="18:30 (24 ساعة)">
+              <button id="manual-add-btn" class="primary-button" type="button">إضافة</button>
+            </div>
+          </div>
+          <div class="add-tool-box">
+            <h3>إضافة من نص</h3>
+            <textarea id="text-bulk-input" class="bulk-match-textarea" rows="3" placeholder="SV708 - RUH -> KHI&#10;6:45am (يوليو-16) - الرحلات المجدولة"></textarea>
+            <div class="bulk-match-footer">
+              <button id="text-bulk-parse" class="primary-button" type="button">استخراج الرحلات</button>
+              <span id="text-bulk-result" class="bulk-match-result"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-bar" aria-live="polite" id="report-summary" hidden>
+        <div><strong id="flights-count">0</strong><span>إجمالي الرحلات</span></div>
+        <div><strong id="report-origin">-</strong><span>المطار</span></div>
+        <div><strong id="report-date">-</strong><span>تاريخ التقرير</span></div>
+      </section>
+
+      <section class="list-panel flights-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="step-number">1</span>
+            <h2>قائمة الرحلات المستخرجة</h2>
+          </div>
+          <span class="hint">القائمة محفوظة تلقائيًا ولن تضيع عند إغلاق الصفحة</span>
+        </div>
+
+        <div id="flights-list" class="flights-list">
+          <div class="empty-state">
+            <span>✈️</span>
+            <strong>لم يتم إرفاق ملف رحلات بعد</strong>
+            <p>ستظهر هنا كل رحلة ووجهتها ووقتها فور إرفاق الملف.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="list-panel setup-panel" id="setup-panel" hidden>
+        <div class="panel-heading">
+          <div>
+            <span class="step-number gold">2</span>
+            <h2>إعداد نموذج التسليم</h2>
+          </div>
+          <span class="hint">تُطبَّق هذه البيانات على كل نماذج الرحلات</span>
+        </div>
+
+        <div class="setup-grid">
+          <div class="input-group">
+            <label for="carrier-employee">اسم موظف الشركة الناقلة</label>
+            <input id="carrier-employee" type="text" placeholder="مثال: محمد العتيبي">
+          </div>
+          <div class="input-group">
+            <label for="passport-employee">اسم موظف الجوازات</label>
+            <input id="passport-employee" type="text" placeholder="مثال: خالد الدوسري">
+          </div>
+        </div>
+
+        <div class="signature-setup-grid">
+          <div class="signature-field">
+            <label>توقيع موظف الشركة الناقلة</label>
+            <canvas id="carrier-signature-pad" class="signature-pad" width="360" height="120"></canvas>
+            <button type="button" class="small-button" id="clear-carrier-signature">مسح التوقيع</button>
+          </div>
+          <div class="signature-field">
+            <label>توقيع موظف الجوازات</label>
+            <canvas id="passport-signature-pad" class="signature-pad" width="360" height="120"></canvas>
+            <button type="button" class="small-button" id="clear-passport-signature">مسح التوقيع</button>
+          </div>
+        </div>
+
+        <button id="generate-forms" class="primary-button generate-button" type="button">عرض نماذج التسليم</button>
+      </section>
+
+      <section class="print-toolbar" id="print-toolbar" hidden>
+        <div class="print-toolbar-info">
+          <strong id="generated-count">0</strong>
+          <span>نموذج جاهز للطباعة</span>
+        </div>
+        <div class="print-toolbar-actions">
+          <button id="back-to-edit" class="secondary-button" type="button">⟲ رجوع للتعديل</button>
+          <button id="print-forms" class="primary-button" type="button">🖨️ طباعة A4</button>
+        </div>
+      </section>
+    </section>
+
+    <section id="view-track" hidden>
+      <div class="track-clock-bar">
+        <span class="track-clock-icon">🕐</span>
+        <div class="track-clock-text">
+          <strong>الوقت الحالي لتسجيل الإقلاع الفعلي</strong>
+          <span>يُستخدم تلقائيًا عند الضغط على "تم الإقلاع" لأي رحلة</span>
+        </div>
+        <input id="track-clock-input" class="track-clock-input" type="text" inputmode="numeric" maxlength="5" placeholder="19:30">
+        <button id="track-clock-reset" class="small-button" type="button">↻ وقت النظام</button>
+      </div>
+
+      <div class="track-stats">
+        <div class="track-stat-card">
+          <strong id="track-active-count">0</strong>
+          <span>قيد المتابعة</span>
+        </div>
+        <div class="track-stat-card warn">
+          <strong id="track-alert-count">0</strong>
+          <span>تحتاج تسليم المنفست</span>
+        </div>
+        <div class="track-stat-card done">
+          <strong id="track-completed-count">0</strong>
+          <span>رحلات مكتملة</span>
+        </div>
+        <div class="track-stat-refresh">
+          <span id="track-updated-at" class="hint">-</span>
+          <button id="track-refresh" class="small-button" type="button">↻ تحديث الآن</button>
+        </div>
+      </div>
+
+      <div id="track-list" class="track-list">
+        <div class="empty-state">
+          <span>📭</span>
+          <strong>لا توجد رحلات قيد المتابعة</strong>
+          <p>أضف رحلات من تبويب "إضافة رحلات" لتظهر هنا.</p>
+        </div>
+      </div>
+
+      <div class="track-completed-wrap">
+        <div class="panel-heading">
+          <div><h2>الرحلات المكتملة</h2></div>
+          <span class="hint">رحلات تم تسليم منفستها وإقلاعها فعليًا</span>
+        </div>
+        <div id="track-completed-list" class="track-completed-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <section id="print-root" hidden></section>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="vendor/pdf.min.js"></script>
+  <script src="fly.js?v=20260716c"></script>
+</body>
+</html>
