@@ -5,8 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>اختيار بيانات الركاب</title>
   <link rel="stylesheet" href="style.css">
+  <script>
+    if (localStorage.getItem("page_unlocked_v1") !== "1") {
+      document.documentElement.classList.add("page-locked");
+    }
+  </script>
 </head>
 <body>
+  <div id="lock-overlay" class="lock-overlay" hidden>
+    <div class="lock-box">
+      <span class="lock-icon">🔒</span>
+      <h2>أدخل الرقم السري</h2>
+      <p>هذه الصفحة محمية برقم سري خاص بهذا الجهاز.</p>
+      <input id="lock-pin-input" class="lock-pin-input" type="password" inputmode="numeric" maxlength="12" placeholder="الرقم السري" autocomplete="off">
+      <span id="lock-error" class="lock-error"></span>
+      <button id="lock-submit" class="primary-button" type="button">دخول</button>
+    </div>
+  </div>
+
   <header class="app-header">
     <div>
       <span class="eyebrow">معالجة محلية وآمنة</span>
@@ -17,15 +33,37 @@
   </header>
 
   <main>
+    <section class="email-panel" id="email-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="step-chip">من الايميل</span>
+          <h2>الرحلات المرسلة</h2>
+          <p>مرتبة حسب وقت الوصول - اضغط "تم قلاع الرحلة" لحذف الرحلة من القائمة</p>
+        </div>
+        <div class="heading-actions">
+          <button id="email-refresh" class="small-button" type="button">↻ تحديث</button>
+          <button id="email-clear-all" class="small-button danger" type="button">🗑️ تفريغ كل الرحلات المرسلة</button>
+        </div>
+      </div>
+
+      <div class="email-list-container">
+        <div id="email-list" class="email-list">
+          <div class="email-loading">⏳ جاري تحميل الرحلات...</div>
+        </div>
+      </div>
+    </section>
+
     <section class="upload-panel" id="drop-zone">
       <input id="pdf-input" type="file" accept="application/pdf,.pdf" hidden>
       <div class="upload-icon">PDF</div>
       <div class="upload-copy">
         <h2>إرفاق بيان الركاب</h2>
         <p id="file-status">اسحب ملف PDF هنا، أو اختره من الجهاز</p>
+        <p class="manifest-support-note">⚠️ المنفستات المدعومة: الخطوط السعودية وطيران الرياض فقط، وأي منفست بنفس شكل الخطوط السعودية (مثل القطرية والهولندية والفلبينية وغيرها).</p>
       </div>
       <div class="upload-actions">
         <button class="primary-button" id="choose-file" type="button">اختيار ملف PDF</button>
+        <button id="choose-server-file" class="server-button" type="button">📧 من الايميل</button>
         <button id="reset-all" class="secondary-button danger" type="button">بدء بيان جديد</button>
       </div>
     </section>
@@ -64,6 +102,7 @@
 
     <section class="summary-bar" aria-live="polite">
       <div><strong id="total-count">0</strong><span>إجمالي الركاب</span></div>
+      <div><strong id="manifest-count">-</strong><span>العدد في البيان</span></div>
       <div><strong id="visible-count">0</strong><span>نتائج البحث</span></div>
       <div><strong id="selected-count">0</strong><span>تم اختيارهم</span></div>
     </section>
@@ -168,8 +207,40 @@
     </section>
   </main>
 
+  <div id="server-files-modal" class="server-modal" hidden>
+    <div class="server-modal-box">
+      <div class="server-modal-head">
+        <h3>اختر ملف من الايميل</h3>
+        <button id="server-modal-close" class="icon-button" type="button">×</button>
+      </div>
+      <div id="server-files-list" class="server-files-list">
+        <div class="email-loading">⏳ جاري تحميل الملفات...</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="review-status-modal" class="server-modal" hidden>
+    <div class="server-modal-box review-status-box">
+      <div class="server-modal-head">
+        <h3>حالة مراجعة الرحلة</h3>
+        <button id="review-modal-close" class="icon-button" type="button">×</button>
+      </div>
+      <div class="review-status-options">
+        <button type="button" class="review-option-btn" data-review-modal-option="under_review">⏳ تحت المراجعة</button>
+        <button type="button" class="review-option-btn" data-review-modal-option="complete">✓ مكتملة</button>
+        <button type="button" class="review-option-btn" data-review-modal-option="missing">⚠ يوجد نقص</button>
+        <button type="button" class="review-option-btn" data-review-modal-option="note">📝 يوجد ملاحظة</button>
+        <div id="review-note-box" class="review-note-box" hidden>
+          <textarea id="review-note-input" rows="3" placeholder="اكتب الملاحظة هنا..."></textarea>
+          <button id="review-note-save" class="primary-button" type="button">حفظ الملاحظة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast" role="status"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="vendor/pdf.min.js"></script>
   <script src="vendor/tesseract.min.js"></script>
   <script src="app.js"></script>

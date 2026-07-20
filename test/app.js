@@ -28,6 +28,7 @@ const elements = {
   selectedList: document.getElementById("selected-list"),
   message: document.getElementById("message-output"),
   totalCount: document.getElementById("total-count"),
+  manifestCount: document.getElementById("manifest-count"),
   visibleCount: document.getElementById("visible-count"),
   selectedCount: document.getElementById("selected-count"),
   send: document.getElementById("send-whatsapp"),
@@ -47,7 +48,12 @@ const elements = {
   ocrMatchFlash: document.getElementById("ocr-match-flash"),
   ocrStatus: document.getElementById("ocr-status"),
   ocrProgress: document.getElementById("ocr-progress-bar"),
-  toast: document.getElementById("toast")
+  toast: document.getElementById("toast"),
+  emailPanel: document.getElementById("email-panel"),
+  emailList: document.getElementById("email-list"),
+  emailRefresh: document.getElementById("email-refresh"),
+  emailClearAll: document.getElementById("email-clear-all"),
+  chooseServerFile: document.getElementById("choose-server-file")
 };
 
 let searchClearTimer = null;
@@ -140,6 +146,7 @@ const passengerPattern = /^(\d+)\.(.*?)\s+(?:(?:MR|MRS|MS|MISS|MSTR|PRCS)\s+)?[A
       id: `pdf-${match[1]}-${passport || index}`,
       sourceNumber: Number(match[1]),
       name: reportName(match[2].toUpperCase()),
+      fullName: normalize(match[2].toUpperCase()),
       seat: match[3].toUpperCase(),
       passport,
       nationality
@@ -164,6 +171,7 @@ function parseInkCloudPassengerLines(lines) {
       id: `ink-${passengers.length + 1}-${passport}`,
       sourceNumber: passengers.length + 1,
       name: reportName(match[1].toUpperCase()),
+      fullName: normalize(match[1].toUpperCase()),
       seat: match[3].toUpperCase(),
       passport,
       nationality: match[4].toUpperCase()
@@ -274,8 +282,14 @@ async function handleFile(file) {
     elements.fileStatus.textContent = `${file.name}${flightLabel} - تم استخراج ${passengers.length}${countLabel} راكب بنجاح`;
     updateOcrAvailability();
     render();
-    showToast(`تم استخراج ${passengers.length} راكب.`);
+    // عند اختلاف العدد المذكور بالبيان عن المستخرج، ننبّه فورًا بدل رسالة النجاح العادية.
+    if (state.manifestExpectedCount && state.manifestExpectedCount !== passengers.length) {
+      showToast(`⚠️ تنبيه: البيان يذكر ${state.manifestExpectedCount} راكب وتم استخراج ${passengers.length} فقط - راجع التنبيهات.`);
+    } else {
+      showToast(`تم استخراج ${passengers.length} راكب.`);
+    }
     if (systemImageFile) scheduleAutoOcr();
+    markMatchingFlightAsVerified(state.flightNumber);
   } catch (error) {
     console.error(error);
     elements.fileStatus.textContent = "تعذر قراءة البيان. تأكد أن الملف بنفس تنسيق تقرير Altea.";
@@ -291,7 +305,7 @@ function updateOcrAvailability() {
   if (!state.passengers.length) {
     elements.ocrStatus.textContent = "أرفق بيان PDF أولًا، ثم اختر صورة النظام.";
   } else if (!systemImageFile) {
-    elements.ocrStatus.textContent = "تم تجهيز قائمة الركاب. اختر الآن صورة نظام الجوازات.";
+    elements.ocrStatus.textContent = "";
   }
 }
 
@@ -618,7 +632,15 @@ function renderSelected() {
     return;
   }
 
-  elements.selectedList.innerHTML = state.selected.map((passenger, index) => `
+  // نرتب القائمة المختارة حسب ترتيب ظهور الراكب بالبيان الأصلي (sourceNumber)،
+  // والركاب المُضافين يدويًا (بدون sourceNumber) يوضعون بالنهاية حسب ترتيب إضافتهم.
+  const sortedSelected = [...state.selected].sort((a, b) => {
+    const orderA = a.sourceNumber ?? Infinity;
+    const orderB = b.sourceNumber ?? Infinity;
+    return orderA - orderB;
+  });
+
+  elements.selectedList.innerHTML = sortedSelected.map((passenger, index) => `
     <div class="passenger-row selected-row">
       <span class="row-index">${index + 1}</span>
       <div class="edit-fields">
@@ -638,7 +660,7 @@ function messageText() {
   if (!state.selected.length) return "";
 
   const passengerLines = state.selected.map((passenger, index) =>
-    `${index + 1}. ${passenger.name.trim()} ${passenger.seat.trim()}\n   P/${passenger.passport.trim()}`
+    `${index + 1}. ${passenger.name.trim()}\n   ${passenger.seat.trim()}\n   P/${passenger.passport.trim()}`
   ).join("\n");
 
   return `الركاب المتبقين على رحلة (${state.flightNumber}) في نظام الجوازات\n\n${passengerLines}\n\nاشعارنا فوراً عند وصول اي راكب على البوابة`;
@@ -815,6 +837,34 @@ function passengerOrderLabel(passenger) {
   return passenger.sourceNumber ? `ترتيبه في البيان: ${passenger.sourceNumber}` : "";
 }
 
+// أطول تطابق متتالٍ مشترك بين رقمي جواز - يُستخدم للحكم على مدى تشابه الرقمين.
+function longestCommonRun(a, b) {
+  if (!a || !b) return 0;
+  let best = 0;
+  let previous = new Array(b.length + 1).fill(0);
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = new Array(b.length + 1).fill(0);
+    for (let j = 1; j <= b.length; j += 1) {
+      if (a[i - 1] === b[j - 1]) {
+        current[j] = previous[j - 1] + 1;
+        if (current[j] > best) best = current[j];
+      }
+    }
+    previous = current;
+  }
+  return best;
+}
+
+// راكبان بنفس الاسم لا يُعتبران تكرارًا إلا إذا كان رقما الجواز متشابهين
+// (أكثر من 4 خانات متطابقة متتالية). لو الرقمان مختلفان بشكل كبير فهما شخصان
+// مختلفان بنفس الاسم ولا داعي للتنبيه. غياب رقم الجواز لا يمنع التنبيه.
+function passportsLookRelated(passportA, passportB) {
+  const listA = splitPassportValues(passportA);
+  const listB = splitPassportValues(passportB);
+  if (!listA.length || !listB.length) return true;
+  return listA.some(a => listB.some(b => longestCommonRun(a, b) > 4));
+}
+
 function reportWarnings() {
   const passportGroups = new Map();
   const seatGroups = new Map();
@@ -832,7 +882,9 @@ function reportWarnings() {
       seatGroups.get(seatKey).push(passenger);
     }
 
-    const nameKey = normalize(passenger.name);
+    // نقارن بالاسم الكامل كما هو مسجّل بالبيان (وليس المختصر لعرض الاسم الأول+الأخير فقط)
+    // حتى لا نعتبر راكبين بأسماء وسطى مختلفة تكراراً خاطئاً.
+    const nameKey = normalize(passenger.fullName || passenger.name);
     if (nameKey) {
       if (!nameGroups.has(nameKey)) nameGroups.set(nameKey, []);
       nameGroups.get(nameKey).push(passenger);
@@ -847,9 +899,26 @@ function reportWarnings() {
     .filter(([, passengers]) => passengers.length > 1)
     .map(([, passengers]) => ({ seat: passengers[0].seat, passengers }));
 
-  const duplicateNames = [...nameGroups.entries()]
-    .filter(([, passengers]) => passengers.length > 1)
-    .map(([, passengers]) => ({ name: passengers[0].name, passengers }));
+  // نقسم كل مجموعة أسماء متطابقة إلى عناقيد حسب تشابه رقم الجواز:
+  // لا يظهر التنبيه إلا للركاب الذين يتشابه رقم جوازهم فعلًا مع راكب آخر بنفس الاسم.
+  const duplicateNames = [];
+  nameGroups.forEach(passengers => {
+    if (passengers.length < 2) return;
+    const clusters = [];
+    passengers.forEach(passenger => {
+      const cluster = clusters.find(group =>
+        group.some(other => passportsLookRelated(passenger.passport, other.passport))
+      );
+      if (cluster) cluster.push(passenger);
+      else clusters.push([passenger]);
+    });
+    clusters
+      .filter(cluster => cluster.length > 1)
+      .forEach(cluster => {
+        // نعرض الاسم الكامل كما ورد بالبيان حتى يتضح أن المقارنة تمت بالاسم الكامل.
+        duplicateNames.push({ name: cluster[0].fullName || cluster[0].name, passengers: cluster });
+      });
+  });
 
   const noDocument = state.passengers.filter(passenger => !splitPassportValues(passenger.passport).length);
 
@@ -875,7 +944,9 @@ function reportWarnings() {
 function duplicatePassportMessage(group) {
   const lines = [`*جواز سفر مكرر: ${group.passport}*`];
   group.passengers.forEach((passenger, index) => {
-    lines.push(`${index + 1}. ${passenger.name} - المقعد ${passenger.seat || "غير واضح"} - ${passengerOrderLabel(passenger)}`);
+    // المقعد داخل أقواس مع علامة اتجاه (LRM) حتى لا تتلخبط الأرقام والحروف الإنجليزية
+    // وسط النص العربي عند عرض الرسالة في واتساب.
+    lines.push(`${index + 1}. ${passenger.name} - المقعد (${passenger.seat || "غير واضح"})‏ - ${passengerOrderLabel(passenger)}`);
   });
   return lines.join("\n");
 }
@@ -885,7 +956,7 @@ function duplicatePassportMessage(group) {
 function passengerDetailItem(passenger, { showPassport = false } = {}) {
   const parts = [];
   if (showPassport) parts.push(`P/${escapeHtml(passenger.passport || "بدون وثيقة")}`);
-  parts.push(`المقعد ${escapeHtml(passenger.seat || "-")}`);
+  parts.push(`المقعد (${escapeHtml(passenger.seat || "-")})`);
   parts.push(escapeHtml(passengerOrderLabel(passenger)));
   return `
     <div class="alert-detail-item">
@@ -899,9 +970,8 @@ function passengerListMessage(title, passengers, { showPassport = false } = {}) 
   passengers.forEach((passenger, index) => {
     const parts = [];
     if (showPassport) parts.push(`P/${passenger.passport || "بدون وثيقة"}`);
-    parts.push(`المقعد ${passenger.seat || "-"}`);
     parts.push(passengerOrderLabel(passenger));
-    lines.push(`${index + 1}. ${passenger.name} - ${parts.join(" - ")}`);
+    lines.push(`${index + 1}. ${passenger.name}\n   المقعد (${passenger.seat || "-"})‏${parts.length ? "\n   " + parts.join(" - ") : ""}`);
   });
   return lines.join("\n");
 }
@@ -955,7 +1025,7 @@ function renderAlerts() {
     const passengerRows = group.passengers.map(passenger => `
       <div class="danger-passenger-row">
         <strong>${escapeHtml(passenger.name)}</strong>
-        <span>المقعد ${escapeHtml(passenger.seat || "غير واضح")} - ${escapeHtml(passengerOrderLabel(passenger))}</span>
+        <span>المقعد (${escapeHtml(passenger.seat || "غير واضح")}) - ${escapeHtml(passengerOrderLabel(passenger))}</span>
       </div>`
     ).join("");
 
@@ -1043,6 +1113,13 @@ function renderAlerts() {
 
 function render() {
   elements.totalCount.textContent = state.passengers.length;
+  if (elements.manifestCount) {
+    elements.manifestCount.textContent = state.manifestExpectedCount || "-";
+    elements.manifestCount.classList.toggle(
+      "is-mismatch",
+      Boolean(state.manifestExpectedCount && state.manifestExpectedCount !== state.passengers.length)
+    );
+  }
   renderSource();
   renderSelected();
   renderMessage();
@@ -1292,3 +1369,398 @@ elements.send.addEventListener("click", () => {
 
 render();
 updateOcrAvailability();
+
+/* ========== الرحلات المرسلة عبر الايميل (Supabase) ========== */
+const SUPABASE_URL = "https://dkrtiuelioyshbjoocqm.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ts5SGrWhODsG6EH5dUt9Wg_KUvsf-CF";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ========== قفل الصفحة برقم سري (يُخزَّن بشكل دائم بهذا المتصفح فقط) ========== */
+const PAGE_UNLOCK_KEY = "page_unlocked_v1";
+const FALLBACK_ACCESS_PIN = "123123";
+
+const lockElements = {
+  overlay: document.getElementById("lock-overlay"),
+  input: document.getElementById("lock-pin-input"),
+  error: document.getElementById("lock-error"),
+  submit: document.getElementById("lock-submit")
+};
+
+async function fetchAccessPin() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("app_settings")
+      .select("value")
+      .eq("key", "access_pin")
+      .single();
+    if (error || !data) throw error || new Error("not found");
+    return data.value;
+  } catch (error) {
+    return FALLBACK_ACCESS_PIN;
+  }
+}
+
+function unlockPage() {
+  try { localStorage.setItem(PAGE_UNLOCK_KEY, "1"); } catch (error) { /* */ }
+  document.documentElement.classList.remove("page-locked");
+}
+
+async function submitLockPin() {
+  const entered = lockElements.input.value.trim();
+  if (!entered) return;
+  lockElements.submit.disabled = true;
+  const correctPin = await fetchAccessPin();
+  lockElements.submit.disabled = false;
+  if (entered === correctPin) {
+    unlockPage();
+  } else {
+    lockElements.error.textContent = "الرقم السري غير صحيح.";
+    lockElements.input.value = "";
+    lockElements.input.focus();
+  }
+}
+
+if (document.documentElement.classList.contains("page-locked")) {
+  lockElements.input.focus();
+}
+lockElements.submit.addEventListener("click", submitLockPin);
+lockElements.input.addEventListener("keydown", event => {
+  if (event.key === "Enter") submitLockPin();
+});
+
+const EMAIL_STORAGE_BUCKET = "flight-emails";
+const GOOGLE_DRIVE_FOLDER_ID = "18lWJ-za2mJddoVqV4KTCsT1CUmtTCSVz";
+const GOOGLE_DRIVE_API_KEY = "AIzaSyDFb8azGaajtlemiq1XpDKmZEgo68vGM8c";
+let incomingFlightEmails = [];
+
+const REVIEW_STATUS_META = {
+  under_review: { label: "⏳ تحت المراجعة", className: "review-badge--review" },
+  complete: { label: "✓ مكتملة", className: "review-badge--complete" },
+  missing: { label: "⚠ يوجد نقص", className: "review-badge--missing" },
+  note: { label: "📝 يوجد ملاحظة", className: "review-badge--note" }
+};
+
+function reviewBadgeLabel(row) {
+  if (row.review_status === "note" && row.review_note) return `📝 ${row.review_note}`;
+  return (REVIEW_STATUS_META[row.review_status] || { label: "قيد المراجعة" }).label;
+}
+
+function reviewBadgeClass(row) {
+  return (REVIEW_STATUS_META[row.review_status] || { className: "review-badge--pending" }).className;
+}
+
+// عند نجاح استخراج ركاب رحلة مسجّلة بقائمة "الرحلات المرسلة"، إن لم تكن قد رُوجعت
+// بعد، نضبط حالتها لتظهر "قيد المراجعة" جاهزة ليضغط المستخدم عليها ويحدد الحالة.
+async function markMatchingFlightAsVerified(flightNumber) {
+  if (!flightNumber) return;
+  const normalized = String(flightNumber).trim().toUpperCase();
+  const match = incomingFlightEmails.find(row => parseFlightCode(row).flightNumber.toUpperCase() === normalized);
+  if (!match || match.review_status) return;
+
+  try {
+    const { error } = await supabaseClient
+      .from("incoming_flight_emails")
+      .update({ review_status: null })
+      .eq("id", match.id);
+    if (error) throw error;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function updateReviewStatus(id, status, note) {
+  try {
+    const { error } = await supabaseClient
+      .from("incoming_flight_emails")
+      .update({ review_status: status, review_note: note || null })
+      .eq("id", id);
+    if (error) throw error;
+
+    const row = incomingFlightEmails.find(item => item.id === id);
+    if (row) {
+      row.review_status = status;
+      row.review_note = note || null;
+    }
+    renderIncomingFlightEmails();
+  } catch (error) {
+    console.error(error);
+    showToast("تعذر تحديث حالة المراجعة.");
+  }
+}
+
+function formatEmailReceivedAt(iso) {
+  const d = new Date(iso);
+  const datePart = d.toLocaleDateString("ar-SA-u-nu-latn", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const timePart = d.toLocaleTimeString("ar-SA-u-nu-latn", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return `${timePart} - ${datePart}`;
+}
+
+// نقبل الحقل flight_number إما كرقم رحلة صافي (SV327) أو كسلسلة كاملة (SV327/20260717/RUH)
+// جاية مباشرة من Zapier بدون تقسيم مسبق - نقسمها هنا بدل ما نعقّد إعداد Zapier.
+function parseFlightCode(row) {
+  const raw = String(row.flight_number || "").trim();
+  const parts = raw.split("/");
+  return {
+    flightNumber: parts[0] || "-",
+    flightDate: row.flight_date || parts[1] || "",
+    originCode: row.origin_code || parts[2] || ""
+  };
+}
+
+async function loadIncomingFlightEmails() {
+  elements.emailList.innerHTML = '<div class="email-loading">⏳ جاري تحميل الرحلات...</div>';
+  try {
+    const { data, error } = await supabaseClient
+      .from("incoming_flight_emails")
+      .select("*")
+      .eq("is_checked", false)
+      .order("received_at", { ascending: false });
+    if (error) throw error;
+
+    incomingFlightEmails = data || [];
+    renderIncomingFlightEmails();
+  } catch (error) {
+    console.error(error);
+    elements.emailList.innerHTML = `<div class="email-loading">❌ تعذر تحميل الرحلات: ${escapeHtml(error.message)}</div>`;
+  }
+}
+
+function renderIncomingFlightEmails() {
+  if (!incomingFlightEmails.length) {
+    elements.emailList.innerHTML = `
+      <div class="empty-state">
+        <span>📭</span>
+        <strong>لا توجد رحلات جديدة</strong>
+        <p>ستظهر هنا كل رحلة فور وصول ايميلها.</p>
+      </div>`;
+    return;
+  }
+
+  elements.emailList.innerHTML = incomingFlightEmails.map(row => `
+    <div class="email-item" data-email-id="${escapeHtml(row.id)}">
+      <div class="email-sender">${escapeHtml(parseFlightCode(row).flightNumber.slice(0, 2))}</div>
+      <div class="email-content">
+        <div class="email-from">${escapeHtml(parseFlightCode(row).flightNumber)} <small>${escapeHtml(parseFlightCode(row).originCode)}</small></div>
+        <div class="email-subject">وقت استلام المنفست: ${escapeHtml(formatEmailReceivedAt(row.received_at))}</div>
+      </div>
+      <div class="review-badge-wrap">
+        <button type="button" class="review-badge ${reviewBadgeClass(row)}" data-open-review="${escapeHtml(row.id)}">${escapeHtml(reviewBadgeLabel(row))}</button>
+      </div>
+      <button class="email-check-btn" type="button" data-check-email="${escapeHtml(row.id)}">تم قلاع الرحلة</button>
+    </div>
+  `).join("");
+}
+
+elements.emailList.addEventListener("click", async event => {
+  const openReviewBtn = event.target.closest("[data-open-review]");
+  if (openReviewBtn) {
+    openReviewStatusModal(openReviewBtn.dataset.openReview);
+    return;
+  }
+
+  const btn = event.target.closest("[data-check-email]");
+  if (!btn) return;
+
+  event.stopPropagation();
+  const id = btn.dataset.checkEmail;
+  btn.disabled = true;
+  try {
+    const { error } = await supabaseClient
+      .from("incoming_flight_emails")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+    incomingFlightEmails = incomingFlightEmails.filter(row => row.id !== id);
+    renderIncomingFlightEmails();
+    showToast("تم حذف الرحلة من القائمة.");
+  } catch (error) {
+    console.error(error);
+    showToast("تعذر حذف الرحلة.");
+    btn.disabled = false;
+  }
+});
+
+elements.emailRefresh.addEventListener("click", loadIncomingFlightEmails);
+
+/* ========== نافذة اختيار حالة المراجعة (منبثقة) ========== */
+const reviewStatusModal = document.getElementById("review-status-modal");
+const reviewModalClose = document.getElementById("review-modal-close");
+const reviewNoteBox = document.getElementById("review-note-box");
+const reviewNoteInput = document.getElementById("review-note-input");
+const reviewNoteSave = document.getElementById("review-note-save");
+let reviewModalTargetId = null;
+
+function openReviewStatusModal(id) {
+  reviewModalTargetId = id;
+  const row = incomingFlightEmails.find(item => item.id === id);
+  reviewNoteBox.hidden = true;
+  reviewNoteInput.value = row?.review_note || "";
+  reviewStatusModal.querySelectorAll("[data-review-modal-option]").forEach(btn => {
+    btn.classList.toggle("is-active", btn.dataset.reviewModalOption === row?.review_status);
+  });
+  reviewStatusModal.hidden = false;
+}
+
+function closeReviewStatusModal() {
+  reviewStatusModal.hidden = true;
+  reviewModalTargetId = null;
+}
+
+reviewModalClose.addEventListener("click", closeReviewStatusModal);
+reviewStatusModal.addEventListener("click", event => {
+  if (event.target === reviewStatusModal) closeReviewStatusModal();
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !reviewStatusModal.hidden) closeReviewStatusModal();
+});
+
+reviewStatusModal.querySelectorAll("[data-review-modal-option]").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const option = btn.dataset.reviewModalOption;
+    reviewStatusModal.querySelectorAll("[data-review-modal-option]").forEach(other => {
+      other.classList.toggle("is-active", other === btn);
+    });
+    if (option === "note") {
+      reviewNoteBox.hidden = false;
+      reviewNoteInput.focus();
+      return;
+    }
+    if (!reviewModalTargetId) return;
+    await updateReviewStatus(reviewModalTargetId, option, null);
+    closeReviewStatusModal();
+  });
+});
+
+reviewNoteSave.addEventListener("click", async () => {
+  if (!reviewModalTargetId) return;
+  const note = reviewNoteInput.value.trim();
+  if (!note) { reviewNoteInput.focus(); return; }
+  await updateReviewStatus(reviewModalTargetId, "note", note);
+  closeReviewStatusModal();
+});
+
+/* ========== نافذة اختيار ملف من مجلد الايميل (Google Drive) ========== */
+const serverFilesModal = document.getElementById("server-files-modal");
+const serverFilesList = document.getElementById("server-files-list");
+const serverModalClose = document.getElementById("server-modal-close");
+
+function formatDriveDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("ar-SA-u-nu-latn", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+// يستخرج رقم الرحلة (مثل SV804) من بداية اسم الملف حتى لو باقي الاسم طويل ومقطوع بصريًا.
+function extractFlightNumberFromFileName(fileName) {
+  const match = String(fileName || "").toUpperCase().match(/\b([A-Z]{1,3}\d{2,4})\b/);
+  return match ? match[1] : "";
+}
+
+// مهلة زمنية تمنع تعليق النافذة للأبد لو تأخر الاتصال بـ Google Drive
+function fetchWithTimeout(url, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
+async function openServerFilesModal() {
+  serverFilesModal.hidden = false;
+  serverFilesList.innerHTML = '<div class="email-loading">⏳ جاري تحميل الملفات...</div>';
+
+  if (!GOOGLE_DRIVE_API_KEY || GOOGLE_DRIVE_API_KEY === "YOUR_GOOGLE_DRIVE_API_KEY") {
+    serverFilesList.innerHTML = '<div class="email-loading">⚠️ لم يتم إعداد مفتاح Google Drive API بعد.</div>';
+    return;
+  }
+
+  try {
+    const query = encodeURIComponent(`'${GOOGLE_DRIVE_FOLDER_ID}' in parents and mimeType='application/pdf' and trashed=false`);
+    const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc&key=${GOOGLE_DRIVE_API_KEY}`;
+    const response = await fetchWithTimeout(url);
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error?.message || "تعذر الاتصال بـ Google Drive");
+
+    const files = result.files || [];
+    if (!files.length) {
+      serverFilesList.innerHTML = `
+        <div class="empty-state">
+          <span>📭</span>
+          <strong>لا توجد ملفات بعد</strong>
+          <p>ستظهر هنا كل ملفات المنفست المرفوعة من الايميل.</p>
+        </div>`;
+      return;
+    }
+
+    serverFilesList.innerHTML = files.map(file => {
+      const flightNumber = extractFlightNumberFromFileName(file.name);
+      return `
+      <div class="server-file-item" data-drive-file-id="${escapeHtml(file.id)}" data-drive-file-name="${escapeHtml(file.name)}">
+        <span>📄</span>
+        <div class="server-file-info">
+          ${flightNumber ? `<span class="server-file-flight">${escapeHtml(flightNumber)}</span>` : ""}
+          <span class="server-file-name">${escapeHtml(file.name)}</span>
+        </div>
+        <span class="server-file-date">${escapeHtml(formatDriveDate(file.modifiedTime))}</span>
+      </div>`;
+    }).join("");
+  } catch (error) {
+    console.error(error);
+    const message = error.name === "AbortError" ? "انتهت مهلة الاتصال بـ Google Drive، حاول مرة أخرى." : error.message;
+    serverFilesList.innerHTML = `<div class="email-loading">❌ تعذر تحميل الملفات: ${escapeHtml(message)}</div>`;
+  }
+}
+
+function closeServerFilesModal() {
+  serverFilesModal.hidden = true;
+}
+
+async function loadServerFile(fileId, fileName) {
+  serverFilesList.innerHTML = '<div class="email-loading">⏳ جاري تحميل الملف...</div>';
+  try {
+    const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_DRIVE_API_KEY}`;
+    const response = await fetchWithTimeout(url);
+    if (!response.ok) throw new Error("تعذر تحميل الملف من Google Drive");
+    const blob = await response.blob();
+    const file = new File([blob], fileName || "manifest.pdf", { type: "application/pdf" });
+    closeServerFilesModal();
+    await handleFile(file);
+  } catch (error) {
+    console.error(error);
+    const message = error.name === "AbortError" ? "انتهت مهلة تحميل الملف، حاول مرة أخرى." : error.message;
+    serverFilesList.innerHTML = `<div class="email-loading">❌ ${escapeHtml(message)}</div>`;
+  }
+}
+
+elements.chooseServerFile.addEventListener("click", openServerFilesModal);
+serverModalClose.addEventListener("click", closeServerFilesModal);
+serverFilesModal.addEventListener("click", event => {
+  if (event.target === serverFilesModal) closeServerFilesModal();
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !serverFilesModal.hidden) closeServerFilesModal();
+});
+serverFilesList.addEventListener("click", event => {
+  const item = event.target.closest("[data-drive-file-id]");
+  if (!item) return;
+  loadServerFile(item.dataset.driveFileId, item.dataset.driveFileName);
+});
+
+elements.emailClearAll.addEventListener("click", async () => {
+  if (!confirm("سيتم حذف جميع الرحلات المرسلة نهائيًا من القائمة. هل تريد المتابعة؟")) return;
+  elements.emailClearAll.disabled = true;
+  try {
+    const { error } = await supabaseClient
+      .from("incoming_flight_emails")
+      .delete()
+      .gte("created_at", "1900-01-01T00:00:00Z");
+    if (error) throw error;
+    incomingFlightEmails = [];
+    renderIncomingFlightEmails();
+    showToast("تم تفريغ كل الرحلات المرسلة.");
+  } catch (error) {
+    console.error(error);
+    showToast("تعذر تفريغ الرحلات.");
+  } finally {
+    elements.emailClearAll.disabled = false;
+  }
+});
+
+loadIncomingFlightEmails();
