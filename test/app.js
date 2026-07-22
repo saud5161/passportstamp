@@ -8,7 +8,8 @@ const state = {
   selected: [],
   query: "",
   flightNumber: "",
-  manifestExpectedCount: 0
+  manifestExpectedCount: 0,
+  transitEntries: []
 };
 
 const elements = {
@@ -53,7 +54,13 @@ const elements = {
   emailList: document.getElementById("email-list"),
   emailRefresh: document.getElementById("email-refresh"),
   emailClearAll: document.getElementById("email-clear-all"),
-  chooseServerFile: document.getElementById("choose-server-file")
+  chooseServerFile: document.getElementById("choose-server-file"),
+  transitDropZone: document.getElementById("transit-drop-zone"),
+  transitInput: document.getElementById("transit-input"),
+  chooseTransitFile: document.getElementById("choose-transit-file"),
+  clearTransit: document.getElementById("clear-transit"),
+  transitStatus: document.getElementById("transit-status"),
+  transitLegend: document.getElementById("transit-legend")
 };
 
 let searchClearTimer = null;
@@ -181,6 +188,127 @@ function parseInkCloudPassengerLines(lines) {
   return passengers;
 }
 
+// تقرير الترانزيت (Generic Report) يستخدم نفس أسلوب سطر الراكب في تقرير Altea
+// (رقم.اسم/العائلة ثم الجنس والمسار...) لكنه يضيف أعمدة إضافية بعد المقعد
+// (رمز الرحلة التالية والوجهة النهائية)، لذلك لا نطابق حتى نهاية السطر كما في
+// parsePassengerLines، بل نكتفي بالتأكد من وجود الاسم يليه حرف نوع الراكب
+// ثم مطاري المغادرة والوصول - ولا نحتاج المقعد أو ما بعده لأن الهدف الوحيد هنا
+// هو مطابقة هؤلاء الركاب مع القائمة الرئيسية المستخرجة مسبقًا (بالاسم/الجواز).
+function parseTransitPassengerLines(lines) {
+  const passengers = [];
+  const transitNamePattern =
+    /^(\d+)\.([A-Z][A-Z\s'.-]*\/[A-Z][A-Z\s'.-]*?)\s+(?:(?:MR|MRS|MS|MISS|MSTR|PRCS)\s+)?[A-Z]{1,2}\s+[A-Z]{3}\s+[A-Z]{3}\b/i;
+  const passportPattern = /^([A-Z]{3})\s+([A-Z0-9<]{5,})(?:\s|$)/i;
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index].replace(/\s+/g, " ").trim();
+    const match = line.match(transitNamePattern);
+    if (!match) continue;
+
+    const passports = [];
+    let nationality = "";
+
+    for (let next = index + 1; next < Math.min(lines.length, index + 5); next += 1) {
+      const candidate = lines[next].replace(/\s+/g, " ").trim();
+      if (/^\d+\./.test(candidate)) break;
+      const passportMatch = candidate.match(passportPattern);
+      if (passportMatch) {
+        if (!nationality) nationality = passportMatch[1].toUpperCase();
+        passports.push(passportMatch[2]);
+      }
+    }
+
+    const passport = joinPassports(passports);
+    const rawName = match[2].toUpperCase();
+    passengers.push({
+      sourceNumber: Number(match[1]),
+      name: reportName(rawName),
+      fullName: normalize(rawName),
+      passport,
+      nationality
+    });
+  }
+
+  return passengers;
+}
+
+async function extractTransitEntries(file) {
+  const data = new Uint8Array(await file.arrayBuffer());
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  const allLines = [];
+
+  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+    elements.transitStatus.textContent = `جاري قراءة صفحة الترانزيت ${pageNumber} من ${pdf.numPages}...`;
+    const page = await pdf.getPage(pageNumber);
+    const textContent = await page.getTextContent();
+    allLines.push(...linesFromTextContent(textContent));
+  }
+
+  return parseTransitPassengerLines(allLines);
+}
+
+// يطابق راكب الترانزيت مع القائمة الرئيسية المستخرجة من بيان الركاب: رقم الجواز
+// أولًا (الأدق)، وإن تعذر (لا وثيقة أو اختلاف كتابة) نطابق بالاسم الكامل كاحتياط.
+function findPassengerForTransitEntry(entry) {
+  const entryPassports = splitPassportValues(entry.passport);
+  if (entryPassports.length) {
+    const byPassport = state.passengers.find(passenger =>
+      splitPassportValues(passenger.passport).some(passport => entryPassports.includes(passport))
+    );
+    if (byPassport) return byPassport;
+  }
+
+  if (entry.fullName) {
+    return state.passengers.find(passenger => normalize(passenger.fullName) === normalize(entry.fullName)) || null;
+  }
+
+  return null;
+}
+
+// يُحسب مرة واحدة لكل عرض بدل استدعاء findPassengerForTransitEntry لكل صف راكب على حدة
+// (يتجنب بحثًا متداخلًا مكلفًا عند وجود مئات الركاب وعشرات مدخلات الترانزيت معًا).
+function computeTransitMatchedIds() {
+  const ids = new Set();
+  state.transitEntries.forEach(entry => {
+    const passenger = findPassengerForTransitEntry(entry);
+    if (passenger) ids.add(passenger.id);
+  });
+  return ids;
+}
+
+async function handleTransitFile(file) {
+  if (!file || (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf"))) {
+    showToast("يرجى اختيار ملف PDF صحيح لقائمة الترانزيت.");
+    return;
+  }
+
+  elements.transitDropZone.classList.remove("dragging");
+  elements.chooseTransitFile.disabled = true;
+  elements.transitStatus.textContent = `جاري فتح ${file.name}...`;
+
+  try {
+    const entries = await extractTransitEntries(file);
+    if (!entries.length) {
+      throw new Error("لم يتم العثور على أسماء ترانزيت بالنمط المتوقع داخل الملف.");
+    }
+    state.transitEntries = entries;
+    const matchedCount = entries.filter(entry => findPassengerForTransitEntry(entry)).length;
+    elements.transitStatus.textContent = state.passengers.length
+      ? `${file.name} - تم العثور على ${matchedCount} من أصل ${entries.length} راكب ترانزيت ضمن قائمة الركاب الحالية.`
+      : `${file.name} - تم استخراج ${entries.length} راكب ترانزيت. أرفق بيان الركاب لمطابقتهم.`;
+    elements.clearTransit.hidden = false;
+    render();
+    showToast(`تم استخراج ${entries.length} راكب ترانزيت، وتمت مطابقة ${matchedCount} منهم.`);
+  } catch (error) {
+    console.error(error);
+    elements.transitStatus.textContent = "تعذر قراءة ملف الترانزيت. تأكد أن الملف بنفس تنسيق تقرير الترانزيت.";
+    showToast(error.message || "حدث خطأ أثناء قراءة ملف الترانزيت.");
+  } finally {
+    elements.chooseTransitFile.disabled = false;
+    elements.transitInput.value = "";
+  }
+}
+
 function extractFlightNumber(lines) {
   for (const line of lines.slice(0, 25)) {
     const match = line.toUpperCase().match(/\b([A-Z]{2}\d{2,4})\b/);
@@ -207,7 +335,11 @@ function extractManifestExpectedCount(lines) {
   return 0;
 }
 
-function linesFromTextContent(textContent) {
+// يجمع عناصر نص الصفحة في صفوف حسب إحداثي y (بفارق أقل من 2 نقطة يُعتبر نفس السطر)،
+// ويرتب كل صف من اليسار لليمين حسب x. هذا التجميع الخام (مع بقاء موضع كل كلمة) هو
+// الأساس الذي يُبنى عليه محلل الجدول العام أدناه، بجانب استخدامه لتوليد نص مسطّح
+// لباقي المحللين (Altea وInkCloud) كما كان سابقًا.
+function rowsFromTextContent(textContent) {
   const rows = [];
 
   textContent.items.forEach(item => {
@@ -225,29 +357,140 @@ function linesFromTextContent(textContent) {
 
   return rows
     .sort((a, b) => b.y - a.y)
-    .map(row => row.items.sort((a, b) => a.x - b.x).map(item => item.text).join(" "))
-    .filter(Boolean);
+    .map(row => ({ y: row.y, items: row.items.sort((a, b) => a.x - b.x) }));
+}
+
+function joinRowText(row) {
+  return row.items.map(item => item.text).join(" ");
+}
+
+function linesFromTextContent(textContent) {
+  return rowsFromTextContent(textContent).map(joinRowText).filter(Boolean);
+}
+
+// محلل جدول عام: يعمل مع أي بيان ركاب مُصمم كجدول له عناوين أعمدة إنجليزية
+// (Surname / Forename / Seat / Passport ...) بغض النظر عن شركة الطيران أو شكل
+// تصميم الجدول - بدل الاعتماد على نمط نصي ثابت مثل باقي المحللين، يكتشف موضع كل
+// عمود من عنوانه ثم يوزّع كلمات كل صف بيانات على أقرب عمود حسب الموضع الأفقي.
+const TABLE_COLUMN_SYNONYMS = {
+  serial: ["SNO", "SLNO", "NO", "SL", "SLNOSNO"],
+  surname: ["SURNAME", "LASTNAME", "FAMILYNAME"],
+  forename: ["FORENAME", "FIRSTNAME", "GIVENNAME", "GIVENNAMES"],
+  seat: ["SEATNUMBER", "SEAT", "SEATNO"],
+  gender: ["GENDER", "SEX"],
+  nationality: ["NATIONALITY", "NATION"],
+  passport: ["PASSPORTNUMBER", "PASSPORT", "DOCUMENTNUMBER", "DOCNUMBER", "DOCNO", "PASSPORTNO"]
+};
+
+function tableHeaderField(text) {
+  const key = String(text || "").toUpperCase().replace(/[^A-Z]/g, "");
+  for (const field in TABLE_COLUMN_SYNONYMS) {
+    if (TABLE_COLUMN_SYNONYMS[field].includes(key)) return field;
+  }
+  return null;
+}
+
+// يبحث عن أول صف بالمستند يحتوي 4 عناوين أعمدة أساسية على الأقل (اسم العائلة، الاسم،
+// المقعد، الجواز)، ويستخدم مواضعها الأفقية كحدود لبقية أعمدة الجدول في كل صفحات البيان.
+function detectTableColumns(rows) {
+  for (const row of rows) {
+    const columns = [];
+    row.items.forEach(item => {
+      const field = tableHeaderField(item.text);
+      if (field && !columns.some(col => col.field === field)) {
+        columns.push({ field, x: item.x });
+      }
+    });
+    const requiredFound = ["surname", "forename", "seat", "passport"]
+      .filter(field => columns.some(col => col.field === field)).length;
+    if (requiredFound >= 4) {
+      return { columns: columns.sort((a, b) => a.x - b.x), headerRow: row };
+    }
+  }
+  return null;
+}
+
+// كل كلمة تُنسب لأقرب عمود يقع على يمينها مباشرة (أو نفس موضعها) - نفس منطق قراءة
+// الجداول بصريًا من اليسار لليمين بدل الاعتماد على المسافات النصية بين الكلمات.
+// أي كلمة تقع يسار كل الأعمدة المكتشفة (مثل عمود الرقم التسلسلي حين لا يُكتشف
+// كعمود مستقل) تُتجاهل بدل إلصاقها قسرًا بأول عمود، حتى لا يختلط الرقم بالاسم.
+function assignRowToColumns(row, columns) {
+  const values = {};
+  row.items.forEach(item => {
+    let best = null;
+    columns.forEach(column => {
+      if (item.x >= column.x - 4) best = column;
+    });
+    if (!best) return;
+    values[best.field] = values[best.field] ? `${values[best.field]} ${item.text}` : item.text;
+  });
+  return values;
+}
+
+function parseTableManifestRows(rows) {
+  const detected = detectTableColumns(rows);
+  if (!detected) return [];
+  const { columns, headerRow } = detected;
+
+  const passengers = [];
+  rows.forEach(row => {
+    if (row === headerRow) return;
+    const firstItem = row.items[0];
+    if (!firstItem || !/^\d+$/.test(firstItem.text)) return;
+
+    const values = assignRowToColumns(row, columns);
+    const surname = (values.surname || "").trim();
+    const forename = (values.forename || "").trim();
+    if (!surname) return;
+
+    const seat = (values.seat || "").toUpperCase().replace(/\s+/g, "");
+    const passport = joinPassports(splitPassportValues(values.passport || ""));
+    const nationality = (values.nationality || "").toUpperCase().trim();
+    const rawName = `${surname}/${forename}`.toUpperCase();
+
+    passengers.push({
+      id: `table-${firstItem.text}-${passport || passengers.length}`,
+      sourceNumber: Number(firstItem.text),
+      name: reportName(rawName),
+      fullName: normalize(rawName),
+      seat,
+      passport,
+      nationality
+    });
+  });
+
+  return passengers;
 }
 
 async function extractPassengers(file) {
   const data = new Uint8Array(await file.arrayBuffer());
   const pdf = await pdfjsLib.getDocument({ data }).promise;
-  const allLines = [];
+  const allRows = [];
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
     elements.fileStatus.textContent = `جاري قراءة الصفحة ${pageNumber} من ${pdf.numPages}...`;
     const page = await pdf.getPage(pageNumber);
     const textContent = await page.getTextContent();
-    allLines.push(...linesFromTextContent(textContent));
+    allRows.push(...rowsFromTextContent(textContent));
   }
+
+  const allLines = allRows.map(joinRowText).filter(Boolean);
 
   const alteaPassengers = parsePassengerLines(allLines);
   const inkCloudPassengers = parseInkCloudPassengerLines(allLines);
+  const tablePassengers = parseTableManifestRows(allRows);
+
+  // نجرّب كل المحللين المعروفين ونختار من نجح في استخراج أكبر عدد ركاب - هذا يجعل
+  // النظام يتعرف تلقائيًا على أي شكل بيان مدعوم دون أي اختيار يدوي من المستخدم.
+  const best = [
+    { passengers: alteaPassengers, format: "altea" },
+    { passengers: inkCloudPassengers, format: "inkcloud" },
+    { passengers: tablePassengers, format: "table" }
+  ].reduce((a, b) => (b.passengers.length > a.passengers.length ? b : a));
 
   return {
-    passengers: inkCloudPassengers.length > alteaPassengers.length
-      ? inkCloudPassengers
-      : alteaPassengers,
+    passengers: best.passengers,
+    format: best.format,
     flightNumber: extractFlightNumber(allLines),
     manifestExpectedCount: extractManifestExpectedCount(allLines)
   };
@@ -605,16 +848,20 @@ function renderSource() {
     return;
   }
 
+  const transitIds = computeTransitMatchedIds();
+
   elements.sourceList.innerHTML = passengers.map(passenger => {
     const selected = state.selected.some(item => item.id === passenger.id);
+    const isTransit = transitIds.has(passenger.id);
     return `
-      <div class="passenger-row ${selected ? "is-selected" : ""}" data-add-id="${escapeHtml(passenger.id)}">
+      <div class="passenger-row ${selected ? "is-selected" : ""} ${isTransit ? "is-transit" : ""}" data-add-id="${escapeHtml(passenger.id)}">
         <span class="row-index">${passenger.sourceNumber}</span>
         <div class="passenger-main">
           <div class="passenger-name">${escapeHtml(passenger.name)}</div>
           <div class="passenger-meta">
             <span>P/${escapeHtml(passenger.passport || "غير متوفر")}</span>
             <span>${escapeHtml(passenger.nationality)}</span>
+            ${isTransit ? '<span class="transit-tag">✈️ ترانزيت</span>' : ""}
           </div>
         </div>
         ${selected ? '<span class="seat-badge">تمت الإضافة</span>' : `<span class="seat-badge">${escapeHtml(passenger.seat)}</span><span class="add-mark">＋</span>`}
@@ -640,8 +887,10 @@ function renderSelected() {
     return orderA - orderB;
   });
 
+  const transitIds = computeTransitMatchedIds();
+
   elements.selectedList.innerHTML = sortedSelected.map((passenger, index) => `
-    <div class="passenger-row selected-row">
+    <div class="passenger-row selected-row ${transitIds.has(passenger.id) ? "is-transit" : ""}">
       <span class="row-index">${index + 1}</span>
       <div class="edit-fields">
         <input value="${escapeHtml(passenger.name)}" data-edit-id="${escapeHtml(passenger.id)}" data-field="name" aria-label="اسم الراكب">
@@ -1113,6 +1362,7 @@ function renderAlerts() {
 
 function render() {
   elements.totalCount.textContent = state.passengers.length;
+  if (elements.transitLegend) elements.transitLegend.hidden = !state.transitEntries.length;
   if (elements.manifestCount) {
     elements.manifestCount.textContent = state.manifestExpectedCount || "-";
     elements.manifestCount.classList.toggle(
@@ -1180,6 +1430,33 @@ elements.chooseSystemImage.addEventListener("drop", event => {
 });
 
 elements.dropZone.addEventListener("drop", event => handleFile(event.dataTransfer.files[0]));
+
+elements.chooseTransitFile.addEventListener("click", () => elements.transitInput.click());
+elements.transitInput.addEventListener("change", event => handleTransitFile(event.target.files[0]));
+
+["dragenter", "dragover"].forEach(type => {
+  elements.transitDropZone.addEventListener(type, event => {
+    event.preventDefault();
+    elements.transitDropZone.classList.add("dragging");
+  });
+});
+
+["dragleave", "drop"].forEach(type => {
+  elements.transitDropZone.addEventListener(type, event => {
+    event.preventDefault();
+    elements.transitDropZone.classList.remove("dragging");
+  });
+});
+
+elements.transitDropZone.addEventListener("drop", event => handleTransitFile(event.dataTransfer.files[0]));
+
+elements.clearTransit.addEventListener("click", () => {
+  state.transitEntries = [];
+  elements.clearTransit.hidden = true;
+  elements.transitStatus.textContent = "أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.";
+  render();
+  showToast("تم إزالة قائمة الترانزيت.");
+});
 
 elements.search.addEventListener("input", event => {
   state.query = event.target.value;
@@ -1329,6 +1606,9 @@ elements.reset.addEventListener("click", () => {
   state.query = "";
   state.flightNumber = "";
   state.manifestExpectedCount = 0;
+  state.transitEntries = [];
+  elements.clearTransit.hidden = true;
+  elements.transitStatus.textContent = "أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.";
   clearTimeout(searchClearTimer);
   clearTimeout(ocrAutoTimer);
   clearTimeout(ocrMatchFlashTimer);

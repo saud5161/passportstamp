@@ -68,6 +68,19 @@
       </div>
     </section>
 
+    <section class="upload-panel transit-panel" id="transit-drop-zone">
+      <input id="transit-input" type="file" accept="application/pdf,.pdf" hidden>
+      <div class="upload-icon transit-icon">✈️</div>
+      <div class="upload-copy">
+        <h2>إرفاق قائمة الترانزيت</h2>
+        <p id="transit-status">أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.</p>
+      </div>
+      <div class="upload-actions">
+        <button class="primary-button transit-button" id="choose-transit-file" type="button">اختيار ملف الترانزيت</button>
+        <button id="clear-transit" class="secondary-button danger" type="button" hidden>إزالة الترانزيت</button>
+      </div>
+    </section>
+
     <section class="image-import-panel is-collapsed" id="image-import-panel">
       <input id="system-image-input" type="file" accept="image/*" capture="environment" hidden>
       <button class="image-import-heading" id="toggle-image-import" type="button"
@@ -135,6 +148,7 @@
             <h2>قائمة جميع الركاب</h2>
           </div>
           <div class="heading-actions">
+            <span id="transit-legend" class="transit-legend" hidden>✈️ يعني راكب ترانزيت</span>
             <span class="hint">انقر على الراكب لإضافته</span>
             <button id="toggle-bulk-match" class="small-button" type="button"
                     aria-expanded="false" aria-controls="bulk-match-panel">
