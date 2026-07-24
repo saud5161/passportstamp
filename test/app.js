@@ -58,9 +58,12 @@ const elements = {
   transitDropZone: document.getElementById("transit-drop-zone"),
   transitInput: document.getElementById("transit-input"),
   chooseTransitFile: document.getElementById("choose-transit-file"),
+  chooseServerTransitFile: document.getElementById("choose-server-transit-file"),
   clearTransit: document.getElementById("clear-transit"),
   transitStatus: document.getElementById("transit-status"),
-  transitLegend: document.getElementById("transit-legend")
+  transitLegend: document.getElementById("transit-legend"),
+  quickUpdateMessage: document.getElementById("quick-update-message"),
+  quickCompleteMessage: document.getElementById("quick-complete-message")
 };
 
 let searchClearTimer = null;
@@ -232,7 +235,11 @@ function parseTransitPassengerLines(lines) {
   return passengers;
 }
 
-async function extractTransitEntries(file) {
+// نُرجع مع الركاب إشارة "looksLikeTransit" (وجود كلمة TRANSIT في نص التقرير) لأن سطر
+// راكب عادي في بيان Altea يطابق أيضًا نمط سطر الترانزيت جزئيًا؛ نستخدم هذه الإشارة
+// حصرًا في الإرفاق التلقائي من الايميل لتفادي إرفاق نسخة مكررة من بيان الركاب نفسه
+// كترانزيت خطأً، بينما الإرفاق اليدوي (المستخدم يختار الملف بنفسه) لا يحتاجها.
+async function extractTransitReport(file) {
   const data = new Uint8Array(await file.arrayBuffer());
   const pdf = await pdfjsLib.getDocument({ data }).promise;
   const allLines = [];
@@ -244,7 +251,14 @@ async function extractTransitEntries(file) {
     allLines.push(...linesFromTextContent(textContent));
   }
 
-  return parseTransitPassengerLines(allLines);
+  return {
+    entries: parseTransitPassengerLines(allLines),
+    looksLikeTransit: allLines.some(line => /transit/i.test(line))
+  };
+}
+
+async function extractTransitEntries(file) {
+  return (await extractTransitReport(file)).entries;
 }
 
 // يطابق راكب الترانزيت مع القائمة الرئيسية المستخرجة من بيان الركاب: رقم الجواز
@@ -517,6 +531,9 @@ async function handleFile(file) {
     state.query = "";
     state.flightNumber = report.flightNumber;
     state.manifestExpectedCount = report.manifestExpectedCount;
+    state.transitEntries = [];
+    elements.clearTransit.hidden = true;
+    elements.transitStatus.textContent = "أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.";
     elements.search.value = "";
     const flightLabel = state.flightNumber ? ` - الرحلة ${state.flightNumber}` : "";
     const countLabel = state.manifestExpectedCount
@@ -1647,6 +1664,18 @@ elements.send.addEventListener("click", () => {
   window.location.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
 });
 
+elements.quickUpdateMessage.addEventListener("click", async () => {
+  const flightLabel = state.flightNumber || "—";
+  await navigator.clipboard.writeText(`تحديث على رحلة رقم (${flightLabel})`);
+  showToast("تم نسخ رسالة التحديث.");
+});
+
+elements.quickCompleteMessage.addEventListener("click", async () => {
+  const flightLabel = state.flightNumber || "—";
+  await navigator.clipboard.writeText(`رحلة رقم (${flightLabel}) لدى الجوازات مكتملة ولا يوجد ملاحظات`);
+  showToast("تم نسخ رسالة الاكتمال.");
+});
+
 render();
 updateOcrAvailability();
 
@@ -1923,6 +1952,9 @@ reviewNoteSave.addEventListener("click", async () => {
 const serverFilesModal = document.getElementById("server-files-modal");
 const serverFilesList = document.getElementById("server-files-list");
 const serverModalClose = document.getElementById("server-modal-close");
+const serverModalTitle = document.getElementById("server-modal-title");
+let serverFilesTarget = "main";
+let lastDriveFiles = [];
 
 function formatDriveDate(iso) {
   const d = new Date(iso);
@@ -1942,7 +1974,9 @@ function fetchWithTimeout(url, timeoutMs = 15000) {
   return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 
-async function openServerFilesModal() {
+async function openServerFilesModal(target = "main") {
+  serverFilesTarget = target;
+  serverModalTitle.textContent = target === "transit" ? "اختر ملف الترانزيت من الايميل" : "اختر ملف من الايميل";
   serverFilesModal.hidden = false;
   serverFilesList.innerHTML = '<div class="email-loading">⏳ جاري تحميل الملفات...</div>';
 
@@ -1959,6 +1993,7 @@ async function openServerFilesModal() {
     if (!response.ok) throw new Error(result.error?.message || "تعذر الاتصال بـ Google Drive");
 
     const files = result.files || [];
+    lastDriveFiles = files;
     if (!files.length) {
       serverFilesList.innerHTML = `
         <div class="empty-state">
@@ -1992,16 +2027,53 @@ function closeServerFilesModal() {
   serverFilesModal.hidden = true;
 }
 
+async function fetchDriveFileAsPdf(fileId, fileName, fallbackName) {
+  const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_DRIVE_API_KEY}`;
+  const response = await fetchWithTimeout(url);
+  if (!response.ok) throw new Error("تعذر تحميل الملف من Google Drive");
+  const blob = await response.blob();
+  return new File([blob], fileName || fallbackName, { type: "application/pdf" });
+}
+
+// بعض الرحلات يصلها إيميلان بنفس رقم الرحلة: بيان الركاب وقائمة الترانزيت. بعد إرفاق
+// بيان الركاب من الايميل، نبحث عن ملف آخر بنفس رقم الرحلة، ونتحقق أنه فعلًا تقرير
+// ترانزيت (وليس نسخة أخرى من نفس البيان) قبل إرفاقه تلقائيًا - وبصمت إن لم نجد شيئًا،
+// لأن أغلب الرحلات ليس لها ترانزيت أصلًا.
+async function autoAttachTransitForMainFile(pickedFileId, pickedFileName) {
+  const flightNumber = extractFlightNumberFromFileName(pickedFileName);
+  if (!flightNumber || !lastDriveFiles.length) return;
+
+  const candidates = lastDriveFiles.filter(file =>
+    file.id !== pickedFileId && extractFlightNumberFromFileName(file.name) === flightNumber
+  );
+
+  for (const candidate of candidates) {
+    try {
+      const file = await fetchDriveFileAsPdf(candidate.id, candidate.name, "transit.pdf");
+      const { entries, looksLikeTransit } = await extractTransitReport(file);
+      if (entries.length && looksLikeTransit) {
+        state.transitEntries = entries;
+        const matchedCount = entries.filter(entry => findPassengerForTransitEntry(entry)).length;
+        elements.transitStatus.textContent =
+          `${candidate.name} - تم إرفاقها تلقائيًا (نفس رقم الرحلة) - تم العثور على ${matchedCount} من أصل ${entries.length} راكب ترانزيت.`;
+        elements.clearTransit.hidden = false;
+        render();
+        showToast(`تم العثور على قائمة ترانزيت لنفس الرحلة وإرفاقها تلقائيًا (${matchedCount} راكب).`);
+        return;
+      }
+    } catch (error) {
+      console.error("auto transit attach error:", error);
+    }
+  }
+}
+
 async function loadServerFile(fileId, fileName) {
   serverFilesList.innerHTML = '<div class="email-loading">⏳ جاري تحميل الملف...</div>';
   try {
-    const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_DRIVE_API_KEY}`;
-    const response = await fetchWithTimeout(url);
-    if (!response.ok) throw new Error("تعذر تحميل الملف من Google Drive");
-    const blob = await response.blob();
-    const file = new File([blob], fileName || "manifest.pdf", { type: "application/pdf" });
+    const file = await fetchDriveFileAsPdf(fileId, fileName, "manifest.pdf");
     closeServerFilesModal();
     await handleFile(file);
+    await autoAttachTransitForMainFile(fileId, fileName);
   } catch (error) {
     console.error(error);
     const message = error.name === "AbortError" ? "انتهت مهلة تحميل الملف، حاول مرة أخرى." : error.message;
@@ -2009,7 +2081,21 @@ async function loadServerFile(fileId, fileName) {
   }
 }
 
-elements.chooseServerFile.addEventListener("click", openServerFilesModal);
+async function loadServerFileForTransit(fileId, fileName) {
+  serverFilesList.innerHTML = '<div class="email-loading">⏳ جاري تحميل الملف...</div>';
+  try {
+    const file = await fetchDriveFileAsPdf(fileId, fileName, "transit.pdf");
+    closeServerFilesModal();
+    await handleTransitFile(file);
+  } catch (error) {
+    console.error(error);
+    const message = error.name === "AbortError" ? "انتهت مهلة تحميل الملف، حاول مرة أخرى." : error.message;
+    serverFilesList.innerHTML = `<div class="email-loading">❌ ${escapeHtml(message)}</div>`;
+  }
+}
+
+elements.chooseServerFile.addEventListener("click", () => openServerFilesModal("main"));
+elements.chooseServerTransitFile.addEventListener("click", () => openServerFilesModal("transit"));
 serverModalClose.addEventListener("click", closeServerFilesModal);
 serverFilesModal.addEventListener("click", event => {
   if (event.target === serverFilesModal) closeServerFilesModal();
@@ -2020,6 +2106,10 @@ document.addEventListener("keydown", event => {
 serverFilesList.addEventListener("click", event => {
   const item = event.target.closest("[data-drive-file-id]");
   if (!item) return;
+  if (serverFilesTarget === "transit") {
+    loadServerFileForTransit(item.dataset.driveFileId, item.dataset.driveFileName);
+    return;
+  }
   loadServerFile(item.dataset.driveFileId, item.dataset.driveFileName);
 });
 

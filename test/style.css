@@ -319,11 +319,29 @@ main {
   font-weight: 900;
 }
 
-.upload-copy { flex: 1; }
+.upload-copy { flex: 1; min-width: 0; }
 .upload-copy h2 { margin: 0 0 5px; font-size: 18px; }
 .upload-copy p { margin: 0; color: var(--muted); font-size: 13px; }
 
-.transit-panel { margin-top: 14px; border-color: #a9d7e0; }
+.upload-row { display: flex; align-items: stretch; gap: 14px; }
+.upload-row .upload-panel { flex: 1; min-width: 0; }
+
+.upload-panel.compact {
+  min-height: auto;
+  padding: 14px 16px;
+  gap: 12px;
+}
+.upload-panel.compact .upload-icon { width: 42px; height: 48px; font-size: 10px; border-radius: 8px 8px 12px 8px; }
+.upload-panel.compact .upload-copy h2 { font-size: 14px; margin-bottom: 3px; }
+.upload-panel.compact .upload-copy p { font-size: 11px; }
+.upload-panel.compact .upload-actions { margin-top: 9px; flex-wrap: wrap; gap: 6px; }
+.upload-panel.compact .upload-actions button {
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 9px;
+}
+
+.transit-panel { border-color: #a9d7e0; }
 .transit-panel.dragging { border-color: #1f97b3; background: #f0fbfd; }
 
 .transit-icon {
@@ -333,6 +351,8 @@ main {
 }
 
 .primary-button.transit-button { background: linear-gradient(135deg, #1a8ba6, #0e7c96); }
+.server-button.transit-server-button { border-color: #1a8ba6; color: #0e7c96; background: #eafaff; }
+.server-button.transit-server-button:hover { background: #d6f3fa; }
 
 .transit-legend {
   padding: 4px 9px;
@@ -341,6 +361,10 @@ main {
   background: #dff5fa;
   font-size: 11px;
   font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .upload-row { flex-direction: column; }
 }
 
 .upload-copy .manifest-support-note {
@@ -787,7 +811,14 @@ main {
 .empty-state strong { color: #50675d; }
 .empty-state p { margin: 7px 0; font-size: 12px; }
 
-.message-preview { margin-top: 14px; padding: 13px; border: 1px solid var(--line); border-radius: 14px; background: #f6faf8; }
+.quick-message-actions { margin-top: 14px; display: flex; gap: 8px; }
+.quick-message-actions button { flex: 1; }
+.quick-message-actions .quick-update { color: #14608a; background: #e5f3fb; border: 1px solid #b9def2; }
+.quick-message-actions .quick-update:hover { background: #d3ecf9; }
+.quick-message-actions .quick-complete { color: #0f5c38; background: #e0f6ea; border: 1px solid #a9e2c3; }
+.quick-message-actions .quick-complete:hover { background: #cdf0dc; }
+
+.message-preview { margin-top: 12px; padding: 13px; border: 1px solid var(--line); border-radius: 14px; background: #f6faf8; }
 .preview-heading { justify-content: space-between; }
 .preview-heading h3 { margin: 0; font-size: 13px; }
 .message-preview pre {
