@@ -73,6 +73,7 @@ let ocrIsAnalyzing = false;
 let ocrAutoTimer = null;
 let ocrMatchFlashTimer = null;
 let openAlertPanels = new Set();
+let quickMessageOverride = null;
 
 function normalize(value) {
   return String(value || "")
@@ -239,13 +240,14 @@ function parseTransitPassengerLines(lines) {
 // راكب عادي في بيان Altea يطابق أيضًا نمط سطر الترانزيت جزئيًا؛ نستخدم هذه الإشارة
 // حصرًا في الإرفاق التلقائي من الايميل لتفادي إرفاق نسخة مكررة من بيان الركاب نفسه
 // كترانزيت خطأً، بينما الإرفاق اليدوي (المستخدم يختار الملف بنفسه) لا يحتاجها.
+// دالة نقية بدون أي تأثير جانبي على الواجهة - تُستدعى أيضًا لمجرد "فحص" ملف قبل معرفة
+// إن كان سيُعرض كترانزيت أو كبيان ركاب أصلي، فلا يصح أن تكتب حالة تقدّم في الواجهة.
 async function extractTransitReport(file) {
   const data = new Uint8Array(await file.arrayBuffer());
   const pdf = await pdfjsLib.getDocument({ data }).promise;
   const allLines = [];
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-    elements.transitStatus.textContent = `جاري قراءة صفحة الترانزيت ${pageNumber} من ${pdf.numPages}...`;
     const page = await pdf.getPage(pageNumber);
     const textContent = await page.getTextContent();
     allLines.push(...linesFromTextContent(textContent));
@@ -290,6 +292,18 @@ function computeTransitMatchedIds() {
   return ids;
 }
 
+// يضبط حالة الترانزيت في الواجهة والحالة العامة - مُشتركة بين الإرفاق اليدوي والتلقائي.
+function applyTransitEntries(fileName, entries) {
+  state.transitEntries = entries;
+  const matchedCount = entries.filter(entry => findPassengerForTransitEntry(entry)).length;
+  elements.transitStatus.textContent = state.passengers.length
+    ? `${fileName} - تم العثور على ${matchedCount} من أصل ${entries.length} راكب ترانزيت ضمن قائمة الركاب الحالية.`
+    : `${fileName} - تم استخراج ${entries.length} راكب ترانزيت. أرفق بيان الركاب لمطابقتهم.`;
+  elements.clearTransit.hidden = false;
+  render();
+  showToast(`تم استخراج ${entries.length} راكب ترانزيت، وتمت مطابقة ${matchedCount} منهم.`);
+}
+
 async function handleTransitFile(file) {
   if (!file || (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf"))) {
     showToast("يرجى اختيار ملف PDF صحيح لقائمة الترانزيت.");
@@ -305,14 +319,7 @@ async function handleTransitFile(file) {
     if (!entries.length) {
       throw new Error("لم يتم العثور على أسماء ترانزيت بالنمط المتوقع داخل الملف.");
     }
-    state.transitEntries = entries;
-    const matchedCount = entries.filter(entry => findPassengerForTransitEntry(entry)).length;
-    elements.transitStatus.textContent = state.passengers.length
-      ? `${file.name} - تم العثور على ${matchedCount} من أصل ${entries.length} راكب ترانزيت ضمن قائمة الركاب الحالية.`
-      : `${file.name} - تم استخراج ${entries.length} راكب ترانزيت. أرفق بيان الركاب لمطابقتهم.`;
-    elements.clearTransit.hidden = false;
-    render();
-    showToast(`تم استخراج ${entries.length} راكب ترانزيت، وتمت مطابقة ${matchedCount} منهم.`);
+    applyTransitEntries(file.name, entries);
   } catch (error) {
     console.error(error);
     elements.transitStatus.textContent = "تعذر قراءة ملف الترانزيت. تأكد أن الملف بنفس تنسيق تقرير الترانزيت.";
@@ -922,14 +929,26 @@ function renderSelected() {
     </div>`).join("");
 }
 
+// كل راكب بسطر واحد (رقم، اسم، مقعد، جواز) بدل ثلاثة أسطر منفصلة - أوضح وأقصر
+// عند النسخ لواتساب. يُستخدم أيضًا في رسالتي "تحديث" لأنهما يشتركان بنفس قائمة الركاب.
+function passengerMessageLines() {
+  return state.selected.map((passenger, index) =>
+    `${index + 1}. ${passenger.name.trim()} ${passenger.seat.trim()} P/${passenger.passport.trim()}`
+  ).join("\n");
+}
+
 function messageText() {
   if (!state.selected.length) return "";
+  return `الركاب المتبقين على رحلة (${state.flightNumber}) في نظام الجوازات\n\n${passengerMessageLines()}\n\nاشعارنا فوراً عند وصول اي راكب على البوابة`;
+}
 
-  const passengerLines = state.selected.map((passenger, index) =>
-    `${index + 1}. ${passenger.name.trim()}\n   ${passenger.seat.trim()}\n   P/${passenger.passport.trim()}`
-  ).join("\n");
+function updateMessageText() {
+  if (!state.selected.length) return "";
+  return `تحديث على رحلة (${state.flightNumber}) في نظام الجوازات\n\n${passengerMessageLines()}\n\nاشعارنا فوراً عند وصول اي راكب على البوابة`;
+}
 
-  return `الركاب المتبقين على رحلة (${state.flightNumber}) في نظام الجوازات\n\n${passengerLines}\n\nاشعارنا فوراً عند وصول اي راكب على البوابة`;
+function completeMessageText() {
+  return `الرحلة مكتملة (${state.flightNumber}) في نظام الجوازات\nجميع الركاب مختمين`;
 }
 
 async function ocrWordsFromSource(worker, source, options = {}) {
@@ -1081,6 +1100,9 @@ function createAdaptiveThresholdCanvas(sourceCanvas) {
 }
 
 function renderMessage() {
+  // أي تغيير فعلي بقائمة الركاب (إضافة/حذف/تعديل) يُلغي رسالة "تحديث/مكتملة" السريعة
+  // المعروضة سابقًا، ويعيد المعاينة لنص القائمة الطبيعي تلقائيًا.
+  quickMessageOverride = null;
   const text = messageText();
   elements.message.textContent = text || "ستظهر الرسالة هنا بعد اختيار الركاب.";
   elements.selectedCount.textContent = state.selected.length;
@@ -1652,28 +1674,31 @@ elements.reset.addEventListener("click", () => {
 });
 
 elements.copy.addEventListener("click", async () => {
-  const text = messageText();
+  const text = quickMessageOverride || messageText();
   if (!text) return showToast("القائمة المختارة فارغة.");
   await navigator.clipboard.writeText(text);
   showToast("تم نسخ نص الرسالة.");
 });
 
 elements.send.addEventListener("click", () => {
-  const text = messageText();
+  const text = quickMessageOverride || messageText();
   if (!text) return;
   window.location.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
 });
 
-elements.quickUpdateMessage.addEventListener("click", async () => {
-  const flightLabel = state.flightNumber || "—";
-  await navigator.clipboard.writeText(`تحديث على رحلة رقم (${flightLabel})`);
-  showToast("تم نسخ رسالة التحديث.");
+elements.quickUpdateMessage.addEventListener("click", () => {
+  const text = updateMessageText();
+  if (!text) return showToast("القائمة المختارة فارغة.");
+  quickMessageOverride = text;
+  elements.message.textContent = text;
+  elements.send.disabled = false;
 });
 
-elements.quickCompleteMessage.addEventListener("click", async () => {
-  const flightLabel = state.flightNumber || "—";
-  await navigator.clipboard.writeText(`رحلة رقم (${flightLabel}) لدى الجوازات مكتملة ولا يوجد ملاحظات`);
-  showToast("تم نسخ رسالة الاكتمال.");
+elements.quickCompleteMessage.addEventListener("click", () => {
+  const text = completeMessageText();
+  quickMessageOverride = text;
+  elements.message.textContent = text;
+  elements.send.disabled = false;
 });
 
 render();
@@ -2052,13 +2077,7 @@ async function autoAttachTransitForMainFile(pickedFileId, pickedFileName) {
       const file = await fetchDriveFileAsPdf(candidate.id, candidate.name, "transit.pdf");
       const { entries, looksLikeTransit } = await extractTransitReport(file);
       if (entries.length && looksLikeTransit) {
-        state.transitEntries = entries;
-        const matchedCount = entries.filter(entry => findPassengerForTransitEntry(entry)).length;
-        elements.transitStatus.textContent =
-          `${candidate.name} - تم إرفاقها تلقائيًا (نفس رقم الرحلة) - تم العثور على ${matchedCount} من أصل ${entries.length} راكب ترانزيت.`;
-        elements.clearTransit.hidden = false;
-        render();
-        showToast(`تم العثور على قائمة ترانزيت لنفس الرحلة وإرفاقها تلقائيًا (${matchedCount} راكب).`);
+        applyTransitEntries(candidate.name, entries);
         return;
       }
     } catch (error) {
@@ -2067,10 +2086,51 @@ async function autoAttachTransitForMainFile(pickedFileId, pickedFileName) {
   }
 }
 
+// عكس الحالة السابقة: الملف الذي اختاره المستخدم من الايميل تبيّن أنه تقرير ترانزيت
+// (وليس بيان الركاب)، فنبحث عن الملف الآخر بنفس رقم الرحلة ونحمّله كبيان الركاب الأصلي
+// في مكانه الصحيح. يُرجع true إن نجح، لتنبيه المستخدم إن تعذر إيجاد بيان الركاب المقابل.
+async function autoAttachMainForTransitFile(pickedFileId, pickedFileName) {
+  const flightNumber = extractFlightNumberFromFileName(pickedFileName);
+  if (!flightNumber || !lastDriveFiles.length) return false;
+
+  const candidates = lastDriveFiles.filter(file =>
+    file.id !== pickedFileId && extractFlightNumberFromFileName(file.name) === flightNumber
+  );
+
+  for (const candidate of candidates) {
+    try {
+      const file = await fetchDriveFileAsPdf(candidate.id, candidate.name, "manifest.pdf");
+      const { looksLikeTransit } = await extractTransitReport(file);
+      if (looksLikeTransit) continue;
+      await handleFile(file);
+      if (state.passengers.length) return true;
+    } catch (error) {
+      console.error("auto main attach error:", error);
+    }
+  }
+
+  return false;
+}
+
 async function loadServerFile(fileId, fileName) {
   serverFilesList.innerHTML = '<div class="email-loading">⏳ جاري تحميل الملف...</div>';
   try {
     const file = await fetchDriveFileAsPdf(fileId, fileName, "manifest.pdf");
+
+    // الملفان بنفس اسم/رقم الرحلة قد يكونان بيان ركاب أو ترانزيت، ولا يمكن تمييزهما
+    // إلا من محتواهما - نفحص الملف الذي اختاره المستخدم أولًا قبل افتراض أنه بيان الركاب.
+    const { entries: transitEntries, looksLikeTransit } = await extractTransitReport(file);
+
+    if (transitEntries.length && looksLikeTransit) {
+      closeServerFilesModal();
+      const foundMain = await autoAttachMainForTransitFile(fileId, fileName);
+      applyTransitEntries(file.name, transitEntries);
+      if (!foundMain) {
+        showToast("تم إرفاق قائمة الترانزيت، لكن لم يُعثر على بيان الركاب الأصلي لنفس الرحلة - أرفقه يدويًا.");
+      }
+      return;
+    }
+
     closeServerFilesModal();
     await handleFile(file);
     await autoAttachTransitForMainFile(fileId, fileName);
