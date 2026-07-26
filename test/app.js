@@ -29,7 +29,7 @@ const elements = {
   selectedList: document.getElementById("selected-list"),
   message: document.getElementById("message-output"),
   totalCount: document.getElementById("total-count"),
-  manifestCount: document.getElementById("manifest-count"),
+  transitCountTile: document.getElementById("transit-count"),
   visibleCount: document.getElementById("visible-count"),
   selectedCount: document.getElementById("selected-count"),
   send: document.getElementById("send-whatsapp"),
@@ -73,6 +73,7 @@ let ocrIsAnalyzing = false;
 let ocrAutoTimer = null;
 let ocrMatchFlashTimer = null;
 let openAlertPanels = new Set();
+let openNoteRows = new Set();
 let quickMessageOverride = null;
 
 function normalize(value) {
@@ -200,8 +201,10 @@ function parseInkCloudPassengerLines(lines) {
 // هو مطابقة هؤلاء الركاب مع القائمة الرئيسية المستخرجة مسبقًا (بالاسم/الجواز).
 function parseTransitPassengerLines(lines) {
   const passengers = [];
+  // بعض الأسماء تحتوي رموزًا إضافية مثل "+" (زوجة/زوج ملحق باسم العائلة، مثل
+  // "YETTOU EPOUSE BELKA+/N") - يجب تضمينها في الصنف وإلا يفشل استخراج ذلك السطر بالكامل.
   const transitNamePattern =
-    /^(\d+)\.([A-Z][A-Z\s'.-]*\/[A-Z][A-Z\s'.-]*?)\s+(?:(?:MR|MRS|MS|MISS|MSTR|PRCS)\s+)?[A-Z]{1,2}\s+[A-Z]{3}\s+[A-Z]{3}\b/i;
+    /^(\d+)\.([A-Z][A-Z\s'.+-]*\/[A-Z][A-Z\s'.+-]*?)\s+(?:(?:MR|MRS|MS|MISS|MSTR|PRCS)\s+)?[A-Z]{1,2}\s+[A-Z]{3}\s+[A-Z]{3}\b/i;
   const passportPattern = /^([A-Z]{3})\s+([A-Z0-9<]{5,})(?:\s|$)/i;
 
   for (let index = 0; index < lines.length; index += 1) {
@@ -483,13 +486,16 @@ function parseTableManifestRows(rows) {
   return passengers;
 }
 
-async function extractPassengers(file) {
+// onProgress اختياري (لا تأثير جانبي على الواجهة افتراضيًا) - يُستخدم أيضًا للتحقق
+// الصامت من نوع ملف قبل عرضه للمستخدم (بيان ركاب أم شيء آخر) دون التأثير على شريط
+// حالة رفع الملف الرئيسي.
+async function extractPassengers(file, onProgress) {
   const data = new Uint8Array(await file.arrayBuffer());
   const pdf = await pdfjsLib.getDocument({ data }).promise;
   const allRows = [];
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-    elements.fileStatus.textContent = `جاري قراءة الصفحة ${pageNumber} من ${pdf.numPages}...`;
+    if (onProgress) onProgress(pageNumber, pdf.numPages);
     const page = await pdf.getPage(pageNumber);
     const textContent = await page.getTextContent();
     allRows.push(...rowsFromTextContent(textContent));
@@ -528,7 +534,9 @@ async function handleFile(file) {
   elements.fileStatus.textContent = `جاري فتح ${file.name}...`;
 
   try {
-    const report = await extractPassengers(file);
+    const report = await extractPassengers(file, (pageNumber, numPages) => {
+      elements.fileStatus.textContent = `جاري قراءة الصفحة ${pageNumber} من ${numPages}...`;
+    });
     const passengers = report.passengers;
     if (!passengers.length) {
       throw new Error("لم يتم العثور على ركاب بالنمط المتوقع داخل الملف.");
@@ -832,6 +840,7 @@ function addPassenger(id) {
 
 function removePassenger(id) {
   state.selected = state.selected.filter(passenger => passenger.id !== id);
+  openNoteRows.delete(id);
   render();
 }
 
@@ -847,6 +856,15 @@ function updatePassenger(id, field, value) {
   const passenger = state.selected.find(item => item.id === id);
   if (!passenger) return;
   passenger[field] = value.toUpperCase();
+  renderMessage();
+}
+
+// نص حر بدون تحويل لحروف كبيرة (خلافًا لحقول الاسم/الجواز/المقعد)، ولا نعيد رسم
+// القائمة المختارة كاملة حتى لا يفقد حقل الإدخال تركيزه أثناء الكتابة.
+function updatePassengerNote(id, value) {
+  const passenger = state.selected.find(item => item.id === id);
+  if (!passenger) return;
+  passenger.note = value;
   renderMessage();
 }
 
@@ -913,7 +931,10 @@ function renderSelected() {
 
   const transitIds = computeTransitMatchedIds();
 
-  elements.selectedList.innerHTML = sortedSelected.map((passenger, index) => `
+  elements.selectedList.innerHTML = sortedSelected.map((passenger, index) => {
+    const hasNoteText = Boolean(passenger.note && passenger.note.trim());
+    const noteOpen = hasNoteText || openNoteRows.has(passenger.id);
+    return `
     <div class="passenger-row selected-row ${transitIds.has(passenger.id) ? "is-transit" : ""}">
       <span class="row-index">${index + 1}</span>
       <div class="edit-fields">
@@ -922,19 +943,29 @@ function renderSelected() {
         <input value="${escapeHtml(passenger.seat)}" data-edit-id="${escapeHtml(passenger.id)}" data-field="seat" aria-label="المقعد" placeholder="المقعد">
       </div>
       <div class="row-actions">
+        <button class="icon-button ${hasNoteText ? "has-note" : ""}" data-note-toggle="${escapeHtml(passenger.id)}" title="إضافة ملاحظة">📝</button>
         <button class="icon-button" data-move-id="${escapeHtml(passenger.id)}" data-direction="-1" title="تحريك لأعلى">↑</button>
         <button class="icon-button" data-move-id="${escapeHtml(passenger.id)}" data-direction="1" title="تحريك لأسفل">↓</button>
         <button class="icon-button remove" data-remove-id="${escapeHtml(passenger.id)}" title="حذف">×</button>
       </div>
-    </div>`).join("");
+      ${noteOpen ? `
+      <div class="passenger-note-row">
+        <span>ملاحظة /</span>
+        <input type="text" class="passenger-note-input" value="${escapeHtml(passenger.note || "")}" data-note-id="${escapeHtml(passenger.id)}" placeholder="اكتب ملاحظة تظهر تحت هذا الراكب في الرسالة...">
+      </div>` : ""}
+    </div>`;
+  }).join("");
 }
 
-// كل راكب بسطر واحد (رقم، اسم، مقعد، جواز) بدل ثلاثة أسطر منفصلة - أوضح وأقصر
-// عند النسخ لواتساب. يُستخدم أيضًا في رسالتي "تحديث" لأنهما يشتركان بنفس قائمة الركاب.
+// الاسم ورقم الجواز بسطر واحد، والمقعد بسطر مستقل تحته بصيغة "مقعد : (*رقم*)" -
+// النجمتان تجعلانه عريضًا وواضحًا في واتساب. يُستخدم أيضًا في رسالة "تحديث" لأنهما
+// يشتركان بنفس قائمة الركاب.
 function passengerMessageLines() {
-  return state.selected.map((passenger, index) =>
-    `${index + 1}. ${passenger.name.trim()} ${passenger.seat.trim()} P/${passenger.passport.trim()}`
-  ).join("\n");
+  return state.selected.map((passenger, index) => {
+    const note = (passenger.note || "").trim();
+    const noteLine = note ? `\nملاحظة / ${note}` : "";
+    return `${index + 1}.${passenger.name.trim()} ${passenger.passport.trim()}\nمقعد : (*${passenger.seat.trim()}*)${noteLine}`;
+  }).join("\n\n");
 }
 
 function messageText() {
@@ -1402,13 +1433,7 @@ function renderAlerts() {
 function render() {
   elements.totalCount.textContent = state.passengers.length;
   if (elements.transitLegend) elements.transitLegend.hidden = !state.transitEntries.length;
-  if (elements.manifestCount) {
-    elements.manifestCount.textContent = state.manifestExpectedCount || "-";
-    elements.manifestCount.classList.toggle(
-      "is-mismatch",
-      Boolean(state.manifestExpectedCount && state.manifestExpectedCount !== state.passengers.length)
-    );
-  }
+  if (elements.transitCountTile) elements.transitCountTile.textContent = state.transitEntries.length || "-";
   renderSource();
   renderSelected();
   renderMessage();
@@ -1552,13 +1577,23 @@ elements.sourceList.addEventListener("click", event => {
 elements.selectedList.addEventListener("click", event => {
   const remove = event.target.closest("[data-remove-id]");
   const move = event.target.closest("[data-move-id]");
+  const noteToggle = event.target.closest("[data-note-toggle]");
   if (remove) removePassenger(remove.dataset.removeId);
   if (move) movePassenger(move.dataset.moveId, Number(move.dataset.direction));
+  if (noteToggle) {
+    const id = noteToggle.dataset.noteToggle;
+    if (openNoteRows.has(id)) openNoteRows.delete(id);
+    else openNoteRows.add(id);
+    renderSelected();
+  }
 });
 
 elements.selectedList.addEventListener("input", event => {
   if (event.target.matches("[data-edit-id]")) {
     updatePassenger(event.target.dataset.editId, event.target.dataset.field, event.target.value);
+  }
+  if (event.target.matches("[data-note-id]")) {
+    updatePassengerNote(event.target.dataset.noteId, event.target.value);
   }
 });
 
@@ -1634,6 +1669,7 @@ elements.addManual.addEventListener("click", () => {
 elements.clearSelected.addEventListener("click", () => {
   if (!state.selected.length || confirm("حذف جميع الركاب من القائمة المختارة؟")) {
     state.selected = [];
+    openNoteRows.clear();
     render();
   }
 });
@@ -1669,6 +1705,7 @@ elements.reset.addEventListener("click", () => {
   elements.toggleBulkMatch.setAttribute("aria-expanded", "false");
   elements.toggleBulkMatch.classList.remove("is-active");
   openAlertPanels.clear();
+  openNoteRows.clear();
   elements.fileStatus.textContent = "اسحب ملف PDF هنا، أو اختره من الجهاز";
   render();
 });
@@ -2038,14 +2075,74 @@ async function openServerFilesModal(target = "main") {
           ${flightNumber ? `<span class="server-file-flight">${escapeHtml(flightNumber)}</span>` : ""}
           <span class="server-file-name">${escapeHtml(file.name)}</span>
         </div>
+        <span class="server-file-type-badge type-loading" data-type-badge="${escapeHtml(file.id)}">⏳</span>
         <span class="server-file-date">${escapeHtml(formatDriveDate(file.modifiedTime))}</span>
       </div>`;
     }).join("");
+
+    classifyVisibleDriveFiles(files);
   } catch (error) {
     console.error(error);
     const message = error.name === "AbortError" ? "انتهت مهلة الاتصال بـ Google Drive، حاول مرة أخرى." : error.message;
     serverFilesList.innerHTML = `<div class="email-loading">❌ تعذر تحميل الملفات: ${escapeHtml(message)}</div>`;
   }
+}
+
+// نُحدد نوع كل ملف (بيان ركاب أم قائمة ترانزيت) عبر فتح محتواه فعليًا، لأن الاسمين
+// قد يتطابقان تمامًا لنفس الرحلة ولا فرق بينهما إلا بالمحتوى. النتائج تُخزَّن مؤقتًا
+// حتى لا يُعاد تحميل نفس الملف من Google Drive عند إعادة فتح النافذة.
+const driveFileTypeCache = new Map();
+
+async function classifyDriveFile(file) {
+  if (driveFileTypeCache.has(file.id)) return driveFileTypeCache.get(file.id);
+
+  let type = "unknown";
+  try {
+    const pdfFile = await fetchDriveFileAsPdf(file.id, file.name, "file.pdf");
+    const { entries, looksLikeTransit } = await extractTransitReport(pdfFile);
+    if (entries.length && looksLikeTransit) {
+      type = "transit";
+    } else {
+      const report = await extractPassengers(pdfFile);
+      if (report.passengers.length) type = "main";
+    }
+  } catch (error) {
+    console.error("classify drive file error:", error);
+  }
+
+  driveFileTypeCache.set(file.id, type);
+  return type;
+}
+
+function applyDriveFileTypeBadge(badgeEl, type) {
+  badgeEl.className = "server-file-type-badge";
+  if (type === "transit") {
+    badgeEl.classList.add("type-transit");
+    badgeEl.textContent = "✈️ ترانزيت";
+  } else if (type === "main") {
+    badgeEl.classList.add("type-main");
+    badgeEl.textContent = "📋 ركاب";
+  } else {
+    badgeEl.classList.add("type-unknown");
+    badgeEl.textContent = "؟";
+  }
+}
+
+// تصنيف 3 ملفات بالتوازي كحد أقصى حتى لا نُثقل الاتصال بـ Google Drive عند وجود
+// عدد كبير من الملفات، مع تحديث شارة كل ملف فور معرفة نوعه دون انتظار البقية.
+async function classifyVisibleDriveFiles(files) {
+  const queue = [...files];
+
+  async function worker() {
+    while (queue.length) {
+      const file = queue.shift();
+      const type = await classifyDriveFile(file);
+      const badge = serverFilesList.querySelector(`[data-type-badge="${CSS.escape(file.id)}"]`);
+      if (badge) applyDriveFileTypeBadge(badge, type);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(3, files.length) }, worker));
 }
 
 function closeServerFilesModal() {
@@ -2194,3 +2291,8 @@ elements.emailClearAll.addEventListener("click", async () => {
 });
 
 loadIncomingFlightEmails();
+
+// تحديث تلقائي لقائمة الرحلات المرسلة كل ربع ساعة (بنفس فعل ضغط زر "↻ تحديث" يدويًا)
+// حتى تظهر الرحلات الجديدة دون الحاجة لتحديث الصفحة أو الضغط يدويًا باستمرار.
+const FLIGHT_EMAILS_AUTO_REFRESH_MS = 15 * 60 * 1000;
+setInterval(loadIncomingFlightEmails, FLIGHT_EMAILS_AUTO_REFRESH_MS);
