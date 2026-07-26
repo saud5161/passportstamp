@@ -1094,6 +1094,7 @@ main {
   border-bottom: 1px solid var(--line);
 }
 .server-modal-head h3 { margin: 0; font-size: 15px; }
+.server-modal-head-actions { display: flex; gap: 6px; }
 
 .server-files-list {
   padding: 10px;
@@ -1138,19 +1139,6 @@ main {
   color: var(--muted);
 }
 .server-file-item .server-file-date { flex: 0 0 auto; color: var(--muted); font-size: 11px; }
-
-.server-file-type-badge {
-  flex: 0 0 auto;
-  padding: 4px 9px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-.server-file-type-badge.type-loading { color: var(--muted); background: #eef1f3; }
-.server-file-type-badge.type-main { color: #14608a; background: #e5f3fb; }
-.server-file-type-badge.type-transit { color: #0e6a80; background: #cdf0f7; }
-.server-file-type-badge.type-unknown { color: #8a5a0a; background: #fff3d6; }
 
 @media (max-width: 900px) {
   .app-header { align-items: flex-start; flex-direction: column; }

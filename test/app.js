@@ -486,16 +486,13 @@ function parseTableManifestRows(rows) {
   return passengers;
 }
 
-// onProgress اختياري (لا تأثير جانبي على الواجهة افتراضيًا) - يُستخدم أيضًا للتحقق
-// الصامت من نوع ملف قبل عرضه للمستخدم (بيان ركاب أم شيء آخر) دون التأثير على شريط
-// حالة رفع الملف الرئيسي.
-async function extractPassengers(file, onProgress) {
+async function extractPassengers(file) {
   const data = new Uint8Array(await file.arrayBuffer());
   const pdf = await pdfjsLib.getDocument({ data }).promise;
   const allRows = [];
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-    if (onProgress) onProgress(pageNumber, pdf.numPages);
+    elements.fileStatus.textContent = `جاري قراءة الصفحة ${pageNumber} من ${pdf.numPages}...`;
     const page = await pdf.getPage(pageNumber);
     const textContent = await page.getTextContent();
     allRows.push(...rowsFromTextContent(textContent));
@@ -523,7 +520,9 @@ async function extractPassengers(file, onProgress) {
   };
 }
 
-async function handleFile(file) {
+// precomputedReport اختياري: يُستخدم عندما يكون المستدعي قد استخرج التقرير مسبقًا
+// (مثل loadServerFile عند فحص الملف قبل تحميله) لتفادي قراءة نفس الـ PDF مرتين.
+async function handleFile(file, precomputedReport = null) {
   if (!file || (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf"))) {
     showToast("يرجى اختيار ملف PDF صحيح.");
     return;
@@ -534,9 +533,7 @@ async function handleFile(file) {
   elements.fileStatus.textContent = `جاري فتح ${file.name}...`;
 
   try {
-    const report = await extractPassengers(file, (pageNumber, numPages) => {
-      elements.fileStatus.textContent = `جاري قراءة الصفحة ${pageNumber} من ${numPages}...`;
-    });
+    const report = precomputedReport || await extractPassengers(file);
     const passengers = report.passengers;
     if (!passengers.length) {
       throw new Error("لم يتم العثور على ركاب بالنمط المتوقع داخل الملف.");
@@ -559,7 +556,7 @@ async function handleFile(file) {
     render();
     // عند اختلاف العدد المذكور بالبيان عن المستخرج، ننبّه فورًا بدل رسالة النجاح العادية.
     if (state.manifestExpectedCount && state.manifestExpectedCount !== passengers.length) {
-      showToast(`⚠️ تنبيه: البيان يذكر ${state.manifestExpectedCount} راكب وتم استخراج ${passengers.length} فقط - راجع التنبيهات.`);
+      showToast(`⚠️ تنبيه: المنفست يذكر ${state.manifestExpectedCount} راكب وتم استخراج ${passengers.length} فقط - راجع التنبيهات.`);
     } else {
       showToast(`تم استخراج ${passengers.length} راكب.`);
     }
@@ -567,7 +564,7 @@ async function handleFile(file) {
     markMatchingFlightAsVerified(state.flightNumber);
   } catch (error) {
     console.error(error);
-    elements.fileStatus.textContent = "تعذر قراءة البيان. تأكد أن الملف بنفس تنسيق تقرير Altea.";
+    elements.fileStatus.textContent = "تعذر قراءة المنفست. تأكد أن الملف بنفس تنسيق تقرير Altea.";
     showToast(error.message || "حدث خطأ أثناء قراءة PDF.");
   } finally {
     elements.choose.disabled = false;
@@ -957,9 +954,9 @@ function renderSelected() {
   }).join("");
 }
 
-// الاسم ورقم الجواز بسطر واحد، والمقعد بسطر مستقل تحته بصيغة "مقعد : (*رقم*)" -
-// النجمتان تجعلانه عريضًا وواضحًا في واتساب. يُستخدم أيضًا في رسالة "تحديث" لأنهما
-// يشتركان بنفس قائمة الركاب.
+// كل راكب: اسم + جواز بسطر واحد، ثم سطر "مقعد : (*رقم*)" تحته (النجمتان لجعله عريضًا
+// في واتساب)، ثم سطر ملاحظة اختياري إن وُجد. الركاب مفصولون بسطر فارغ بينهم.
+// يُستخدم أيضًا في رسالة "تحديث" لأنهما يشتركان بنفس قائمة الركاب.
 function passengerMessageLines() {
   return state.selected.map((passenger, index) => {
     const note = (passenger.note || "").trim();
@@ -970,12 +967,12 @@ function passengerMessageLines() {
 
 function messageText() {
   if (!state.selected.length) return "";
-  return `الركاب المتبقين على رحلة (${state.flightNumber}) في نظام الجوازات\n\n${passengerMessageLines()}\n\nاشعارنا فوراً عند وصول اي راكب على البوابة`;
+  return `الركاب المتبقين على رحلة (${state.flightNumber}) في نظام الجوازات\n\n${passengerMessageLines()}\n\n*اشعارنا فوراً عند وصول اي راكب على البوابة*`;
 }
 
 function updateMessageText() {
   if (!state.selected.length) return "";
-  return `تحديث على رحلة (${state.flightNumber}) في نظام الجوازات\n\n${passengerMessageLines()}\n\nاشعارنا فوراً عند وصول اي راكب على البوابة`;
+  return `تحديث على رحلة (${state.flightNumber}) في نظام الجوازات\n\n${passengerMessageLines()}\n\n*اشعارنا فوراً عند وصول اي راكب على البوابة*`;
 }
 
 function completeMessageText() {
@@ -1153,7 +1150,7 @@ function hasSuspiciousAlSaudDocument(passenger) {
 }
 
 function passengerOrderLabel(passenger) {
-  return passenger.sourceNumber ? `ترتيبه في البيان: ${passenger.sourceNumber}` : "";
+  return passenger.sourceNumber ? `ترتيبه في المنفست: ${passenger.sourceNumber}` : "";
 }
 
 // أطول تطابق متتالٍ مشترك بين رقمي جواز - يُستخدم للحكم على مدى تشابه الرقمين.
@@ -1319,7 +1316,7 @@ function renderAlerts() {
     elements.alerts.innerHTML = `
       <div class="alerts-empty">
         <span>✓</span><strong>لا توجد تنبيهات حاليًا</strong>
-        <p>سيتم فحص البيان تلقائيًا بعد إرفاقه.</p>
+        <p>سيتم فحص المنفست تلقائيًا بعد إرفاقه.</p>
       </div>`;
     return;
   }
@@ -1333,7 +1330,7 @@ function renderAlerts() {
   if (!count) {
     elements.alerts.innerHTML = `
       <div class="alerts-empty">
-        <span>✓</span><strong>تم فحص البيان ولا توجد ملاحظات</strong>
+        <span>✓</span><strong>تم فحص المنفست ولا توجد ملاحظات</strong>
         <p>لا توجد جوازات مكررة أو مقاعد غير واضحة.</p>
       </div>`;
     return;
@@ -1675,7 +1672,7 @@ elements.clearSelected.addEventListener("click", () => {
 });
 
 elements.reset.addEventListener("click", () => {
-  if ((state.passengers.length || state.selected.length) && !confirm("هل تريد تفريغ البيان والقائمتين؟")) return;
+  if ((state.passengers.length || state.selected.length) && !confirm("هل تريد تفريغ المنفست والقائمتين؟")) return;
   state.passengers = [];
   state.selected = [];
   state.query = "";
@@ -2014,6 +2011,7 @@ reviewNoteSave.addEventListener("click", async () => {
 const serverFilesModal = document.getElementById("server-files-modal");
 const serverFilesList = document.getElementById("server-files-list");
 const serverModalClose = document.getElementById("server-modal-close");
+const serverModalRefresh = document.getElementById("server-modal-refresh");
 const serverModalTitle = document.getElementById("server-modal-title");
 let serverFilesTarget = "main";
 let lastDriveFiles = [];
@@ -2029,17 +2027,68 @@ function extractFlightNumberFromFileName(fileName) {
   return match ? match[1] : "";
 }
 
-// مهلة زمنية تمنع تعليق النافذة للأبد لو تأخر الاتصال بـ Google Drive
-function fetchWithTimeout(url, timeoutMs = 15000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
+// مهلة زمنية تمنع تعليق النافذة للأبد لو تأخر الاتصال بـ Google Drive، مع محاولتين
+// إضافيتين تلقائيًا عند فشل الشبكة (Failed to fetch) - جوجل درايف أحيانًا يرفض طلبًا
+// عابرًا بسبب استخدام كثيف قصير المدى، والانتظار القصير قبل إعادة المحاولة يحل أغلب
+// هذه الحالات دون أي تدخل يدوي من المستخدم.
+async function fetchWithTimeout(url, timeoutMs = 15000, retries = 2) {
+  for (let attempt = 0; ; attempt += 1) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      return response;
+    } catch (error) {
+      clearTimeout(timer);
+      if (attempt >= retries || error.name === "AbortError") throw error;
+      await new Promise(resolve => setTimeout(resolve, 1500 * (attempt + 1)));
+    }
+  }
 }
 
-async function openServerFilesModal(target = "main") {
+// قائمة ملفات الايميل لا تتغير كل ثانية، فنحتفظ بها لدقيقة كاملة بدل إعادة طلبها من
+// جوجل درايف في كل مرة يُفتح فيها نفس النافذة - يقلل عدد الطلبات المتكررة التي قد
+// تتسبب برفض مؤقت من جوجل عند التنقل السريع بين الملفات. زر "↻" يفرض تحديثًا فوريًا.
+let lastDriveFilesFetchedAt = 0;
+const DRIVE_FILES_CACHE_TTL_MS = 60 * 1000;
+
+function renderServerFilesList(files) {
+  if (!files.length) {
+    serverFilesList.innerHTML = `
+      <div class="empty-state">
+        <span>📭</span>
+        <strong>لا توجد ملفات بعد</strong>
+        <p>ستظهر هنا كل ملفات المنفست المرفوعة من الايميل.</p>
+      </div>`;
+    return;
+  }
+
+  serverFilesList.innerHTML = files.map(file => {
+    const flightNumber = extractFlightNumberFromFileName(file.name);
+    return `
+    <div class="server-file-item" data-drive-file-id="${escapeHtml(file.id)}" data-drive-file-name="${escapeHtml(file.name)}">
+      <span>📄</span>
+      <div class="server-file-info">
+        ${flightNumber ? `<span class="server-file-flight">${escapeHtml(flightNumber)}</span>` : ""}
+        <span class="server-file-name">${escapeHtml(file.name)}</span>
+      </div>
+      <span class="server-file-date">${escapeHtml(formatDriveDate(file.modifiedTime))}</span>
+    </div>`;
+  }).join("");
+}
+
+async function openServerFilesModal(target = "main", forceRefresh = false) {
   serverFilesTarget = target;
   serverModalTitle.textContent = target === "transit" ? "اختر ملف الترانزيت من الايميل" : "اختر ملف من الايميل";
   serverFilesModal.hidden = false;
+
+  const cacheIsFresh = lastDriveFiles.length && (Date.now() - lastDriveFilesFetchedAt) < DRIVE_FILES_CACHE_TTL_MS;
+  if (!forceRefresh && cacheIsFresh) {
+    renderServerFilesList(lastDriveFiles);
+    return;
+  }
+
   serverFilesList.innerHTML = '<div class="email-loading">⏳ جاري تحميل الملفات...</div>';
 
   if (!GOOGLE_DRIVE_API_KEY || GOOGLE_DRIVE_API_KEY === "YOUR_GOOGLE_DRIVE_API_KEY") {
@@ -2056,31 +2105,8 @@ async function openServerFilesModal(target = "main") {
 
     const files = result.files || [];
     lastDriveFiles = files;
-    if (!files.length) {
-      serverFilesList.innerHTML = `
-        <div class="empty-state">
-          <span>📭</span>
-          <strong>لا توجد ملفات بعد</strong>
-          <p>ستظهر هنا كل ملفات المنفست المرفوعة من الايميل.</p>
-        </div>`;
-      return;
-    }
-
-    serverFilesList.innerHTML = files.map(file => {
-      const flightNumber = extractFlightNumberFromFileName(file.name);
-      return `
-      <div class="server-file-item" data-drive-file-id="${escapeHtml(file.id)}" data-drive-file-name="${escapeHtml(file.name)}">
-        <span>📄</span>
-        <div class="server-file-info">
-          ${flightNumber ? `<span class="server-file-flight">${escapeHtml(flightNumber)}</span>` : ""}
-          <span class="server-file-name">${escapeHtml(file.name)}</span>
-        </div>
-        <span class="server-file-type-badge type-loading" data-type-badge="${escapeHtml(file.id)}">⏳</span>
-        <span class="server-file-date">${escapeHtml(formatDriveDate(file.modifiedTime))}</span>
-      </div>`;
-    }).join("");
-
-    classifyVisibleDriveFiles(files);
+    lastDriveFilesFetchedAt = Date.now();
+    renderServerFilesList(files);
   } catch (error) {
     console.error(error);
     const message = error.name === "AbortError" ? "انتهت مهلة الاتصال بـ Google Drive، حاول مرة أخرى." : error.message;
@@ -2088,79 +2114,31 @@ async function openServerFilesModal(target = "main") {
   }
 }
 
-// نُحدد نوع كل ملف (بيان ركاب أم قائمة ترانزيت) عبر فتح محتواه فعليًا، لأن الاسمين
-// قد يتطابقان تمامًا لنفس الرحلة ولا فرق بينهما إلا بالمحتوى. النتائج تُخزَّن مؤقتًا
-// حتى لا يُعاد تحميل نفس الملف من Google Drive عند إعادة فتح النافذة.
-const driveFileTypeCache = new Map();
-
-async function classifyDriveFile(file) {
-  if (driveFileTypeCache.has(file.id)) return driveFileTypeCache.get(file.id);
-
-  let type = "unknown";
-  try {
-    const pdfFile = await fetchDriveFileAsPdf(file.id, file.name, "file.pdf");
-    const { entries, looksLikeTransit } = await extractTransitReport(pdfFile);
-    if (entries.length && looksLikeTransit) {
-      type = "transit";
-    } else {
-      const report = await extractPassengers(pdfFile);
-      if (report.passengers.length) type = "main";
-    }
-  } catch (error) {
-    console.error("classify drive file error:", error);
-  }
-
-  driveFileTypeCache.set(file.id, type);
-  return type;
-}
-
-function applyDriveFileTypeBadge(badgeEl, type) {
-  badgeEl.className = "server-file-type-badge";
-  if (type === "transit") {
-    badgeEl.classList.add("type-transit");
-    badgeEl.textContent = "✈️ ترانزيت";
-  } else if (type === "main") {
-    badgeEl.classList.add("type-main");
-    badgeEl.textContent = "📋 ركاب";
-  } else {
-    badgeEl.classList.add("type-unknown");
-    badgeEl.textContent = "؟";
-  }
-}
-
-// تصنيف 3 ملفات بالتوازي كحد أقصى حتى لا نُثقل الاتصال بـ Google Drive عند وجود
-// عدد كبير من الملفات، مع تحديث شارة كل ملف فور معرفة نوعه دون انتظار البقية.
-async function classifyVisibleDriveFiles(files) {
-  const queue = [...files];
-
-  async function worker() {
-    while (queue.length) {
-      const file = queue.shift();
-      const type = await classifyDriveFile(file);
-      const badge = serverFilesList.querySelector(`[data-type-badge="${CSS.escape(file.id)}"]`);
-      if (badge) applyDriveFileTypeBadge(badge, type);
-    }
-  }
-
-  await Promise.all(Array.from({ length: Math.min(3, files.length) }, worker));
-}
-
 function closeServerFilesModal() {
   serverFilesModal.hidden = true;
 }
 
+// نخزّن محتوى الملف بعد أول تنزيل، حتى إذا تنقّل المستخدم بين نفس الملفات أكثر من
+// مرة (رجوع واختيار مجددًا) لا نُعيد تنزيلها من جوجل درايف في كل مرة.
+const driveFileBlobCache = new Map();
+
 async function fetchDriveFileAsPdf(fileId, fileName, fallbackName) {
+  if (driveFileBlobCache.has(fileId)) {
+    return new File([driveFileBlobCache.get(fileId)], fileName || fallbackName, { type: "application/pdf" });
+  }
+
   const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_DRIVE_API_KEY}`;
   const response = await fetchWithTimeout(url);
   if (!response.ok) throw new Error("تعذر تحميل الملف من Google Drive");
   const blob = await response.blob();
+  driveFileBlobCache.set(fileId, blob);
   return new File([blob], fileName || fallbackName, { type: "application/pdf" });
 }
 
 // بعض الرحلات يصلها إيميلان بنفس رقم الرحلة: بيان الركاب وقائمة الترانزيت. بعد إرفاق
-// بيان الركاب من الايميل، نبحث عن ملف آخر بنفس رقم الرحلة، ونتحقق أنه فعلًا تقرير
-// ترانزيت (وليس نسخة أخرى من نفس البيان) قبل إرفاقه تلقائيًا - وبصمت إن لم نجد شيئًا،
-// لأن أغلب الرحلات ليس لها ترانزيت أصلًا.
+// بيان الركاب من الايميل، نبحث عن ملف آخر بنفس رقم الرحلة بالضبط، ونتحقق أنه فعلًا
+// تقرير ترانزيت (وليس نسخة أخرى من نفس البيان) قبل إرفاقه تلقائيًا - وبصمت تام إن لم
+// نجد شيئًا، لأن أغلب الرحلات ليس لها ترانزيت أصلًا.
 async function autoAttachTransitForMainFile(pickedFileId, pickedFileName) {
   const flightNumber = extractFlightNumberFromFileName(pickedFileName);
   if (!flightNumber || !lastDriveFiles.length) return;
@@ -2183,10 +2161,11 @@ async function autoAttachTransitForMainFile(pickedFileId, pickedFileName) {
   }
 }
 
-// عكس الحالة السابقة: الملف الذي اختاره المستخدم من الايميل تبيّن أنه تقرير ترانزيت
-// (وليس بيان الركاب)، فنبحث عن الملف الآخر بنفس رقم الرحلة ونحمّله كبيان الركاب الأصلي
-// في مكانه الصحيح. يُرجع true إن نجح، لتنبيه المستخدم إن تعذر إيجاد بيان الركاب المقابل.
-async function autoAttachMainForTransitFile(pickedFileId, pickedFileName) {
+// الحالة المعاكسة: المستخدم اختار من قائمة الايميل ملفًا للبيان الرئيسي، لكنه تبيّن أنه
+// تقرير ترانزيت فعليًا (نقر بالخطأ على الملف الآخر بنفس رقم الرحلة). نبحث عن ملف آخر
+// بنفس رقم الرحلة، ونحمّل أول ملف ينجح كبيان ركاب حقيقي في مكان البيان الرئيسي.
+// نُرجع true إن نجحنا، حتى يعرف المستدعي هل يُرفق الترانزيت بعدها أم يكتفي بتنبيه.
+async function autoAttachMainManifestForTransitFile(pickedFileId, pickedFileName) {
   const flightNumber = extractFlightNumberFromFileName(pickedFileName);
   if (!flightNumber || !lastDriveFiles.length) return false;
 
@@ -2197,15 +2176,15 @@ async function autoAttachMainForTransitFile(pickedFileId, pickedFileName) {
   for (const candidate of candidates) {
     try {
       const file = await fetchDriveFileAsPdf(candidate.id, candidate.name, "manifest.pdf");
-      const { looksLikeTransit } = await extractTransitReport(file);
-      if (looksLikeTransit) continue;
-      await handleFile(file);
-      if (state.passengers.length) return true;
+      const report = await extractPassengers(file);
+      if (report.passengers.length) {
+        await handleFile(file, report);
+        return true;
+      }
     } catch (error) {
-      console.error("auto main attach error:", error);
+      console.error("auto main-manifest attach error:", error);
     }
   }
-
   return false;
 }
 
@@ -2213,23 +2192,25 @@ async function loadServerFile(fileId, fileName) {
   serverFilesList.innerHTML = '<div class="email-loading">⏳ جاري تحميل الملف...</div>';
   try {
     const file = await fetchDriveFileAsPdf(fileId, fileName, "manifest.pdf");
+    closeServerFilesModal();
 
-    // الملفان بنفس اسم/رقم الرحلة قد يكونان بيان ركاب أو ترانزيت، ولا يمكن تمييزهما
-    // إلا من محتواهما - نفحص الملف الذي اختاره المستخدم أولًا قبل افتراض أنه بيان الركاب.
-    const { entries: transitEntries, looksLikeTransit } = await extractTransitReport(file);
-
-    if (transitEntries.length && looksLikeTransit) {
-      closeServerFilesModal();
-      const foundMain = await autoAttachMainForTransitFile(fileId, fileName);
-      applyTransitEntries(file.name, transitEntries);
-      if (!foundMain) {
-        showToast("تم إرفاق قائمة الترانزيت، لكن لم يُعثر على بيان الركاب الأصلي لنفس الرحلة - أرفقه يدويًا.");
+    const report = await extractPassengers(file);
+    if (!report.passengers.length) {
+      // قبل الحكم بالفشل، نتحقق: ربما الملف الذي اخترته هو تقرير ترانزيت وليس بيان
+      // الركاب (بعض الرحلات يصلها إيميلان بنفس رقم الرحلة). إن صح ذلك، نرفقه كترانزيت
+      // ونبحث تلقائيًا عن بيان الركاب الصحيح بنفس رقم الرحلة لنضعه في مكانه الصحيح.
+      const transitReport = await extractTransitReport(file);
+      if (transitReport.entries.length && transitReport.looksLikeTransit) {
+        const attachedMain = await autoAttachMainManifestForTransitFile(fileId, fileName);
+        applyTransitEntries(fileName, transitReport.entries);
+        if (!attachedMain) {
+          showToast("⚠️ هذا الملف قائمة ترانزيت - أرفق بيان الركاب لنفس الرحلة يدويًا للمطابقة.");
+        }
+        return;
       }
-      return;
     }
 
-    closeServerFilesModal();
-    await handleFile(file);
+    await handleFile(file, report);
     await autoAttachTransitForMainFile(fileId, fileName);
   } catch (error) {
     console.error(error);
@@ -2253,6 +2234,7 @@ async function loadServerFileForTransit(fileId, fileName) {
 
 elements.chooseServerFile.addEventListener("click", () => openServerFilesModal("main"));
 elements.chooseServerTransitFile.addEventListener("click", () => openServerFilesModal("transit"));
+serverModalRefresh.addEventListener("click", () => openServerFilesModal(serverFilesTarget, true));
 serverModalClose.addEventListener("click", closeServerFilesModal);
 serverFilesModal.addEventListener("click", event => {
   if (event.target === serverFilesModal) closeServerFilesModal();

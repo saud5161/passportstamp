@@ -128,7 +128,7 @@
         <div>
           <span class="alert-symbol">!</span>
           <div>
-            <h2>تنبيهات البيان</h2>
+            <h2>تنبيهات المنفست</h2>
             <p>مراجعة الجوازات المكررة والمقاعد غير الواضحة قبل إرسال القائمة.</p>
           </div>
         </div>
@@ -138,7 +138,7 @@
         <div class="alerts-empty">
           <span>✓</span>
           <strong>لا توجد تنبيهات حاليًا</strong>
-          <p>سيتم فحص البيان تلقائيًا بعد إرفاقه.</p>
+          <p>سيتم فحص المنفست تلقائيًا بعد إرفاقه.</p>
         </div>
       </div>
     </section>
@@ -233,7 +233,10 @@
     <div class="server-modal-box">
       <div class="server-modal-head">
         <h3 id="server-modal-title">اختر ملف من الايميل</h3>
-        <button id="server-modal-close" class="icon-button" type="button">×</button>
+        <div class="server-modal-head-actions">
+          <button id="server-modal-refresh" class="icon-button" type="button" title="تحديث القائمة">↻</button>
+          <button id="server-modal-close" class="icon-button" type="button">×</button>
+        </div>
       </div>
       <div id="server-files-list" class="server-files-list">
         <div class="email-loading">⏳ جاري تحميل الملفات...</div>
