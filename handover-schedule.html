@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>جدول الاستلام</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.js"></script>
+
+<style>
+    :root {
+        --primary: #198754;
+        --primary-dark: #0f3d28;
+        --gold: #c5a059;
+        --bg: #f8f9fa;
+        --white: #ffffff;
+        --text: #2c3e50;
+        --radius: 12px;
+
+        --c-morning: #fdf8e9;
+        --c-noon: #f5c518;
+        --c-night: #2b2b2b;
+        --c-off: #8a94a3;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding-bottom: 40px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    header {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        color: white;
+        padding: 22px 20px;
+        text-align: center;
+        border-bottom: 4px solid var(--gold);
+        border-bottom-left-radius: 25px;
+        border-bottom-right-radius: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        margin-bottom: 20px;
+        position: relative;
+    }
+    header h1 { margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: 1px; }
+    header .back-btn {
+        position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+        background: rgba(255,255,255,0.15); border: none; color: white;
+        width: 36px; height: 36px; border-radius: 50%; font-size: 1rem; cursor: pointer;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 0 15px; }
+
+    .card-panel {
+        background: var(--white); border-radius: var(--radius); padding: 18px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid var(--gold);
+    }
+
+    .panel-title {
+        color: var(--primary-dark); font-weight: 800; font-size: 1.05rem; margin: 0 0 14px 0;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .panel-title i { color: var(--gold); }
+
+    .date-row { display: flex; gap: 10px; align-items: center; }
+    .date-row input[type=date] {
+        flex: 1; padding: 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 1rem;
+        background: #fcfcfc; font-family: inherit;
+    }
+    .today-btn {
+        background: var(--primary); color: white; border: none; border-radius: 10px;
+        padding: 0 16px; height: 46px; font-weight: 700; cursor: pointer; white-space: nowrap;
+    }
+
+    .shift-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+    .shift-btn {
+        background: #fff; border: 2px solid #e6e6e6; border-radius: 12px; padding: 14px 6px;
+        text-align: center; cursor: pointer; transition: 0.2s; font-weight: 800; color: #555;
+    }
+    .shift-btn .letter { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+    .shift-btn:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .shift-btn.active { border-color: var(--primary); background: linear-gradient(135deg,#eefaf3,#f5fff9); color: var(--primary-dark); box-shadow: 0 6px 16px rgba(25,135,84,0.15); }
+
+    .result-box { display: none; margin-top: 18px; }
+    .result-box.show { display: block; animation: fadeIn .3s ease; }
+    .result-head {
+        display: flex; align-items: center; justify-content: center; gap: 14px;
+        padding: 18px; border-radius: 14px; color: white; text-align: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    .result-head .status-icon { font-size: 2.2rem; }
+    .result-head .status-text { font-size: 1.3rem; font-weight: 900; }
+    .result-head .status-sub { font-size: 0.85rem; opacity: 0.9; margin-top: 3px; }
+
+    .result-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .date-pill {
+        background: #f8f9fa; border: 1px solid #eee; border-radius: 10px; padding: 12px; text-align: center;
+    }
+    .date-pill .lbl { font-size: 0.75rem; color: #888; font-weight: 700; margin-bottom: 4px; }
+    .date-pill .val { font-size: 1rem; font-weight: 800; color: var(--primary-dark); }
+
+    .shift-name-line { text-align: center; margin-top: 10px; font-size: 0.9rem; color: #777; font-weight: 700; }
+    .shift-name-line b { color: var(--primary); }
+
+    /* legend */
+    .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; justify-content: center; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #555; font-weight: 700; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+
+    /* calendar */
+    .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .cal-head button { background: #f1f3f5; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 1rem; color: var(--primary-dark); }
+    .cal-head .cal-title { font-weight: 800; color: var(--primary-dark); font-size: 1rem; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+    .cal-dow { text-align: center; font-size: 0.72rem; color: #999; font-weight: 800; padding-bottom: 4px; }
+    .cal-day {
+        min-height: 58px; border-radius: 10px; background: #fafafa; border: 1px solid #eee;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        cursor: pointer; font-size: 0.78rem; font-weight: 700; color: #555; position: relative;
+        gap: 2px; padding: 4px 2px; overflow: hidden;
+    }
+    .cal-day.empty { visibility: hidden; cursor: default; }
+    .cal-day:hover { border-color: var(--gold); }
+    .cal-day.selected { background: #fff7e8; border-color: var(--gold); box-shadow: 0 0 0 2px rgba(197,160,89,0.35); }
+    .cal-day.today { border: 3px solid var(--primary); box-shadow: 0 0 0 3px rgba(25,135,84,0.25); font-weight: 900; }
+    .cal-day.today.selected { border-color: var(--primary); background: #eefaf3; box-shadow: 0 0 0 3px rgba(25,135,84,0.35); }
+    .cal-day .dnum { font-size: 0.8rem; }
+    .cal-day .status-chip {
+        font-size: 0.52rem; font-weight: 800; padding: 1px 5px; border-radius: 6px;
+        border: 1px solid rgba(0,0,0,0.12); line-height: 1.5; white-space: nowrap;
+    }
+    .cal-day .hijri-sub { font-size: 0.55rem; color: #9a9a9a; font-weight: 700; }
+
+    /* بطاقة المستلم الآن (عرض فقط) */
+    .live-info {
+        margin-top: 14px; border: 1px solid #eee; border-right: 6px solid var(--gold); border-radius: 12px;
+        padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        background: #fcfcfc; transition: border-color 0.4s;
+    }
+    .live-info-label { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 800; color: #777; }
+    .live-info-label .dot-blink { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: blink 1.2s infinite; flex-shrink: 0; }
+    .live-info-value { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; font-weight: 900; color: var(--primary-dark); }
+    .live-info-value .status-swatch { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .shift-times-note { text-align: center; font-size: 0.7rem; color: #aaa; margin-top: 6px; font-weight: 700; }
+
+    .live-badge {
+        display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.25);
+        border-radius: 20px; padding: 4px 10px; font-size: 0.72rem; font-weight: 800; margin-top: 8px;
+    }
+    .live-badge .dot-blink { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: blink 1.2s infinite; }
+
+    .hint {
+        text-align: center; color: #999; font-size: 0.85rem; padding: 20px 10px;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+
+    @media (max-width: 420px) {
+        .shift-btn .letter { font-size: 1.2rem; }
+        .result-head { flex-direction: column; gap: 4px; }
+        .cal-grid { gap: 4px; }
+        .cal-day { min-height: 50px; font-size: 0.7rem; padding: 3px 1px; }
+        .cal-day .status-chip { font-size: 0.46rem; padding: 1px 4px; }
+        .cal-day .hijri-sub { font-size: 0.48rem; }
+        .live-info { flex-direction: column; align-items: flex-start; gap: 4px; }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <button class="back-btn" onclick="window.location.href='indexhh.html'"><i class="fas fa-arrow-right"></i></button>
+    <h1><i class="fas fa-people-arrows"></i> جدول الاستلام</h1>
+</header>
+
+<div class="container">
+
+    <div class="card-panel">
+        <div class="panel-title"><i class="fas fa-calendar-day"></i> اختر التاريخ</div>
+        <div class="date-row">
+            <input type="date" id="pickDate">
+            <button class="today-btn" onclick="goToday()">اليوم</button>
+        </div>
+
+        <div class="panel-title" style="margin-top:18px;"><i class="fas fa-users"></i> اختر المناوبة</div>
+        <div class="shift-buttons" id="shiftButtons">
+            <div class="shift-btn" data-shift="أ" onclick="selectShift('أ')"><span class="letter">أ</span>مناوبة أ</div>
+            <div class="shift-btn" data-shift="ب" onclick="selectShift('ب')"><span class="letter">ب</span>مناوبة ب</div>
+            <div class="shift-btn" data-shift="ج" onclick="selectShift('ج')"><span class="letter">ج</span>مناوبة ج</div>
+            <div class="shift-btn" data-shift="د" onclick="selectShift('د')"><span class="letter">د</span>مناوبة د</div>
+        </div>
+
+        <div class="live-info" id="liveInfo">
+            <div class="live-info-label"><span class="dot-blink"></span> المستلم الآن</div>
+            <div class="live-info-value"><span class="status-swatch" id="liveInfoSwatch"></span><span id="liveInfoValue">—</span></div>
+        </div>
+        <div class="shift-times-note">صباح 6ص–2م &nbsp;|&nbsp; ظهر 2م–10م &nbsp;|&nbsp; ليل 10م–6ص</div>
+
+        <div class="result-box" id="resultBox">
+            <div class="result-head" id="resultHead">
+                <i class="status-icon" id="resultIcon"></i>
+                <div>
+                    <div class="status-text" id="resultStatus"></div>
+                    <div class="status-sub" id="resultSub"></div>
+                    <div class="live-badge" id="liveBadge" style="display:none;"><span class="dot-blink"></span> قيد الاستلام الآن</div>
+                </div>
+            </div>
+            <div class="result-dates">
+                <div class="date-pill"><div class="lbl">التاريخ الميلادي</div><div class="val" id="resGregorian"></div></div>
+                <div class="date-pill"><div class="lbl">التاريخ الهجري</div><div class="val" id="resHijri"></div></div>
+            </div>
+            <div class="shift-name-line">مناوبة <b id="resShiftLetter"></b> — <span id="resDayName"></span></div>
+        </div>
+
+        <div class="hint" id="emptyHint">اختر تاريخًا ثم مناوبة لعرض حالة الاستلام</div>
+
+        <div class="legend">
+            <div class="legend-item"><span class="legend-dot" style="background:var(--c-morning); border:1px solid #e8cf82;"></span> صباح</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--c-noon)"></span> ظهر</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--c-night)"></span> ليل</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--c-off)"></span> أوف</div>
+        </div>
+    </div>
+
+    <div class="card-panel">
+        <div class="cal-head">
+            <button onclick="changeMonth(-1)"><i class="fas fa-chevron-right"></i></button>
+            <div class="cal-title" id="calTitle"></div>
+            <button onclick="changeMonth(1)"><i class="fas fa-chevron-left"></i></button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+</div>
+
+<script>
+// ================== إعدادات الجدول ==================
+// تاريخ بداية الدورة: 6-2-1448 هـ
+// عند بداية الدورة: مناوبة د = أول يوم ظهر | أ = أول يوم ليل | ب = أول يوم أوف | ج = صباح ثابتة
+const ANCHOR = moment('1448/02/06', 'iYYYY/iMM/iDD').startOf('day');
+const CYCLE_PATTERN = ['ظهر','ظهر','ظهر','ليل','ليل','ليل','أوف','أوف','أوف']; // دورة 9 أيام
+const SHIFT_OFFSET = { 'د': 0, 'أ': 3, 'ب': 6 };
+
+const STATUS_META = {
+    'صباح': { color: '#fdf8e9', dark: '#f2e3b8', icon: 'fa-sun', label: 'صباحي', text: '#8a6d1f', chip: 'صباح', border: '#e8cf82' },
+    'ظهر':  { color: '#f5c518', dark: '#d4a70a', icon: 'fa-cloud-sun', label: 'ظهر', text: '#4a3a00', chip: 'ظهر', border: '#c9a70e' },
+    'ليل':  { color: '#2b2b2b', dark: '#000000', icon: 'fa-moon', label: 'ليل', text: '#ffffff', chip: 'ليل', border: '#000000' },
+    'أوف':  { color: '#8a94a3', dark: '#6c7686', icon: 'fa-house', label: 'أوف (استراحة)', text: '#ffffff', chip: 'أوف', border: '#6c7686' }
+};
+
+// أوقات الفترات المفترضة (يمكن تعديلها حسب دوام المطار الفعلي)
+const SHIFT_TIMES = { 'صباح': [6, 14], 'ظهر': [14, 22], 'ليل': [22, 6] };
+
+const HIJRI_MONTHS = ['محرم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
+const DOW_NAMES = ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+
+function getStatusFor(dateStr, shift) {
+    const d = moment(dateStr, 'YYYY-MM-DD').startOf('day');
+    const offsetDays = d.diff(ANCHOR, 'days');
+    const cycleIndex = ((offsetDays % 9) + 9) % 9;
+
+    if (shift === 'ج') {
+        return { status: 'صباح', dayNum: null };
+    }
+    const idx = (cycleIndex + SHIFT_OFFSET[shift]) % 9;
+    const status = CYCLE_PATTERN[idx];
+    const dayNum = (idx % 3) + 1;
+    return { status, dayNum };
+}
+
+function getHijriParts(dateStr) {
+    const hm = moment(dateStr, 'YYYY-MM-DD');
+    return { y: hm.iYear(), m: hm.iMonth(), day: hm.iDate() };
+}
+
+function formatHijri(dateStr) {
+    const { y, m, day } = getHijriParts(dateStr);
+    return `${day} ${HIJRI_MONTHS[m]} ${y} هـ`;
+}
+
+// نص هجري مختصر لمربع اليوم في التقويم: يظهر اسم الشهر عند بداية الشهر الهجري
+function formatHijriShort(dateStr) {
+    const { m, day } = getHijriParts(dateStr);
+    if (day === 1) return `1 ${HIJRI_MONTHS[m]}`;
+    return `${day}هـ`;
+}
+
+function formatGregorian(dateStr) {
+    const m = moment(dateStr, 'YYYY-MM-DD');
+    const dowAr = DOW_NAMES[m.day()];
+    return `${dowAr}، ${m.format('DD/MM/YYYY')} م`;
+}
+
+let selectedShift = null;
+
+function selectShift(shift) {
+    selectedShift = shift;
+    document.querySelectorAll('.shift-btn').forEach(b => b.classList.toggle('active', b.dataset.shift === shift));
+    renderResult();
+}
+
+function renderResult() {
+    const dateStr = document.getElementById('pickDate').value;
+    const box = document.getElementById('resultBox');
+    const hint = document.getElementById('emptyHint');
+    const liveBadge = document.getElementById('liveBadge');
+
+    if (!dateStr || !selectedShift) {
+        box.classList.remove('show');
+        hint.style.display = 'block';
+        return;
+    }
+    hint.style.display = 'none';
+    box.classList.add('show');
+
+    const { status, dayNum } = getStatusFor(dateStr, selectedShift);
+    const meta = STATUS_META[status];
+
+    document.getElementById('resultHead').style.background = `linear-gradient(135deg, ${meta.color}, ${meta.dark})`;
+    document.getElementById('resultHead').style.color = meta.text;
+    document.getElementById('resultIcon').className = `status-icon fas ${meta.icon}`;
+    document.getElementById('resultStatus').textContent = meta.label;
+    document.getElementById('resultSub').textContent = dayNum ? `اليوم ${dayNum} من 3` : 'مناوبة صباحية ثابتة';
+    document.getElementById('resGregorian').textContent = formatGregorian(dateStr);
+    document.getElementById('resHijri').textContent = formatHijri(dateStr);
+    document.getElementById('resShiftLetter').textContent = selectedShift;
+    document.getElementById('resDayName').textContent = meta.label;
+
+    const live = getCurrentActiveShift();
+    const isLive = live.shift === selectedShift && live.dateStr === dateStr;
+    liveBadge.style.display = isLive ? 'inline-flex' : 'none';
+
+    renderCalendar();
+}
+
+// ================== المستلم الآن ==================
+function getCurrentActiveShift() {
+    const now = moment();
+    // الدقيقة الفعلية منذ منتصف الليل، لضمان دقة الانتقال حتى ثانية الحد الفاصل
+    const minutesNow = now.hours() * 60 + now.minutes();
+    const toMin = h => h * 60;
+
+    let period, dateForCalc;
+    if (minutesNow >= toMin(SHIFT_TIMES['صباح'][0]) && minutesNow < toMin(SHIFT_TIMES['صباح'][1])) {
+        period = 'صباح'; dateForCalc = now.clone();
+    } else if (minutesNow >= toMin(SHIFT_TIMES['ظهر'][0]) && minutesNow < toMin(SHIFT_TIMES['ظهر'][1])) {
+        period = 'ظهر'; dateForCalc = now.clone();
+    } else {
+        period = 'ليل';
+        // بعد منتصف الليل وحتى 6ص، الفترة تتبع يوم الليل السابق الذي بدأ الساعة 10م
+        dateForCalc = (minutesNow < toMin(SHIFT_TIMES['ليل'][1])) ? now.clone().subtract(1, 'day') : now.clone();
+    }
+
+    const dateStr = dateForCalc.format('YYYY-MM-DD');
+    const shiftLetters = ['أ', 'ب', 'ج', 'د'];
+    const matchedShift = shiftLetters.find(s => getStatusFor(dateStr, s).status === period);
+
+    return { shift: matchedShift, dateStr, period, now };
+}
+
+function updateLiveInfo() {
+    const { shift, dateStr } = getCurrentActiveShift();
+    const { status } = getStatusFor(dateStr, shift);
+    const meta = STATUS_META[status];
+
+    document.getElementById('liveInfoValue').textContent = `مناوبة ${shift}`;
+    document.getElementById('liveInfoSwatch').style.background = meta.color;
+    document.getElementById('liveInfo').style.borderRightColor = meta.border;
+
+    // تحديث شارة "قيد الاستلام الآن" إن كانت النتيجة المعروضة مطابقة
+    if (selectedShift) renderResult();
+}
+
+function goToday() {
+    document.getElementById('pickDate').value = moment().format('YYYY-MM-DD');
+    calMoment = moment().startOf('month');
+    renderResult();
+}
+
+// ================== التقويم الشهري ==================
+let calMoment = moment().startOf('month');
+
+function changeMonth(dir) {
+    calMoment.add(dir, 'months');
+    renderCalendar();
+}
+
+function renderCalendar() {
+    const grid = document.getElementById('calGrid');
+    const title = document.getElementById('calTitle');
+    title.textContent = calMoment.format('MMMM YYYY');
+
+    grid.innerHTML = '';
+    DOW_NAMES.slice().reverse().forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'cal-dow';
+        el.textContent = d;
+        grid.appendChild(el);
+    });
+
+    const startOfMonth = calMoment.clone().startOf('month');
+    const daysInMonth = calMoment.daysInMonth();
+    const firstDow = startOfMonth.day(); // 0=Sunday
+
+    for (let i = 0; i < firstDow; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-day empty';
+        grid.appendChild(empty);
+    }
+
+    const selectedDateStr = document.getElementById('pickDate').value;
+    const todayStr = moment().format('YYYY-MM-DD');
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = startOfMonth.clone().date(day).format('YYYY-MM-DD');
+        const cell = document.createElement('div');
+        cell.className = 'cal-day';
+        if (dateStr === todayStr) cell.classList.add('today');
+        if (dateStr === selectedDateStr) cell.classList.add('selected');
+
+        const numSpan = document.createElement('div');
+        numSpan.className = 'dnum';
+        numSpan.textContent = day;
+        cell.appendChild(numSpan);
+
+        if (selectedShift) {
+            const { status } = getStatusFor(dateStr, selectedShift);
+            const meta = STATUS_META[status];
+            const chip = document.createElement('div');
+            chip.className = 'status-chip';
+            chip.textContent = meta.chip;
+            chip.style.background = meta.color;
+            chip.style.color = meta.text;
+            chip.style.borderColor = meta.border;
+            cell.appendChild(chip);
+        }
+
+        const hijriSub = document.createElement('div');
+        hijriSub.className = 'hijri-sub';
+        hijriSub.textContent = formatHijriShort(dateStr);
+        cell.appendChild(hijriSub);
+
+        cell.onclick = () => {
+            document.getElementById('pickDate').value = dateStr;
+            liveMatch = null;
+            renderResult();
+        };
+        grid.appendChild(cell);
+    }
+}
+
+// ================== تهيئة أولية ==================
+document.getElementById('pickDate').addEventListener('change', renderResult);
+document.getElementById('pickDate').value = moment().format('YYYY-MM-DD');
+renderCalendar();
+renderResult();
+updateLiveInfo();
+setInterval(updateLiveInfo, 15000);
+</script>
+
+</body>
+</html>
