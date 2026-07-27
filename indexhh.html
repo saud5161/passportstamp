@@ -98,6 +98,15 @@
         .input-error-msg { color: #dc3545; font-size: 0.75rem; margin-top: 4px; font-weight: bold; display: none; }
         .row { display: flex; gap: 10px; } .row > * { flex: 1; }
 
+        /* تحسين عرض حقول التاريخ */
+        @media (max-width: 600px) {
+            .row { flex-direction: column; gap: 12px; }
+            .row > * { flex: 1; width: 100%; }
+            .input-group { margin-bottom: 14px; }
+            input[type="date"], input[type="text"] { font-size: 16px; padding: 14px; }
+            .input-group label { font-size: 0.85rem; margin-bottom: 8px; }
+        }
+
         /* الأزرار العائمة */
         .fab-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; display: none; gap: 10px; z-index: 999; }
         .btn { flex: 1; padding: 15px; border: none; border-radius: 50px; font-weight: bold; font-size: 1rem; color: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
@@ -356,6 +365,7 @@
         <div class="grid-menu">
             <div class="card" onclick="openForm('cancelledFlights')"><i class="fas fa-ban" style="color:#d32f2f;"></i><span>رحلات ملغية</span></div>
             <div class="card" onclick="openForm('flightNote')"><i class="fas fa-plane" style="color:#2b579a;"></i><span>ملاحظة على رحلة</span></div>
+            <div class="card" onclick="openForm('stragglers')"><i class="fas fa-user-clock"></i><span>إشعار عن المتخلفين</span></div>
         </div>
 
         <div class="section-title"><i class="fas fa-folder-open"></i> أخرى</div>
@@ -364,7 +374,6 @@
             <div class="card" onclick="openForm('fingercon')"><i class="fas fa-fingerprint" style="color:#d32f2f;"></i><span>ارتباط بصمة</span></div>
             <div class="card" onclick="openForm('noacspt')"><i class="fas fa-hand-paper"></i><span>عدم قبول بصمة</span></div>
             <div class="card" onclick="openForm('want')"><i class="fas fa-bell"></i><span>إشعار</span></div>
-            <div class="card" onclick="openForm('stragglers')"><i class="fas fa-user-clock"></i><span>إشعار عن المتخلفين</span></div>
             <div class="card" onclick="openForm('arrestBan')">
     <i class="fas fa-user-lock" style="color:#d32f2f;"></i>
     <span>إشعار قبض/منع</span>
@@ -747,7 +756,7 @@
     <div id="form-stragglers" class="form-section">
         <div class="form-title">إشعار عن المتخلفين</div>
         <div class="row">
-            <div class="input-group"><label>الصالة الدولية رقم</label><input type="text" id="st_hall" value="5" class="en-num"></div>
+            <div class="input-group"><label>الصالة الدولية رقم</label><select id="st_hall"><option value="">بدون تحديد</option><option value="1">1</option><option value="2">2</option><option value="5" selected>5</option></select></div>
             <div class="input-group"><label>عدد المتخلفين</label><input type="number" id="st_count" class="en-num" min="1" value="1" oninput="renderStragglers()"></div>
         </div>
         <div class="row">
@@ -1495,20 +1504,64 @@ function calcPresence() {
         for(let i=1; i<=cnt; i++) {
             box.innerHTML += `<div class="passenger-group">
                 <h5>متخلف ${i}</h5>
-                <div class="input-group"><label>الاسم</label><input type="text" id="st_name_${i}"></div>
+                <div class="input-group"><label>🔹 الاسم</label><input type="text" id="st_name_${i}"></div>
                 <div class="input-group"><label>الجنسية</label><input type="text" id="st_nat_${i}"></div>
                 <div class="input-group"><label>رقم الجواز</label><input type="text" id="st_pass_${i}" class="en-num"></div>
                 <div class="input-group"><label>رقم الإقامة</label><input type="text" id="st_res_${i}" class="en-num"></div>
                 <div class="input-group"><label>الرحلة المتخلف عنها</label><input type="text" id="st_flight_${i}" class="en-num"></div>
                 <div class="input-group"><label>وجهة المغادرة</label><input type="text" id="st_dest_${i}"></div>
-                <div class="input-group"><label>نوع التأشيرة</label><input type="text" id="st_visa_${i}" placeholder="مثال: خروج نهائي - عاملة منزلية"></div>
-                <div class="input-group"><label>تاريخ التخلف</label><input type="text" id="st_late_date_${i}" placeholder="مثال: 17 / 12 / 1447هـ"></div>
+                <div class="input-group"><label>نوع التأشيرة</label><input type="text" id="st_visa_${i}"></div>
+                <div class="custom-options">
+                    <label class="checkbox-btn" onclick="document.getElementById('st_visa_${i}').value='خروج نهائي - عاملة منزلية'"><input type="radio"> خروج نهائي - عاملة منزلية</label>
+                    <label class="checkbox-btn" onclick="document.getElementById('st_visa_${i}').value='ترانزيت دولي - دولي'"><input type="radio"> ترانزيت دولي - دولي</label>
+                    <label class="checkbox-btn" onclick="document.getElementById('st_visa_${i}').value='خروج وعودة'"><input type="radio"> خروج وعودة</label>
+                    <label class="checkbox-btn" onclick="document.getElementById('st_visa_${i}').value='نهائي'"><input type="radio"> نهائي</label>
+                </div>
+                <div class="input-group"><label>🔴 تاريخ التخلف</label>
+                    <div class="row" style="gap:10px; margin-top:8px;">
+                        <div style="flex:1;"><label style="font-size:0.8rem; color:#999;">ميلادي</label><input type="date" id="st_late_date_${i}" onchange="updateStLateDate(${i})" style="width:100%;"></div>
+                        <div style="flex:1;"><label style="font-size:0.8rem; color:#999;">هجري</label><input type="text" id="st_late_date_hijri_${i}" placeholder="يوم/شهر/سنة" onchange="updateStLateDateFromHijri(${i})" style="width:100%;"></div>
+                    </div>
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:10px; padding:8px; background:#f8f9fa; border-radius:8px; border-right:3px solid var(--gold);">
+                        <input type="checkbox" id="st_use_hijri_${i}" class="st_hijri_checkbox" onchange="syncHijriCheckboxes()" style="width:16px; height:16px; cursor:pointer;">
+                        <span style="font-weight:700; color:#666; font-size:0.85rem;">عرض الهجري بدلاً من الميلادي</span>
+                    </label>
+                </div>
             </div>`;
         }
         Object.keys(saved).forEach(id => {
             const input = document.getElementById(id);
             if(input) input.value = saved[id];
         });
+    }
+
+    function updateStLateDate(i) {
+        const dateInput = document.getElementById(`st_late_date_${i}`).value;
+        if(dateInput) {
+            const hm = moment(dateInput, 'YYYY-MM-DD');
+            const y = hm.iYear(), m = hm.iMonth(), day = hm.iDate();
+            document.getElementById(`st_late_date_hijri_${i}`).value = `${day}/${m+1}/${y}`;
+        }
+    }
+
+    function updateStLateDateFromHijri(i) {
+        const hijriInput = document.getElementById(`st_late_date_hijri_${i}`).value;
+        if(hijriInput) {
+            const parts = hijriInput.split('/').map(p => p.trim());
+            if(parts.length === 3) {
+                const day = parseInt(parts[0]), month = parseInt(parts[1]), year = parseInt(parts[2]);
+                const gm = moment(`${year}/${month}/${day}`, 'iYYYY/iM/iD').format('YYYY-MM-DD');
+                document.getElementById(`st_late_date_${i}`).value = gm;
+            }
+        }
+    }
+
+    function syncHijriCheckboxes() {
+        const checkboxes = document.querySelectorAll('.st_hijri_checkbox');
+        if(checkboxes.length > 0) {
+            const isChecked = checkboxes[0].checked;
+            checkboxes.forEach(cb => cb.checked = isChecked);
+        }
     }
 
     function updateDiplomaticVisaNote() {
@@ -1809,24 +1862,39 @@ function calcPresence() {
             txt.push(`*الملاحظة:* ${val('dpv_note')}`);
         }
         else if(currentForm === 'stragglers') {
+            const hall = val('st_hall') ? `الصالة الدولية رقم (${val('st_hall')})\n` : '';
+            txt.push(`${hall}تقرير الركاب المتخلفين خلال استلامنا ليوم ${val('st_day')} – الموافق ${val('st_date')}`);
             const count = parseInt(val('st_count')) || 1;
-            txt.push(`الصالة الدولية رقم (${val('st_hall')})`);
-            txt.push(`تقرير الركاب المتخلفين خلال استلامنا ليوم ${val('st_day')} – الموافق ${val('st_date')}`);
-            txt.push(``);
             txt.push(`يوجد عدد (${count}) ركاب متخلفين في المنطقة المعقمة`);
-            txt.push(`وذلك حسب التفاصيل التالية:`);
+            txt.push(`\nوذلك حسب التفاصيل التالية:\n`);
+
+            const useHijri = document.getElementById('st_use_hijri_1') ? document.getElementById('st_use_hijri_1').checked : false;
 
             for(let i=1; i<=count; i++) {
-                txt.push(`———`);
-                txt.push(`- الاسم: ${val(`st_name_${i}`)}`);
+                txt.push(`🔹 الاسم: ${val(`st_name_${i}`)}`);
                 txt.push(` الجنسية: ${val(`st_nat_${i}`)}`);
                 txt.push(`رقم الجواز: ${val(`st_pass_${i}`)}`);
                 txt.push(`رقم الاقامة: ${val(`st_res_${i}`)}`);
                 txt.push(` الرحلة المتخلف عنها: ${val(`st_flight_${i}`)}`);
                 txt.push(`وجهة المغادرة: ${val(`st_dest_${i}`)}`);
-                txt.push(`نوع التأشيرة : ${val(`st_visa_${i}`)}`);
-                txt.push(``);
-                txt.push(`- تاريخ التخلف : ${val(`st_late_date_${i}`)}`);
+                txt.push(`نوع التأشيرة: ${val(`st_visa_${i}`)}`);
+
+                // تنسيق التاريخ (ميلادي أو هجري حسب الاختيار)
+                let lateDate = ``;
+                const mDate = val(`st_late_date_${i}`);
+                if(mDate) {
+                    const gm = moment(mDate, 'YYYY-MM-DD');
+                    if(useHijri) {
+                        const hYear = gm.iYear(), hMonth = gm.iMonth() + 1, hDay = gm.iDate();
+                        lateDate = `${hYear}/${hMonth}/${hDay} هـ`;
+                    } else {
+                        const gYear = gm.year(), gMonth = gm.month() + 1, gDay = gm.date();
+                        lateDate = `${gYear}/${gMonth}/${gDay} م`;
+                    }
+                }
+
+                txt.push(`\n🔴 تاريخ التخلف: ${lateDate}`);
+                txt.push(`———\n`);
             }
         }
         else if(currentForm === 'want') {
