@@ -398,7 +398,7 @@ function renderCalendar() {
     title.textContent = calMoment.format('MMMM YYYY');
 
     grid.innerHTML = '';
-    DOW_NAMES.slice().reverse().forEach(d => {
+    DOW_NAMES.forEach(d => {
         const el = document.createElement('div');
         el.className = 'cal-dow';
         el.textContent = d;
