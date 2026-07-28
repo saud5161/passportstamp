@@ -150,6 +150,83 @@
     @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
     .shift-times-note { text-align: center; font-size: 0.7rem; color: #aaa; margin-top: 6px; font-weight: 700; }
 
+    /* عرض المستلمين (قائمة) */
+    .passengers-toggle-btn {
+        width: 100%; margin-top: 14px; background: #f8f9fa; border: 1px solid #e6e6e6;
+        border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;
+        cursor: pointer; font-size: 0.9rem; font-weight: 800; color: var(--primary-dark); transition: 0.2s;
+    }
+    .passengers-toggle-btn:hover { border-color: var(--gold); background: #fdfaf3; }
+    .passengers-toggle-btn i.fa-list { color: var(--gold); margin-left: 6px; }
+    .toggle-chevron { transition: transform 0.3s ease; color: #999; }
+    .toggle-chevron.rotate { transform: rotate(180deg); }
+
+    .passengers-panel {
+        max-height: 0; overflow: hidden; transition: max-height 0.4s ease, margin 0.4s ease;
+        margin-top: 0;
+    }
+    .passengers-panel.open { max-height: 2000px; margin-top: 12px; }
+
+    .passengers-type-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .ptype-btn {
+        padding: 12px; border-radius: 10px; border: 2px solid #e6e6e6; background: #fff;
+        font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s; color: #555;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .ptype-btn:hover { border-color: var(--gold); }
+    .ptype-btn.active[data-type="incoming"] { border-color: #2b8fd6; background: #eaf6ff; color: #1b6aa8; }
+    .ptype-btn.active[data-type="outgoing"] { border-color: #d32f2f; background: #fdeeee; color: #b71c1c; }
+
+    .hall-select-box { background: #f8f9fa; border: 1px dashed #ddd; border-radius: 10px; padding: 12px; margin-bottom: 12px; animation: fadeIn 0.25s ease; }
+    .hall-select-label { text-align: center; font-size: 0.82rem; font-weight: 800; color: #666; margin-bottom: 10px; }
+    .hall-select-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .hall-btn {
+        padding: 10px 4px; border-radius: 8px; border: 2px solid #e6e6e6; background: #fff;
+        font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.2s; color: #555;
+    }
+    .hall-btn:hover { border-color: var(--gold); }
+    .hall-btn.active { border-color: var(--primary); background: #eefaf3; color: var(--primary-dark); }
+
+    .passengers-list { display: flex; flex-direction: column; gap: 8px; }
+    .passenger-row {
+        display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 10px 12px;
+        font-size: 0.88rem; animation: fadeIn 0.25s ease;
+    }
+    .passenger-row .p-name { font-weight: 800; color: var(--primary-dark); }
+    .passenger-row .p-hall { background: #f1f3f5; border-radius: 8px; padding: 3px 10px; font-weight: 800; font-size: 0.78rem; color: #666; white-space: nowrap; }
+    .passengers-count { text-align: center; font-size: 0.78rem; color: #999; font-weight: 700; margin-bottom: 8px; }
+
+    /* نافذة رمز المرور */
+    .pin-modal-overlay {
+        display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9999;
+        align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px);
+    }
+    .pin-modal-overlay.show { display: flex; animation: fadeIn 0.2s ease; }
+    .pin-modal-box {
+        background: #fff; border-radius: 16px; padding: 26px 22px; max-width: 340px; width: 100%;
+        text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border-top: 5px solid var(--gold);
+    }
+    .pin-modal-icon { font-size: 2rem; color: var(--gold); margin-bottom: 10px; }
+    .pin-modal-title { font-weight: 800; color: var(--primary-dark); font-size: 0.92rem; margin-bottom: 16px; line-height: 1.5; }
+    .pin-modal-input {
+        width: 100%; text-align: center; letter-spacing: 6px; font-size: 1.2rem; padding: 12px;
+        border: 2px solid #e0e0e0; border-radius: 10px; margin-bottom: 8px; font-family: inherit;
+    }
+    .pin-modal-input:focus { outline: none; border-color: var(--gold); }
+    .pin-modal-error { display: none; color: #d32f2f; font-size: 0.78rem; font-weight: 700; margin-bottom: 8px; }
+    .pin-modal-error.show { display: block; }
+    .pin-modal-buttons { display: flex; gap: 10px; margin-top: 12px; }
+    .pin-modal-confirm, .pin-modal-cancel {
+        flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 0.9rem;
+    }
+    .pin-modal-confirm { background: var(--primary); color: white; }
+    .pin-modal-confirm:hover { background: var(--primary-dark); }
+    .pin-modal-cancel { background: #f1f3f5; color: #555; }
+    .pin-modal-cancel:hover { background: #e6e6e6; }
+    @keyframes shake { 10%,90% { transform: translateX(-2px); } 20%,80% { transform: translateX(3px); } 30%,50%,70% { transform: translateX(-5px); } 40%,60% { transform: translateX(5px); } }
+    .pin-modal-box.shake { animation: shake 0.5s; }
+
     .live-badge {
         display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.25);
         border-radius: 20px; padding: 4px 10px; font-size: 0.72rem; font-weight: 800; margin-top: 8px;
@@ -203,6 +280,30 @@
         </div>
         <div class="shift-times-note">صباح 6ص–2م &nbsp;|&nbsp; ظهر 2م–10م &nbsp;|&nbsp; ليل 10م–6ص</div>
 
+        <button class="passengers-toggle-btn" onclick="togglePassengersPanel()">
+            <span><i class="fas fa-list"></i> عرض المستلمين (قائمة)</span>
+            <i class="fas fa-chevron-down toggle-chevron" id="passengersChevron"></i>
+        </button>
+
+        <div class="passengers-panel" id="passengersPanel">
+            <div class="passengers-type-buttons">
+                <button class="ptype-btn" data-type="incoming" onclick="selectPassengerType('incoming')"><i class="fas fa-plane-arrival"></i> قدوم</button>
+                <button class="ptype-btn" data-type="outgoing" onclick="selectPassengerType('outgoing')"><i class="fas fa-plane-departure"></i> مغادرة</button>
+            </div>
+            <div class="hall-select-box" id="hallSelectBox" style="display:none;">
+                <div class="hall-select-label">اختر الصالة</div>
+                <div class="hall-select-buttons">
+                    <button class="hall-btn" data-hall="1" onclick="selectHall('1')">صالة 1</button>
+                    <button class="hall-btn" data-hall="2" onclick="selectHall('2')">صالة 2</button>
+                    <button class="hall-btn" data-hall="5" onclick="selectHall('5')">صالة 5</button>
+                    <button class="hall-btn" data-hall="all" onclick="selectHall('all')">الكل</button>
+                </div>
+            </div>
+            <div class="passengers-list" id="passengersList">
+                <div class="hint" style="padding:10px;">اختر "قدوم" أو "مغادرة" لعرض القائمة</div>
+            </div>
+        </div>
+
         <div class="result-box" id="resultBox">
             <div class="result-head" id="resultHead">
                 <i class="status-icon" id="resultIcon"></i>
@@ -238,6 +339,19 @@
         <div class="cal-grid" id="calGrid"></div>
     </div>
 
+</div>
+
+<div class="pin-modal-overlay" id="pinModalOverlay">
+    <div class="pin-modal-box">
+        <i class="fas fa-lock pin-modal-icon"></i>
+        <div class="pin-modal-title">يرجى ادخال رمز المرور لعرض القائمة ( اول مره فقط )</div>
+        <input type="password" id="pinModalInput" class="pin-modal-input" inputmode="numeric" maxlength="10" placeholder="••••••">
+        <div class="pin-modal-error" id="pinModalError">رمز غير صحيح، حاول مرة أخرى</div>
+        <div class="pin-modal-buttons">
+            <button class="pin-modal-confirm" onclick="checkPassengersPin()">دخول</button>
+            <button class="pin-modal-cancel" onclick="closePinModal()">إلغاء</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -304,6 +418,7 @@ function selectShift(shift) {
     selectedShift = shift;
     document.querySelectorAll('.shift-btn').forEach(b => b.classList.toggle('active', b.dataset.shift === shift));
     renderResult();
+    if (typeof renderPassengersList === 'function') renderPassengersList();
 }
 
 function renderResult() {
@@ -454,6 +569,203 @@ function renderCalendar() {
         };
         grid.appendChild(cell);
     }
+}
+
+// ================== عرض المستلمين (قائمة) ==================
+const PASSENGERS_DATA = {
+  "incoming": [
+    {"firstName": "عوض", "lastName": "الشمري", "hall": "1", "shift": "أ"},
+    {"firstName": "اروى", "lastName": "الاحمري", "hall": "1", "shift": "أ"},
+    {"firstName": "خالد", "lastName": "الدوسري", "hall": "2", "shift": "أ"},
+    {"firstName": "هبه", "lastName": "الزامل", "hall": "2", "shift": "أ"},
+    {"firstName": "منى", "lastName": "العتيبي", "hall": "2", "shift": "أ"},
+    {"firstName": "أحمد", "lastName": "العتيبي", "hall": "5", "shift": "أ"},
+    {"firstName": "شذى", "lastName": "السهلي", "hall": "5", "shift": "أ"},
+    {"firstName": "متعب", "lastName": "الزهراني", "hall": "1", "shift": "ب"},
+    {"firstName": "رزان", "lastName": "اليحياء", "hall": "1", "shift": "ب"},
+    {"firstName": "سلطان", "lastName": "العليمي", "hall": "1", "shift": "ب"},
+    {"firstName": "خالد", "lastName": "الشمراني", "hall": "2", "shift": "ب"},
+    {"firstName": "زايد", "lastName": "الدوسري", "hall": "2", "shift": "ب"},
+    {"firstName": "أنس", "lastName": "الزهراني", "hall": "2", "shift": "ب"},
+    {"firstName": "خلود", "lastName": "الشهري", "hall": "2", "shift": "ب"},
+    {"firstName": "تغريد", "lastName": "الدريويش", "hall": "5", "shift": "ب"},
+    {"firstName": "سالم", "lastName": "الدوسري", "hall": "5", "shift": "ب"},
+    {"firstName": "احمد", "lastName": "العامري", "hall": "1", "shift": "ج"},
+    {"firstName": "سعد", "lastName": "القحطاني", "hall": "1", "shift": "ج"},
+    {"firstName": "حنان", "lastName": "قوفشي", "hall": "2", "shift": "ج"},
+    {"firstName": "عمر", "lastName": "الحربي", "hall": "2", "shift": "ج"},
+    {"firstName": "فهد", "lastName": "المطيري", "hall": "5", "shift": "ج"},
+    {"firstName": "حياه", "lastName": "الدهاسي", "hall": "5", "shift": "ج"},
+    {"firstName": "سلطان", "lastName": "الحارثي", "hall": "1", "shift": "د"},
+    {"firstName": "خديجة", "lastName": "القرني", "hall": "1", "shift": "د"},
+    {"firstName": "خالد", "lastName": "العتيبي", "hall": "2", "shift": "د"},
+    {"firstName": "نورة", "lastName": "القرني", "hall": "2", "shift": "د"},
+    {"firstName": "وجدان", "lastName": "البقمي", "hall": "2", "shift": "د"},
+    {"firstName": "مشعل", "lastName": "السالم", "hall": "5", "shift": "د"},
+    {"firstName": "أسماء", "lastName": "العمري", "hall": "5", "shift": "د"}
+  ],
+  "outgoing": [
+    {"firstName": "محمد", "lastName": "العتيبي", "hall": "1", "shift": "أ"},
+    {"firstName": "علي", "lastName": "الشهري", "hall": "1", "shift": "أ"},
+    {"firstName": "بدور", "lastName": "الزهراني", "hall": "1", "shift": "أ"},
+    {"firstName": "مطر", "lastName": "النفيعي", "hall": "2", "shift": "أ"},
+    {"firstName": "عبد الرحمن", "lastName": "الغامدي", "hall": "2", "shift": "أ"},
+    {"firstName": "محمد", "lastName": "الاسمري", "hall": "2", "shift": null},
+    {"firstName": "محمود", "lastName": "المطيري", "hall": "5", "shift": "أ"},
+    {"firstName": "إبراهيم", "lastName": "الرشيدي", "hall": "5", "shift": "أ"},
+    {"firstName": "عيسى", "lastName": "العنزي", "hall": "1", "shift": "ب"},
+    {"firstName": "عبد العزيز", "lastName": "آل عيد", "hall": "1", "shift": "ب"},
+    {"firstName": "عيسى", "lastName": "المطيري", "hall": "1", "shift": "ب"},
+    {"firstName": "عالي", "lastName": "الزهراني", "hall": "2", "shift": "ب"},
+    {"firstName": "يوسف", "lastName": "العمري", "hall": "2", "shift": "ب"},
+    {"firstName": "ناصر", "lastName": "العتيبي", "hall": "5", "shift": "ب"},
+    {"firstName": "نواف", "lastName": "كاملي", "hall": "5", "shift": "ب"},
+    {"firstName": "غاده", "lastName": "آل مرعي", "hall": "5", "shift": "ب"},
+    {"firstName": "يحيى", "lastName": "فقيهي", "hall": "1", "shift": "ج"},
+    {"firstName": "صالح", "lastName": "الرشيدي", "hall": "1", "shift": "ج"},
+    {"firstName": "خالد", "lastName": "الشهري", "hall": "2", "shift": "ج"},
+    {"firstName": "طلال", "lastName": "المطيري", "hall": "2", "shift": "ج"},
+    {"firstName": "عبد الكريم", "lastName": "المطيري", "hall": "2", "shift": "ج"},
+    {"firstName": "فهد", "lastName": "آل بريك", "hall": "5", "shift": "ج"},
+    {"firstName": "نايف", "lastName": "الرشيدي", "hall": "5", "shift": "ج"},
+    {"firstName": "عبد العزيز", "lastName": "الزهراني", "hall": "1", "shift": "د"},
+    {"firstName": "عبير", "lastName": "العوفي", "hall": "1", "shift": "د"},
+    {"firstName": "عيسى", "lastName": "الحربي", "hall": "2", "shift": "د"},
+    {"firstName": "سعود", "lastName": "الحجي", "hall": "2", "shift": "د"},
+    {"firstName": "محمد", "lastName": "القرني", "hall": "5", "shift": "د"},
+    {"firstName": "شايع", "lastName": "العتيق", "hall": "5", "shift": "د"}
+  ]
+};
+
+let passengersPanelOpen = false;
+let currentPassengerType = null;
+let currentHall = null;
+
+const PASSENGERS_PIN = '123123';
+const PASSENGERS_AUTH_KEY = 'passengersAuthVerified';
+
+function togglePassengersPanel() {
+    if (passengersPanelOpen) {
+        passengersPanelOpen = false;
+        document.getElementById('passengersPanel').classList.remove('open');
+        document.getElementById('passengersChevron').classList.remove('rotate');
+        return;
+    }
+
+    if (localStorage.getItem(PASSENGERS_AUTH_KEY) === 'true') {
+        openPassengersPanel();
+    } else {
+        openPinModal();
+    }
+}
+
+function openPassengersPanel() {
+    passengersPanelOpen = true;
+    document.getElementById('passengersPanel').classList.add('open');
+    document.getElementById('passengersChevron').classList.add('rotate');
+}
+
+function openPinModal() {
+    const overlay = document.getElementById('pinModalOverlay');
+    const input = document.getElementById('pinModalInput');
+    document.getElementById('pinModalError').classList.remove('show');
+    input.value = '';
+    overlay.classList.add('show');
+    setTimeout(() => input.focus(), 100);
+}
+
+function closePinModal() {
+    document.getElementById('pinModalOverlay').classList.remove('show');
+}
+
+function checkPassengersPin() {
+    const input = document.getElementById('pinModalInput');
+    const box = document.querySelector('.pin-modal-box');
+    const errorMsg = document.getElementById('pinModalError');
+
+    if (input.value === PASSENGERS_PIN) {
+        localStorage.setItem(PASSENGERS_AUTH_KEY, 'true');
+        closePinModal();
+        openPassengersPanel();
+    } else {
+        errorMsg.classList.add('show');
+        box.classList.add('shake');
+        setTimeout(() => box.classList.remove('shake'), 500);
+        input.value = '';
+        input.focus();
+    }
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && document.getElementById('pinModalOverlay').classList.contains('show')) {
+        checkPassengersPin();
+    }
+});
+
+function selectPassengerType(type) {
+    currentPassengerType = type;
+    currentHall = null;
+    document.querySelectorAll('.ptype-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+    document.querySelectorAll('.hall-btn').forEach(b => b.classList.remove('active'));
+
+    document.getElementById('hallSelectBox').style.display = 'block';
+
+    const listBox = document.getElementById('passengersList');
+    listBox.innerHTML = '';
+    const hint = document.createElement('div');
+    hint.className = 'hint';
+    hint.style.padding = '10px';
+    hint.textContent = 'اختر رقم الصالة لعرض القائمة';
+    listBox.appendChild(hint);
+}
+
+function selectHall(hall) {
+    currentHall = hall;
+    document.querySelectorAll('.hall-btn').forEach(b => b.classList.toggle('active', b.dataset.hall === hall));
+    renderPassengersList();
+}
+
+function renderPassengersList() {
+    const type = currentPassengerType;
+    if (!type || !currentHall) return;
+
+    const listBox = document.getElementById('passengersList');
+    listBox.innerHTML = '';
+
+    if (!selectedShift) {
+        const hint = document.createElement('div');
+        hint.className = 'hint';
+        hint.style.padding = '10px';
+        hint.textContent = 'اختر المناوبة أولاً من "اختر المناوبة" لعرض القائمة الخاصة بها';
+        listBox.appendChild(hint);
+        return;
+    }
+
+    const fullList = PASSENGERS_DATA[type] || [];
+    const byHall = currentHall === 'all' ? fullList : fullList.filter(p => p.hall === currentHall);
+    const list = byHall.filter(p => p.shift === selectedShift);
+
+    const countLabel = document.createElement('div');
+    countLabel.className = 'passengers-count';
+    countLabel.textContent = `مناوبة ${selectedShift} — العدد: ${list.length}`;
+    listBox.appendChild(countLabel);
+
+    if (list.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'hint';
+        empty.style.padding = '10px';
+        empty.textContent = 'لا يوجد أسماء لهذه المناوبة في هذه الصالة';
+        listBox.appendChild(empty);
+        return;
+    }
+
+    const typeLabel = type === 'incoming' ? 'قدوم' : 'مغادرة';
+    list.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'passenger-row';
+        row.innerHTML = `<span class="p-name">${p.firstName} ${p.lastName} — ${typeLabel} صالة ${p.hall}</span><span class="p-hall">صالة ${p.hall}</span>`;
+        listBox.appendChild(row);
+    });
 }
 
 // ================== تهيئة أولية ==================
