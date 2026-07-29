@@ -420,9 +420,9 @@
 
     const streak = computeStreak(task);
     let badge = "";
-    if (!opts.hideBadge) {
-      if (status === "overdue") badge = `<span class="badge-pill badge-overdue">متأخر ⏰</span>`;
-      else if (status === "soon") badge = `<span class="badge-pill badge-soon">قريب ⏳</span>`;
+    if (!opts.hideBadge && !done) {
+      if (status === "overdue") badge = `<button type="button" class="badge-pill badge-overdue" title="اضغط لتحديدها كمكتملة">متأخر ⏰ · تحديد كمكتملة ✓</button>`;
+      else if (status === "soon") badge = `<button type="button" class="badge-pill badge-soon" title="اضغط لتحديدها كمكتملة">قريب ⏳ · تحديد كمكتملة ✓</button>`;
     }
 
     card.innerHTML = `
@@ -435,8 +435,8 @@
           <span class="dot">•</span>
           <span>${metaParts.join(" · ")}</span>
           ${streak > 1 ? `<span class="task-streak">🔥 ${streak}</span>` : ""}
-          ${badge}
         </div>
+        ${badge ? `<div class="task-meta">${badge}</div>` : ""}
       </div>
       <div class="task-time">${task.flexible ? "🕊️" : (task.time || "")}</div>
     `;
@@ -444,6 +444,13 @@
       e.stopPropagation();
       toggleDone(task.id);
     });
+    const badgeBtn = card.querySelector(".badge-pill");
+    if (badgeBtn) {
+      badgeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleDone(task.id);
+      });
+    }
     card.addEventListener("click", () => openEdit(task.id));
     return card;
   }

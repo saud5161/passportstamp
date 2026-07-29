@@ -1,4 +1,4 @@
-const CACHE = "life-organizer-v4";
+const CACHE = "life-organizer-v5";
 const ASSETS = [
   "./",
   "./index.html",
