@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>منظم يومي</title>
+<meta name="description" content="نظم مهامك اليومية والأسبوعية بسهولة" />
+<meta name="theme-color" content="#0f1020" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="منظم يومي" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- Lock screen -->
+<div id="lockScreen" class="lock-screen">
+  <div class="lock-card">
+    <div class="lock-emoji">🔐</div>
+    <h1>منظم يومي</h1>
+    <p class="muted">أدخل كلمة المرور للمتابعة</p>
+    <form id="lockForm">
+      <input type="password" id="lockInput" inputmode="numeric" placeholder="كلمة المرور" autocomplete="off" />
+      <button type="submit" class="btn-primary">دخول</button>
+    </form>
+    <p id="lockError" class="lock-error hidden">كلمة المرور غير صحيحة</p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+
+  <!-- In-app alert banner (works even if OS notifications are blocked) -->
+  <div id="alertBanner" class="alert-banner">
+    <div class="alert-icon" id="alertIcon">⏰</div>
+    <div class="alert-body">
+      <p id="alertTitle" class="alert-title"></p>
+      <p id="alertSubtitle" class="alert-subtitle"></p>
+    </div>
+    <button id="alertDoneBtn" class="alert-action">تم ✓</button>
+    <button id="alertCloseBtn" class="alert-close">✕</button>
+  </div>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-emoji">✨</span>
+        <div class="brand-text">
+          <h1 id="greeting">مرحباً</h1>
+          <p id="todayLabel" class="muted"></p>
+        </div>
+      </div>
+      <button id="notifyBtn" class="icon-btn" title="تفعيل التنبيهات" aria-label="تفعيل التنبيهات">🔔</button>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-track">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+      <span id="progressLabel" class="progress-label">0 / 0</span>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main id="main">
+
+    <section id="view-today" class="view active">
+      <div id="todayEmpty" class="empty-state hidden">
+        <div class="empty-emoji">🌿</div>
+        <p>لا توجد مهام اليوم بعد</p>
+        <button class="btn-secondary" data-action="open-add">أضف أول مهمة</button>
+      </div>
+
+      <div id="overdueGroup" class="time-group hidden">
+        <div class="time-group-label label-overdue"><span>⏰ متأخرة</span><span id="overdueCount" class="group-count"></span></div>
+        <div id="overdueList" class="task-list"></div>
+      </div>
+
+      <div id="soonGroup" class="time-group hidden">
+        <div class="time-group-label label-soon"><span>⏳ قريباً</span><span id="soonCount" class="group-count"></span></div>
+        <div id="soonList" class="task-list"></div>
+      </div>
+
+      <div id="upcomingGroup" class="time-group hidden">
+        <div class="time-group-label"><span>🗓️ لاحقاً اليوم</span><span id="upcomingCount" class="group-count"></span></div>
+        <div id="upcomingList" class="task-list"></div>
+      </div>
+
+      <div id="anytimeGroup" class="time-group hidden">
+        <div class="time-group-label"><span>🕊️ في أي وقت اليوم</span><span id="anytimeCount" class="group-count"></span></div>
+        <div id="anytimeList" class="task-list"></div>
+      </div>
+
+      <div id="doneGroup" class="time-group hidden">
+        <button type="button" id="doneToggle" class="time-group-label done-toggle">
+          <span>✅ أنجزته اليوم</span><span id="doneCount" class="group-count"></span>
+          <span id="doneChevron" class="chevron">⌄</span>
+        </button>
+        <div id="doneList" class="task-list hidden"></div>
+      </div>
+    </section>
+
+    <section id="view-all" class="view">
+      <div class="section-head">
+        <h2>كل المهام</h2>
+      </div>
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن مهمة..." />
+      <div id="filterChips" class="chip-row filter-chips"></div>
+      <div id="allList" class="task-list"></div>
+      <div id="allEmpty" class="empty-state hidden">
+        <div class="empty-emoji">📋</div>
+        <p>لم تُضِف أي مهمة بعد</p>
+      </div>
+      <div id="filterEmpty" class="empty-state hidden">
+        <div class="empty-emoji">🔎</div>
+        <p>لا توجد نتائج مطابقة</p>
+      </div>
+    </section>
+
+    <section id="view-stats" class="view">
+      <div class="section-head">
+        <h2>إحصائياتي</h2>
+      </div>
+      <div id="statsGrid" class="stats-grid"></div>
+
+      <div class="section-head" style="margin-top:22px;">
+        <h2>نشاطي هذا الأسبوع</h2>
+      </div>
+      <div class="settings-card week-chart-card">
+        <div id="weekChart" class="week-chart"></div>
+      </div>
+
+      <div class="section-head" style="margin-top:22px;">
+        <h2>سلاسل الإنجاز 🔥</h2>
+      </div>
+      <div id="streaksList" class="task-list"></div>
+    </section>
+
+    <section id="view-settings" class="view">
+      <div class="section-head">
+        <h2>الإعدادات</h2>
+      </div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div>
+            <strong>التنبيهات</strong>
+            <p class="muted small" id="notifyStatusText">تفعيل إشعارات المتصفح لمهامك</p>
+          </div>
+          <button id="settingsNotifyBtn" class="btn-secondary">تفعيل</button>
+        </div>
+        <div id="notifyBlockedInfo" class="notify-help hidden">
+          <p><strong>⚠️ الإشعارات محظورة حالياً في المتصفح</strong></p>
+          <p>لا يمكن إعادة طلب الإذن برمجياً بعد الرفض. لتفعيلها يدوياً في Chrome:</p>
+          <ol>
+            <li>اضغط على أيقونة 🔒 أو ⓘ بجانب رابط الموقع في الأعلى</li>
+            <li>افتح "إعدادات الموقع" (Site settings)</li>
+            <li>غيّر "الإشعارات" (Notifications) إلى "سماح" (Allow)</li>
+            <li>أعد تحميل الصفحة</li>
+          </ol>
+          <p class="muted small">لا تقلق، حتى مع الحظر ستبقى تصلك تنبيهات داخل التطبيق مصحوبة بصوت عند فتحه ⏰</p>
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong>صوت التنبيه</strong>
+            <p class="muted small">تشغيل صوت عند وصول الإشعار</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="soundToggle" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong>تذكير مبكر</strong>
+            <p class="muted small">أرسل تنبيه قبل الوقت بـ 5 دقائق أيضاً</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="earlyReminderToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong>المظهر</strong>
+            <p class="muted small">فاتح، داكن، أو حسب النظام</p>
+          </div>
+          <div class="segmented small-segmented" id="themeSegmented">
+            <button type="button" class="seg-btn" data-theme="light">☀️</button>
+            <button type="button" class="seg-btn" data-theme="system">🔄</button>
+            <button type="button" class="seg-btn" data-theme="dark">🌙</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong>بداية الأسبوع</strong>
+            <p class="muted small">اليوم الذي يبدأ منه أسبوعك</p>
+          </div>
+          <select id="weekStartSelect" class="select-input">
+            <option value="6">السبت</option>
+            <option value="0">الأحد</option>
+            <option value="1">الاثنين</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-row">
+          <div>
+            <strong>تصدير البيانات</strong>
+            <p class="muted small">احفظ نسخة من مهامك كملف JSON</p>
+          </div>
+          <button id="exportBtn" class="btn-secondary">تصدير</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong>استيراد البيانات</strong>
+            <p class="muted small">استرجع مهامك من ملف JSON</p>
+          </div>
+          <label class="btn-secondary file-btn">
+            استيراد
+            <input type="file" id="importInput" accept="application/json" hidden />
+          </label>
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong>حذف كل البيانات</strong>
+            <p class="muted small">إعادة تعيين كاملة للتطبيق</p>
+          </div>
+          <button id="resetBtn" class="btn-danger">حذف الكل</button>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-row">
+          <div>
+            <strong>الاتصال بقاعدة البيانات</strong>
+            <p class="muted small" id="syncStatusText">جاري التحقق من الاتصال...</p>
+          </div>
+          <span id="syncDot" class="sync-dot"></span>
+        </div>
+      </div>
+
+      <p class="muted small footnote">🔗 مهامك متزامنة الآن مع قاعدة بيانات Supabase الخاصة بك، وتُحفظ أيضاً نسخة محلية على جهازك للعمل بدون إنترنت.</p>
+    </section>
+
+  </main>
+
+  <!-- Floating add button -->
+  <button id="fab" class="fab" aria-label="إضافة مهمة">+</button>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="today">
+      <span class="nav-icon">🏠</span><span>اليوم</span>
+    </button>
+    <button class="nav-btn" data-view="all">
+      <span class="nav-icon">📋</span><span>المهام</span>
+    </button>
+    <button class="nav-btn" data-view="stats">
+      <span class="nav-icon">📊</span><span>إحصائيات</span>
+    </button>
+    <button class="nav-btn" data-view="settings">
+      <span class="nav-icon">⚙️</span><span>إعدادات</span>
+    </button>
+  </nav>
+
+  <!-- Add/Edit Task Sheet -->
+  <div id="sheetOverlay" class="sheet-overlay">
+    <div id="taskSheet" class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h2 id="sheetTitle">مهمة جديدة</h2>
+        <button id="sheetClose" class="icon-btn">✕</button>
+      </div>
+
+      <form id="taskForm" class="sheet-body">
+        <label class="field">
+          <span>اسم المهمة</span>
+          <input type="text" id="f-title" placeholder="مثال: تعلم الإنجليزية" required maxlength="60" />
+        </label>
+
+        <div class="field">
+          <span>التصنيف</span>
+          <div id="categoryPicker" class="chip-row"></div>
+        </div>
+
+        <div class="field">
+          <span>الأولوية</span>
+          <div class="segmented" id="prioritySegmented">
+            <button type="button" class="seg-btn" data-priority="low">🟢 منخفضة</button>
+            <button type="button" class="seg-btn active" data-priority="medium">🟡 متوسطة</button>
+            <button type="button" class="seg-btn" data-priority="high">🔴 عالية</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span>نوع التكرار</span>
+          <div class="segmented" id="typeSegmented">
+            <button type="button" class="seg-btn active" data-type="daily">يومي</button>
+            <button type="button" class="seg-btn" data-type="weekly">أسبوعي</button>
+            <button type="button" class="seg-btn" data-type="once">مرة واحدة</button>
+          </div>
+        </div>
+
+        <div class="field" id="daysField">
+          <span>أيام الأسبوع</span>
+          <div id="daysPicker" class="chip-row"></div>
+        </div>
+
+        <div class="field" id="dateField" style="display:none;">
+          <span>التاريخ</span>
+          <input type="date" id="f-date" />
+        </div>
+
+        <div class="field">
+          <span>توقيت المهمة</span>
+          <div class="segmented" id="timeModeSegmented">
+            <button type="button" class="seg-btn active" data-timemode="fixed">🕐 وقت محدد</button>
+            <button type="button" class="seg-btn" data-timemode="flexible">🕊️ مرن (طوال اليوم)</button>
+          </div>
+        </div>
+
+        <div class="row-2" id="timeRow">
+          <label class="field">
+            <span>الوقت</span>
+            <input type="time" id="f-time" value="08:00" required />
+          </label>
+          <label class="field">
+            <span>المدة (دقيقة)</span>
+            <input type="number" id="f-duration" min="0" step="5" placeholder="اختياري" />
+          </label>
+        </div>
+
+        <label class="field" id="durationOnlyField" style="display:none;">
+          <span>المدة (دقيقة)</span>
+          <input type="number" id="f-duration-flex" min="0" step="5" placeholder="اختياري" />
+        </label>
+
+        <label class="field">
+          <span>ملاحظات (اختياري)</span>
+          <textarea id="f-notes" rows="2" maxlength="200" placeholder="تفاصيل إضافية..."></textarea>
+        </label>
+
+        <label class="field checkbox-field" id="remindField">
+          <input type="checkbox" id="f-remind" checked />
+          <span>تذكيرني بإشعار عند حلول الوقت</span>
+        </label>
+
+        <div class="sheet-actions">
+          <button type="button" id="deleteTaskBtn" class="btn-danger hidden">حذف</button>
+          <button type="submit" class="btn-primary">حفظ المهمة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
