@@ -33,30 +33,20 @@
   </header>
 
   <main>
-    <section class="email-panel" id="email-panel">
-      <div class="panel-heading">
-        <div>
-          <span class="step-chip">من الايميل</span>
-          <h2>الرحلات المرسلة</h2>
-          <p>مرتبة حسب وقت الوصول - اضغط "تم قلاع الرحلة" لحذف الرحلة من القائمة</p>
-        </div>
-        <div class="heading-actions">
-          <button id="email-refresh" class="small-button" type="button">↻ تحديث</button>
-          <button id="email-clear-all" class="small-button danger" type="button">🗑️ تفريغ كل الرحلات المرسلة</button>
-        </div>
+    <section class="manifest-email-banner">
+      <div class="manifest-email-icon">📧</div>
+      <div class="manifest-email-info">
+        <span class="manifest-email-label">عنوان استقبال المنفستات والترانزيت</span>
+        <code id="manifest-email-value">manifestdep2@gmail.com</code>
+        <p class="manifest-email-hint">أرسل جميع منفستات الرحلات وقوائم الترانزيت إلى هذا العنوان فقط، ليتم استخراجها تلقائيًا وربطها ببعضها.</p>
       </div>
-
-      <div class="email-list-container">
-        <div id="email-list" class="email-list">
-          <div class="email-loading">⏳ جاري تحميل الرحلات...</div>
-        </div>
-      </div>
+      <button id="copy-manifest-email" class="small-button" type="button">⧉ نسخ العنوان</button>
     </section>
 
     <div class="upload-row">
       <section class="upload-panel compact" id="drop-zone">
         <input id="pdf-input" type="file" accept="application/pdf,.pdf" hidden>
-        <div class="upload-icon">PDF</div>
+        <div class="upload-icon">PDF<span class="success-badge" id="manifest-success-badge" hidden>✓</span></div>
         <div class="upload-copy">
           <h2>إرفاق بيان الركاب</h2>
           <p id="file-status">اسحب ملف PDF هنا، أو اختره من الجهاز</p>
@@ -71,7 +61,7 @@
 
       <section class="upload-panel compact transit-panel" id="transit-drop-zone">
         <input id="transit-input" type="file" accept="application/pdf,.pdf" hidden>
-        <div class="upload-icon transit-icon">✈️</div>
+        <div class="upload-icon transit-icon">✈️<span class="success-badge" id="transit-success-badge" hidden>✓</span></div>
         <div class="upload-copy">
           <h2>إرفاق قائمة الترانزيت</h2>
           <p id="transit-status">أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.</p>
@@ -240,25 +230,6 @@
       </div>
       <div id="server-files-list" class="server-files-list">
         <div class="email-loading">⏳ جاري تحميل الملفات...</div>
-      </div>
-    </div>
-  </div>
-
-  <div id="review-status-modal" class="server-modal" hidden>
-    <div class="server-modal-box review-status-box">
-      <div class="server-modal-head">
-        <h3>حالة مراجعة الرحلة</h3>
-        <button id="review-modal-close" class="icon-button" type="button">×</button>
-      </div>
-      <div class="review-status-options">
-        <button type="button" class="review-option-btn" data-review-modal-option="under_review">⏳ تحت المراجعة</button>
-        <button type="button" class="review-option-btn" data-review-modal-option="complete">✓ مكتملة</button>
-        <button type="button" class="review-option-btn" data-review-modal-option="missing">⚠ يوجد نقص</button>
-        <button type="button" class="review-option-btn" data-review-modal-option="note">📝 يوجد ملاحظة</button>
-        <div id="review-note-box" class="review-note-box" hidden>
-          <textarea id="review-note-input" rows="3" placeholder="اكتب الملاحظة هنا..."></textarea>
-          <button id="review-note-save" class="primary-button" type="button">حفظ الملاحظة</button>
-        </div>
       </div>
     </div>
   </div>

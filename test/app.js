@@ -50,10 +50,6 @@ const elements = {
   ocrStatus: document.getElementById("ocr-status"),
   ocrProgress: document.getElementById("ocr-progress-bar"),
   toast: document.getElementById("toast"),
-  emailPanel: document.getElementById("email-panel"),
-  emailList: document.getElementById("email-list"),
-  emailRefresh: document.getElementById("email-refresh"),
-  emailClearAll: document.getElementById("email-clear-all"),
   chooseServerFile: document.getElementById("choose-server-file"),
   transitDropZone: document.getElementById("transit-drop-zone"),
   transitInput: document.getElementById("transit-input"),
@@ -63,7 +59,11 @@ const elements = {
   transitStatus: document.getElementById("transit-status"),
   transitLegend: document.getElementById("transit-legend"),
   quickUpdateMessage: document.getElementById("quick-update-message"),
-  quickCompleteMessage: document.getElementById("quick-complete-message")
+  quickCompleteMessage: document.getElementById("quick-complete-message"),
+  copyManifestEmail: document.getElementById("copy-manifest-email"),
+  manifestEmailValue: document.getElementById("manifest-email-value"),
+  manifestSuccessBadge: document.getElementById("manifest-success-badge"),
+  transitSuccessBadge: document.getElementById("transit-success-badge")
 };
 
 let searchClearTimer = null;
@@ -296,12 +296,14 @@ function computeTransitMatchedIds() {
 }
 
 // يضبط حالة الترانزيت في الواجهة والحالة العامة - مُشتركة بين الإرفاق اليدوي والتلقائي.
-function applyTransitEntries(fileName, entries) {
+function applyTransitEntries(entries) {
   state.transitEntries = entries;
   const matchedCount = entries.filter(entry => findPassengerForTransitEntry(entry)).length;
-  elements.transitStatus.textContent = state.passengers.length
-    ? `${fileName} - تم العثور على ${matchedCount} من أصل ${entries.length} راكب ترانزيت ضمن قائمة الركاب الحالية.`
-    : `${fileName} - تم استخراج ${entries.length} راكب ترانزيت. أرفق بيان الركاب لمطابقتهم.`;
+  const flightLabel = state.flightNumber ? `الرحلة ${escapeHtml(state.flightNumber)} - ` : "";
+  elements.transitStatus.innerHTML = state.passengers.length
+    ? `${flightLabel}<span class="status-success">تم العثور على ${matchedCount} من أصل ${entries.length} راكب ترانزيت</span>`
+    : `<span class="status-success">تم استخراج ${entries.length} راكب ترانزيت</span> - أرفق بيان الركاب لمطابقتهم.`;
+  elements.transitSuccessBadge.hidden = false;
   elements.clearTransit.hidden = false;
   render();
   showToast(`تم استخراج ${entries.length} راكب ترانزيت، وتمت مطابقة ${matchedCount} منهم.`);
@@ -316,16 +318,18 @@ async function handleTransitFile(file) {
   elements.transitDropZone.classList.remove("dragging");
   elements.chooseTransitFile.disabled = true;
   elements.transitStatus.textContent = `جاري فتح ${file.name}...`;
+  elements.transitSuccessBadge.hidden = true;
 
   try {
     const entries = await extractTransitEntries(file);
     if (!entries.length) {
       throw new Error("لم يتم العثور على أسماء ترانزيت بالنمط المتوقع داخل الملف.");
     }
-    applyTransitEntries(file.name, entries);
+    applyTransitEntries(entries);
   } catch (error) {
     console.error(error);
     elements.transitStatus.textContent = "تعذر قراءة ملف الترانزيت. تأكد أن الملف بنفس تنسيق تقرير الترانزيت.";
+    elements.transitSuccessBadge.hidden = true;
     showToast(error.message || "حدث خطأ أثناء قراءة ملف الترانزيت.");
   } finally {
     elements.chooseTransitFile.disabled = false;
@@ -531,6 +535,7 @@ async function handleFile(file, precomputedReport = null) {
   elements.dropZone.classList.remove("dragging");
   elements.choose.disabled = true;
   elements.fileStatus.textContent = `جاري فتح ${file.name}...`;
+  elements.manifestSuccessBadge.hidden = true;
 
   try {
     const report = precomputedReport || await extractPassengers(file);
@@ -547,24 +552,25 @@ async function handleFile(file, precomputedReport = null) {
     elements.clearTransit.hidden = true;
     elements.transitStatus.textContent = "أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.";
     elements.search.value = "";
-    const flightLabel = state.flightNumber ? ` - الرحلة ${state.flightNumber}` : "";
+    const flightLabel = state.flightNumber ? `الرحلة ${escapeHtml(state.flightNumber)} - ` : "";
     const countLabel = state.manifestExpectedCount
       ? ` من أصل ${state.manifestExpectedCount}`
       : "";
-    elements.fileStatus.textContent = `${file.name}${flightLabel} - تم استخراج ${passengers.length}${countLabel} راكب بنجاح`;
+    elements.fileStatus.innerHTML = `${flightLabel}<span class="status-success">تم استخراج ${passengers.length}${countLabel} راكب</span>`;
+    elements.manifestSuccessBadge.hidden = false;
     updateOcrAvailability();
     render();
-    // عند اختلاف العدد المذكور بالبيان عن المستخرج، ننبّه فورًا بدل رسالة النجاح العادية.
+    // عند اختلاف العدد المذكور بالمنفست عن المستخرج، ننبّه فورًا بدل رسالة النجاح العادية.
     if (state.manifestExpectedCount && state.manifestExpectedCount !== passengers.length) {
       showToast(`⚠️ تنبيه: المنفست يذكر ${state.manifestExpectedCount} راكب وتم استخراج ${passengers.length} فقط - راجع التنبيهات.`);
     } else {
       showToast(`تم استخراج ${passengers.length} راكب.`);
     }
     if (systemImageFile) scheduleAutoOcr();
-    markMatchingFlightAsVerified(state.flightNumber);
   } catch (error) {
     console.error(error);
     elements.fileStatus.textContent = "تعذر قراءة المنفست. تأكد أن الملف بنفس تنسيق تقرير Altea.";
+    elements.manifestSuccessBadge.hidden = true;
     showToast(error.message || "حدث خطأ أثناء قراءة PDF.");
   } finally {
     elements.choose.disabled = false;
@@ -748,38 +754,46 @@ function filteredPassengers() {
 }
 
 function extractPassportTokensFromText(text) {
-  return splitPassportValues(text).filter(token => token.length >= 5 && /\d/.test(token));
+  return splitPassportValues(text).filter(token => token.length >= 4 && /\d/.test(token));
 }
 
-// آخر 4 خانات من رقم الجواز كافية للمطابقة - تتحمل أخطاء القراءة في بداية الرقم.
+// مطابقة تامة فقط هنا - بلا أي تسامح بـ"آخر 4 أرقام" بمفردها بدون أي سياق مرافق،
+// لأن رقمًا وهميًا أو مقروءًا خطأً بالكامل قد يتطابق صدفة مع آخر 4 أرقام لراكب حقيقي
+// غير معني إطلاقًا في بيان كبير (تأكد هذا فعليًا عند اختبار أرقام جوازات وهمية).
+// التسامح مع أخطاء القراءة عبر آخر 4 أرقام متاح لاحقًا في matchPassengerFromLine،
+// لكن فقط كتعزيز لمطابقة بالاسم موجودة أصلًا بنفس السطر (سياق حقيقي إضافي)،
+// وليس كمعيار مستقل لرقم مجرّد بلا اسم.
 function matchPassengerByPassportToken(token) {
   const compactToken = comparableOcrText(token);
   return state.passengers.find(passenger =>
-    splitPassportValues(passenger.passport).some(passport => {
-      if (passport === token) return true;
-      const compactPassport = comparableOcrText(passport);
-      if (compactPassport.length < 4 || compactToken.length < 4) return false;
-      return compactPassport === compactToken || compactPassport.slice(-4) === compactToken.slice(-4);
-    })
+    splitPassportValues(passenger.passport).some(passport =>
+      passport === token || comparableOcrText(passport) === compactToken
+    )
   );
 }
 
-function matchPassengersByNameLine(line) {
+// نطابق باسم العائلة فقط ابتداءً - أكثر مرونة من اشتراط الاسم الأول أيضًا، لأن OCR
+// غالبًا يقرأ العائلة بوضوح أكبر من الاسم الأول في صور الشاشات المزدحمة. التضييق
+// عند تعدد المرشحين (أكثر من راكب بنفس العائلة) يتم لاحقًا في matchPassengerFromLine.
+function matchPassengersBySurnameLine(line) {
   const normalizedLine = normalize(line);
   if (normalizedLine.length < 3) return [];
   return state.passengers.filter(passenger => {
-    const [surname = "", givenNames = ""] = passenger.name.split(",");
-    const surnameNorm = normalize(surname);
-    const givenNorm = normalize(givenNames).split(" ").filter(Boolean)[0] || "";
-    if (!surnameNorm) return false;
-    return givenNorm
-      ? normalizedLine.includes(surnameNorm) && normalizedLine.includes(givenNorm)
-      : normalizedLine.includes(surnameNorm);
+    const surnameNorm = normalize(passenger.name.split(",")[0] || "");
+    return surnameNorm && normalizedLine.includes(surnameNorm);
   });
 }
 
-// رقم الجواز هو أساس المطابقة؛ الاسم مجرد تعزيز يُستخدم فقط حين يتعذر قراءة
-// رقم الجواز في نفس السطر - ولا يُسمح له وحده بإضافة راكب مختلف عن صاحب الرقم المقروء.
+function firstGivenNameOf(passenger) {
+  return normalize(passenger.name.split(",")[1] || "").split(" ").filter(Boolean)[0] || "";
+}
+
+// رقم الجواز هو أساس المطابقة؛ الاسم مجرد تعزيز يُستخدم فقط حين يتعذر قراءة رقم
+// الجواز في نفس السطر. عند تعدد الركاب بنفس اسم العائلة، نضيّق تدريجيًا: أولًا
+// بالاسم الأول إن ظهر بالسطر، ثم بآخر أرقام الجواز الظاهرة كرمز مستقل بنفس السطر
+// تحديدًا (وليس أي رقم عشوائي مثل تاريخ الميلاد). وإن بقي أكثر من مرشح رغم ذلك،
+// لا نخمّن إطلاقًا - نُرجع بلا مطابقة، حتى لا يظهر راكبان بنفس الاسم بجوازين مختلفين
+// دون تأكيد حقيقي.
 function matchPassengerFromLine(line) {
   const tokens = extractPassportTokensFromText(line);
   for (const token of tokens) {
@@ -787,16 +801,27 @@ function matchPassengerFromLine(line) {
     if (passenger) return passenger;
   }
 
-  const nameCandidates = matchPassengersByNameLine(line);
-  if (!nameCandidates.length) return null;
-  if (nameCandidates.length === 1) return nameCandidates[0];
+  const surnameCandidates = matchPassengersBySurnameLine(line);
+  if (!surnameCandidates.length) return null;
+  if (surnameCandidates.length === 1) return surnameCandidates[0];
 
-  // أكثر من راكب بنفس الاسم: يلزم تأكيد باستخدام آخر أرقام الجواز الظاهرة في السطر نفسه.
-  const lineDigits = comparableOcrText(line);
-  const reinforced = nameCandidates.filter(passenger =>
+  const normalizedLine = normalize(line);
+  const byGivenName = surnameCandidates.filter(passenger => {
+    const givenNorm = firstGivenNameOf(passenger);
+    return givenNorm && normalizedLine.includes(givenNorm);
+  });
+  const narrowed = byGivenName.length ? byGivenName : surnameCandidates;
+  if (narrowed.length === 1) return narrowed[0];
+
+  // هنا فقط (بعد تأكيد وجود اسم عائلة مطابق بالفعل بنفس السطر) يُسمح بالتسامح عبر
+  // آخر 4 أرقام، لأن وجود اسم مطابق سياق كافٍ يقلل احتمال الصدفة كثيرًا.
+  const lineTokens = tokens.map(comparableOcrText);
+  const reinforced = narrowed.filter(passenger =>
     splitPassportValues(passenger.passport).some(passport => {
       const compactPassport = comparableOcrText(passport);
-      return compactPassport.length >= 4 && lineDigits.includes(compactPassport.slice(-4));
+      if (compactPassport.length < 4) return false;
+      const tail = compactPassport.slice(-4);
+      return lineTokens.some(candidateToken => candidateToken.length >= 4 && candidateToken.slice(-4) === tail);
     })
   );
 
@@ -1445,6 +1470,37 @@ function showToast(message) {
   toastTimer = setTimeout(() => elements.toast.classList.remove("show"), 2600);
 }
 
+// navigator.clipboard.writeText يفشل بصمت على المتصفحات التي تفتح الصفحة عبر
+// سياق غير آمن (مثل فتحها من الجوال عبر عنوان IP محلي بدل HTTPS/localhost) -
+// نجرّبها أولًا، وإن تعذرت نستخدم طريقة execCommand القديمة كخطة بديلة تعمل
+// في كل الحالات تقريبًا.
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (error) {
+      // نكمل للطريقة الاحتياطية أدناه
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  let success = false;
+  try {
+    success = document.execCommand("copy");
+  } catch (error) {
+    success = false;
+  }
+  document.body.removeChild(textarea);
+  return success;
+}
+
 elements.choose.addEventListener("click", () => elements.input.click());
 elements.input.addEventListener("change", event => handleFile(event.target.files[0]));
 elements.toggleImageImport.addEventListener("click", () => {
@@ -1515,6 +1571,7 @@ elements.clearTransit.addEventListener("click", () => {
   state.transitEntries = [];
   elements.clearTransit.hidden = true;
   elements.transitStatus.textContent = "أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.";
+  elements.transitSuccessBadge.hidden = true;
   render();
   showToast("تم إزالة قائمة الترانزيت.");
 });
@@ -1594,7 +1651,7 @@ elements.selectedList.addEventListener("input", event => {
   }
 });
 
-elements.alerts.addEventListener("click", event => {
+elements.alerts.addEventListener("click", async event => {
   const toggle = event.target.closest("[data-alert-toggle]");
   if (toggle) {
     const key = toggle.dataset.alertToggle;
@@ -1609,8 +1666,8 @@ elements.alerts.addEventListener("click", event => {
     const { duplicates } = reportWarnings();
     const group = duplicates.find(item => item.passport === copyButton.dataset.copyPassport);
     if (group) {
-      navigator.clipboard.writeText(duplicatePassportMessage(group));
-      showToast("تم نسخ نص الجواز المكرر.");
+      const copied = await copyTextToClipboard(duplicatePassportMessage(group));
+      showToast(copied ? "تم نسخ نص الجواز المكرر." : "تعذر النسخ تلقائيًا على هذا المتصفح.");
     }
     return;
   }
@@ -1644,8 +1701,8 @@ elements.alerts.addEventListener("click", event => {
     }
 
     if (passengers.length) {
-      navigator.clipboard.writeText(passengerListMessage(title, passengers, { showPassport }));
-      showToast("تم نسخ النص.");
+      const copied = await copyTextToClipboard(passengerListMessage(title, passengers, { showPassport }));
+      showToast(copied ? "تم نسخ النص." : "تعذر النسخ تلقائيًا على هذا المتصفح.");
     }
   }
 });
@@ -1681,6 +1738,8 @@ elements.reset.addEventListener("click", () => {
   state.transitEntries = [];
   elements.clearTransit.hidden = true;
   elements.transitStatus.textContent = "أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.";
+  elements.transitSuccessBadge.hidden = true;
+  elements.manifestSuccessBadge.hidden = true;
   clearTimeout(searchClearTimer);
   clearTimeout(ocrAutoTimer);
   clearTimeout(ocrMatchFlashTimer);
@@ -1710,8 +1769,8 @@ elements.reset.addEventListener("click", () => {
 elements.copy.addEventListener("click", async () => {
   const text = quickMessageOverride || messageText();
   if (!text) return showToast("القائمة المختارة فارغة.");
-  await navigator.clipboard.writeText(text);
-  showToast("تم نسخ نص الرسالة.");
+  const copied = await copyTextToClipboard(text);
+  showToast(copied ? "تم نسخ نص الرسالة." : "تعذر النسخ تلقائيًا على هذا المتصفح.");
 });
 
 elements.send.addEventListener("click", () => {
@@ -1733,6 +1792,11 @@ elements.quickCompleteMessage.addEventListener("click", () => {
   quickMessageOverride = text;
   elements.message.textContent = text;
   elements.send.disabled = false;
+});
+
+elements.copyManifestEmail.addEventListener("click", async () => {
+  const copied = await copyTextToClipboard(elements.manifestEmailValue.textContent.trim());
+  showToast(copied ? "تم نسخ عنوان الإيميل." : "تعذر النسخ تلقائيًا - انسخه يدويًا من الأعلى.");
 });
 
 render();
@@ -1796,216 +1860,8 @@ lockElements.input.addEventListener("keydown", event => {
   if (event.key === "Enter") submitLockPin();
 });
 
-const EMAIL_STORAGE_BUCKET = "flight-emails";
-const GOOGLE_DRIVE_FOLDER_ID = "18lWJ-za2mJddoVqV4KTCsT1CUmtTCSVz";
+const GOOGLE_DRIVE_FOLDER_ID = "1VaEkh0SUaYmeoVaYOLzFstF96d-CuoQR";
 const GOOGLE_DRIVE_API_KEY = "AIzaSyDFb8azGaajtlemiq1XpDKmZEgo68vGM8c";
-let incomingFlightEmails = [];
-
-const REVIEW_STATUS_META = {
-  under_review: { label: "⏳ تحت المراجعة", className: "review-badge--review" },
-  complete: { label: "✓ مكتملة", className: "review-badge--complete" },
-  missing: { label: "⚠ يوجد نقص", className: "review-badge--missing" },
-  note: { label: "📝 يوجد ملاحظة", className: "review-badge--note" }
-};
-
-function reviewBadgeLabel(row) {
-  if (row.review_status === "note" && row.review_note) return `📝 ${row.review_note}`;
-  return (REVIEW_STATUS_META[row.review_status] || { label: "قيد المراجعة" }).label;
-}
-
-function reviewBadgeClass(row) {
-  return (REVIEW_STATUS_META[row.review_status] || { className: "review-badge--pending" }).className;
-}
-
-// عند نجاح استخراج ركاب رحلة مسجّلة بقائمة "الرحلات المرسلة"، إن لم تكن قد رُوجعت
-// بعد، نضبط حالتها لتظهر "قيد المراجعة" جاهزة ليضغط المستخدم عليها ويحدد الحالة.
-async function markMatchingFlightAsVerified(flightNumber) {
-  if (!flightNumber) return;
-  const normalized = String(flightNumber).trim().toUpperCase();
-  const match = incomingFlightEmails.find(row => parseFlightCode(row).flightNumber.toUpperCase() === normalized);
-  if (!match || match.review_status) return;
-
-  try {
-    const { error } = await supabaseClient
-      .from("incoming_flight_emails")
-      .update({ review_status: null })
-      .eq("id", match.id);
-    if (error) throw error;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-async function updateReviewStatus(id, status, note) {
-  try {
-    const { error } = await supabaseClient
-      .from("incoming_flight_emails")
-      .update({ review_status: status, review_note: note || null })
-      .eq("id", id);
-    if (error) throw error;
-
-    const row = incomingFlightEmails.find(item => item.id === id);
-    if (row) {
-      row.review_status = status;
-      row.review_note = note || null;
-    }
-    renderIncomingFlightEmails();
-  } catch (error) {
-    console.error(error);
-    showToast("تعذر تحديث حالة المراجعة.");
-  }
-}
-
-function formatEmailReceivedAt(iso) {
-  const d = new Date(iso);
-  const datePart = d.toLocaleDateString("ar-SA-u-nu-latn", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const timePart = d.toLocaleTimeString("ar-SA-u-nu-latn", { hour: "2-digit", minute: "2-digit", hour12: false });
-  return `${timePart} - ${datePart}`;
-}
-
-// نقبل الحقل flight_number إما كرقم رحلة صافي (SV327) أو كسلسلة كاملة (SV327/20260717/RUH)
-// جاية مباشرة من Zapier بدون تقسيم مسبق - نقسمها هنا بدل ما نعقّد إعداد Zapier.
-function parseFlightCode(row) {
-  const raw = String(row.flight_number || "").trim();
-  const parts = raw.split("/");
-  return {
-    flightNumber: parts[0] || "-",
-    flightDate: row.flight_date || parts[1] || "",
-    originCode: row.origin_code || parts[2] || ""
-  };
-}
-
-async function loadIncomingFlightEmails() {
-  elements.emailList.innerHTML = '<div class="email-loading">⏳ جاري تحميل الرحلات...</div>';
-  try {
-    const { data, error } = await supabaseClient
-      .from("incoming_flight_emails")
-      .select("*")
-      .eq("is_checked", false)
-      .order("received_at", { ascending: false });
-    if (error) throw error;
-
-    incomingFlightEmails = data || [];
-    renderIncomingFlightEmails();
-  } catch (error) {
-    console.error(error);
-    elements.emailList.innerHTML = `<div class="email-loading">❌ تعذر تحميل الرحلات: ${escapeHtml(error.message)}</div>`;
-  }
-}
-
-function renderIncomingFlightEmails() {
-  if (!incomingFlightEmails.length) {
-    elements.emailList.innerHTML = `
-      <div class="empty-state">
-        <span>📭</span>
-        <strong>لا توجد رحلات جديدة</strong>
-        <p>ستظهر هنا كل رحلة فور وصول ايميلها.</p>
-      </div>`;
-    return;
-  }
-
-  elements.emailList.innerHTML = incomingFlightEmails.map(row => `
-    <div class="email-item" data-email-id="${escapeHtml(row.id)}">
-      <div class="email-sender">${escapeHtml(parseFlightCode(row).flightNumber.slice(0, 2))}</div>
-      <div class="email-content">
-        <div class="email-from">${escapeHtml(parseFlightCode(row).flightNumber)} <small>${escapeHtml(parseFlightCode(row).originCode)}</small></div>
-        <div class="email-subject">وقت استلام المنفست: ${escapeHtml(formatEmailReceivedAt(row.received_at))}</div>
-      </div>
-      <div class="review-badge-wrap">
-        <button type="button" class="review-badge ${reviewBadgeClass(row)}" data-open-review="${escapeHtml(row.id)}">${escapeHtml(reviewBadgeLabel(row))}</button>
-      </div>
-      <button class="email-check-btn" type="button" data-check-email="${escapeHtml(row.id)}">تم قلاع الرحلة</button>
-    </div>
-  `).join("");
-}
-
-elements.emailList.addEventListener("click", async event => {
-  const openReviewBtn = event.target.closest("[data-open-review]");
-  if (openReviewBtn) {
-    openReviewStatusModal(openReviewBtn.dataset.openReview);
-    return;
-  }
-
-  const btn = event.target.closest("[data-check-email]");
-  if (!btn) return;
-
-  event.stopPropagation();
-  const id = btn.dataset.checkEmail;
-  btn.disabled = true;
-  try {
-    const { error } = await supabaseClient
-      .from("incoming_flight_emails")
-      .delete()
-      .eq("id", id);
-    if (error) throw error;
-    incomingFlightEmails = incomingFlightEmails.filter(row => row.id !== id);
-    renderIncomingFlightEmails();
-    showToast("تم حذف الرحلة من القائمة.");
-  } catch (error) {
-    console.error(error);
-    showToast("تعذر حذف الرحلة.");
-    btn.disabled = false;
-  }
-});
-
-elements.emailRefresh.addEventListener("click", loadIncomingFlightEmails);
-
-/* ========== نافذة اختيار حالة المراجعة (منبثقة) ========== */
-const reviewStatusModal = document.getElementById("review-status-modal");
-const reviewModalClose = document.getElementById("review-modal-close");
-const reviewNoteBox = document.getElementById("review-note-box");
-const reviewNoteInput = document.getElementById("review-note-input");
-const reviewNoteSave = document.getElementById("review-note-save");
-let reviewModalTargetId = null;
-
-function openReviewStatusModal(id) {
-  reviewModalTargetId = id;
-  const row = incomingFlightEmails.find(item => item.id === id);
-  reviewNoteBox.hidden = true;
-  reviewNoteInput.value = row?.review_note || "";
-  reviewStatusModal.querySelectorAll("[data-review-modal-option]").forEach(btn => {
-    btn.classList.toggle("is-active", btn.dataset.reviewModalOption === row?.review_status);
-  });
-  reviewStatusModal.hidden = false;
-}
-
-function closeReviewStatusModal() {
-  reviewStatusModal.hidden = true;
-  reviewModalTargetId = null;
-}
-
-reviewModalClose.addEventListener("click", closeReviewStatusModal);
-reviewStatusModal.addEventListener("click", event => {
-  if (event.target === reviewStatusModal) closeReviewStatusModal();
-});
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && !reviewStatusModal.hidden) closeReviewStatusModal();
-});
-
-reviewStatusModal.querySelectorAll("[data-review-modal-option]").forEach(btn => {
-  btn.addEventListener("click", async () => {
-    const option = btn.dataset.reviewModalOption;
-    reviewStatusModal.querySelectorAll("[data-review-modal-option]").forEach(other => {
-      other.classList.toggle("is-active", other === btn);
-    });
-    if (option === "note") {
-      reviewNoteBox.hidden = false;
-      reviewNoteInput.focus();
-      return;
-    }
-    if (!reviewModalTargetId) return;
-    await updateReviewStatus(reviewModalTargetId, option, null);
-    closeReviewStatusModal();
-  });
-});
-
-reviewNoteSave.addEventListener("click", async () => {
-  if (!reviewModalTargetId) return;
-  const note = reviewNoteInput.value.trim();
-  if (!note) { reviewNoteInput.focus(); return; }
-  await updateReviewStatus(reviewModalTargetId, "note", note);
-  closeReviewStatusModal();
-});
 
 /* ========== نافذة اختيار ملف من مجلد الايميل (Google Drive) ========== */
 const serverFilesModal = document.getElementById("server-files-modal");
@@ -2016,9 +1872,13 @@ const serverModalTitle = document.getElementById("server-modal-title");
 let serverFilesTarget = "main";
 let lastDriveFiles = [];
 
+// نعرض الوقت مع التاريخ (وليس التاريخ فقط) حتى يتضح "متى وصل هذا المنفست بالضبط"
+// بشكل مستقل عن اسم الملف نفسه.
 function formatDriveDate(iso) {
   const d = new Date(iso);
-  return d.toLocaleDateString("ar-SA-u-nu-latn", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const datePart = d.toLocaleDateString("ar-SA-u-nu-latn", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const timePart = d.toLocaleTimeString("ar-SA-u-nu-latn", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return `${timePart} - ${datePart}`;
 }
 
 // يستخرج رقم الرحلة (مثل SV804) من بداية اسم الملف حتى لو باقي الاسم طويل ومقطوع بصريًا.
@@ -2152,7 +2012,7 @@ async function autoAttachTransitForMainFile(pickedFileId, pickedFileName) {
       const file = await fetchDriveFileAsPdf(candidate.id, candidate.name, "transit.pdf");
       const { entries, looksLikeTransit } = await extractTransitReport(file);
       if (entries.length && looksLikeTransit) {
-        applyTransitEntries(candidate.name, entries);
+        applyTransitEntries(entries);
         return;
       }
     } catch (error) {
@@ -2202,7 +2062,7 @@ async function loadServerFile(fileId, fileName) {
       const transitReport = await extractTransitReport(file);
       if (transitReport.entries.length && transitReport.looksLikeTransit) {
         const attachedMain = await autoAttachMainManifestForTransitFile(fileId, fileName);
-        applyTransitEntries(fileName, transitReport.entries);
+        applyTransitEntries(transitReport.entries);
         if (!attachedMain) {
           showToast("⚠️ هذا الملف قائمة ترانزيت - أرفق بيان الركاب لنفس الرحلة يدويًا للمطابقة.");
         }
@@ -2251,30 +2111,3 @@ serverFilesList.addEventListener("click", event => {
   }
   loadServerFile(item.dataset.driveFileId, item.dataset.driveFileName);
 });
-
-elements.emailClearAll.addEventListener("click", async () => {
-  if (!confirm("سيتم حذف جميع الرحلات المرسلة نهائيًا من القائمة. هل تريد المتابعة؟")) return;
-  elements.emailClearAll.disabled = true;
-  try {
-    const { error } = await supabaseClient
-      .from("incoming_flight_emails")
-      .delete()
-      .gte("created_at", "1900-01-01T00:00:00Z");
-    if (error) throw error;
-    incomingFlightEmails = [];
-    renderIncomingFlightEmails();
-    showToast("تم تفريغ كل الرحلات المرسلة.");
-  } catch (error) {
-    console.error(error);
-    showToast("تعذر تفريغ الرحلات.");
-  } finally {
-    elements.emailClearAll.disabled = false;
-  }
-});
-
-loadIncomingFlightEmails();
-
-// تحديث تلقائي لقائمة الرحلات المرسلة كل ربع ساعة (بنفس فعل ضغط زر "↻ تحديث" يدويًا)
-// حتى تظهر الرحلات الجديدة دون الحاجة لتحديث الصفحة أو الضغط يدويًا باستمرار.
-const FLIGHT_EMAILS_AUTO_REFRESH_MS = 15 * 60 * 1000;
-setInterval(loadIncomingFlightEmails, FLIGHT_EMAILS_AUTO_REFRESH_MS);

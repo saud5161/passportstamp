@@ -306,6 +306,7 @@ main {
 }
 
 .upload-icon {
+  position: relative;
   width: 58px;
   height: 66px;
   display: grid;
@@ -319,9 +320,82 @@ main {
   font-weight: 900;
 }
 
+.success-badge {
+  position: absolute;
+  top: -7px;
+  left: -7px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green-700);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  border: 2px solid #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .25);
+}
+
+/* بدون هذا التحديد، "display: grid" أعلاه يتغلب على إخفاء [hidden] الافتراضي
+   لتساوي الأولوية بينهما، فتبقى الشارة ظاهرة دومًا حتى بدون أي نجاح فعلي. */
+.success-badge[hidden] { display: none; }
+
+.status-success { color: var(--green-700); font-weight: 800; }
+
 .upload-copy { flex: 1; min-width: 0; }
 .upload-copy h2 { margin: 0 0 5px; font-size: 18px; }
 .upload-copy p { margin: 0; color: var(--muted); font-size: 13px; }
+
+.manifest-email-banner {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fffdf5, #fff9e8);
+  box-shadow: var(--shadow);
+}
+
+.manifest-email-icon {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--gold);
+  color: #fff;
+  font-size: 13px;
+}
+
+.manifest-email-info { flex: 1; min-width: 0; }
+.manifest-email-label {
+  display: block;
+  color: var(--green-800);
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.manifest-email-info code {
+  display: inline-block;
+  direction: ltr;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: Consolas, "Courier New", monospace;
+}
+.manifest-email-hint {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+}
 
 .upload-row { display: flex; align-items: stretch; gap: 14px; }
 .upload-row .upload-panel { flex: 1; min-width: 0; }
@@ -368,16 +442,16 @@ main {
 }
 
 .upload-copy .manifest-support-note {
-  margin-top: 4px;
+  margin-top: 3px;
   display: block;
-  padding: 2px 4px;
-  font-size: 9px;
-  font-weight: 500;
+  padding: 1px 3px;
+  font-size: 8px;
+  font-weight: 400;
   color: #8a5a0a;
   background: transparent;
   border: none;
   border-radius: 0;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .image-import-panel {
@@ -1151,6 +1225,9 @@ main {
   main { width: min(100% - 20px, 1440px); }
   .app-header { padding: 28px 18px 45px; }
   .privacy-badge { white-space: normal; }
+  .manifest-email-banner { flex-wrap: wrap; }
+  .manifest-email-info { min-width: calc(100% - 62px); }
+  .manifest-email-banner .small-button { width: 100%; }
   .upload-panel { align-items: stretch; flex-wrap: wrap; }
   .upload-copy { min-width: calc(100% - 80px); }
   .primary-button { width: 100%; }
