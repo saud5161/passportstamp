@@ -113,6 +113,36 @@
       <div><strong id="selected-count">0</strong><span>تم اختيارهم</span></div>
     </section>
 
+    <section class="flight-calc-panel is-collapsed" id="flight-calc-panel">
+      <button class="flight-calc-heading" id="toggle-flight-calc" type="button"
+              aria-expanded="false" aria-controls="flight-calc-body">
+        <span class="flight-calc-icon">🧮</span>
+        <h2>حاسبة مخصصة للرحلات</h2>
+        <span class="collapse-arrow">⌄</span>
+      </button>
+      <div class="flight-calc-body" id="flight-calc-body">
+        <div class="flight-calc-table-wrap">
+          <table class="flight-calc-table">
+            <thead>
+              <tr>
+                <th>رقم الرحلة</th>
+                <th>عدد الركاب</th>
+                <th>ركاب الترانزيت</th>
+                <th>الملاحين</th>
+                <th>المجموع</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="flight-calc-tbody"></tbody>
+          </table>
+        </div>
+        <p class="flight-calc-empty" id="flight-calc-empty">لا توجد رحلات محفوظة بعد - تُضاف كل رحلة تلقائيًا عند إرفاق بيانها.</p>
+        <div class="flight-calc-actions">
+          <button id="flight-calc-clear" class="small-button danger" type="button">🗑️ تفريغ الرحلات</button>
+        </div>
+      </div>
+    </section>
+
     <section class="alerts-panel">
       <div class="alerts-heading">
         <div>

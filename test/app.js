@@ -63,7 +63,12 @@ const elements = {
   copyManifestEmail: document.getElementById("copy-manifest-email"),
   manifestEmailValue: document.getElementById("manifest-email-value"),
   manifestSuccessBadge: document.getElementById("manifest-success-badge"),
-  transitSuccessBadge: document.getElementById("transit-success-badge")
+  transitSuccessBadge: document.getElementById("transit-success-badge"),
+  flightCalcPanel: document.getElementById("flight-calc-panel"),
+  toggleFlightCalc: document.getElementById("toggle-flight-calc"),
+  flightCalcTbody: document.getElementById("flight-calc-tbody"),
+  flightCalcEmpty: document.getElementById("flight-calc-empty"),
+  flightCalcClear: document.getElementById("flight-calc-clear")
 };
 
 let searchClearTimer = null;
@@ -305,6 +310,9 @@ function applyTransitEntries(entries) {
     : `<span class="status-success">تم استخراج ${entries.length} راكب ترانزيت</span> - أرفق بيان الركاب لمطابقتهم.`;
   elements.transitSuccessBadge.hidden = false;
   elements.clearTransit.hidden = false;
+  if (state.flightNumber) {
+    upsertFlightCalcRow(state.flightNumber, { transitCount: entries.length });
+  }
   render();
   showToast(`تم استخراج ${entries.length} راكب ترانزيت، وتمت مطابقة ${matchedCount} منهم.`);
 }
@@ -558,6 +566,9 @@ async function handleFile(file, precomputedReport = null) {
       : "";
     elements.fileStatus.innerHTML = `${flightLabel}<span class="status-success">تم استخراج ${passengers.length}${countLabel} راكب</span>`;
     elements.manifestSuccessBadge.hidden = false;
+    if (state.flightNumber) {
+      upsertFlightCalcRow(state.flightNumber, { passengerCount: passengers.length, transitCount: 0 });
+    }
     updateOcrAvailability();
     render();
     // عند اختلاف العدد المذكور بالمنفست عن المستخرج، ننبّه فورًا بدل رسالة النجاح العادية.
@@ -1501,6 +1512,101 @@ async function copyTextToClipboard(text) {
   return success;
 }
 
+/* ========== حاسبة مخصصة للرحلات (تُخزَّن في هذا المتصفح فقط) ==========
+   كل رحلة يتم إرفاق بيانها تُضاف/تُحدَّث تلقائيًا هنا (رقم الرحلة، عدد الركاب،
+   ركاب الترانزيت)، وعدد الملاحين يُدخل يدويًا. المجموع = الركاب + الملاحين - الترانزيت. */
+const FLIGHT_CALC_STORAGE_KEY = "flight_calc_rows_v1";
+
+function loadFlightCalcRows() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FLIGHT_CALC_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveFlightCalcRows() {
+  try {
+    localStorage.setItem(FLIGHT_CALC_STORAGE_KEY, JSON.stringify(flightCalcRows));
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+let flightCalcRows = loadFlightCalcRows();
+
+function flightCalcTotal(row) {
+  return (Number(row.passengerCount) || 0) + (Number(row.crewCount) || 0) - (Number(row.transitCount) || 0);
+}
+
+function renderFlightCalcTable() {
+  elements.flightCalcEmpty.hidden = flightCalcRows.length > 0;
+  elements.flightCalcTbody.innerHTML = flightCalcRows.map((row, index) => `
+    <tr>
+      <td><input type="text" data-flight-calc-field="flightNumber" data-flight-calc-index="${index}" value="${escapeHtml(row.flightNumber)}"></td>
+      <td><input type="number" min="0" data-flight-calc-field="passengerCount" data-flight-calc-index="${index}" value="${row.passengerCount}"></td>
+      <td><input type="number" min="0" data-flight-calc-field="transitCount" data-flight-calc-index="${index}" value="${row.transitCount}"></td>
+      <td><input type="number" min="0" data-flight-calc-field="crewCount" data-flight-calc-index="${index}" value="${row.crewCount}"></td>
+      <td><span class="flight-calc-total">${flightCalcTotal(row)}</span></td>
+      <td><button class="flight-calc-row-remove" type="button" data-flight-calc-remove="${index}" title="حذف الرحلة">×</button></td>
+    </tr>`).join("");
+}
+
+// يضيف رحلة جديدة أو يحدّث رحلة موجودة بنفس رقمها (بلا حساسية لحالة الأحرف) - يُستدعى
+// تلقائيًا عند إرفاق بيان ركاب أو قائمة ترانزيت، ولا يغيّر عدد الملاحين المُدخل يدويًا.
+function upsertFlightCalcRow(flightNumber, updates) {
+  const key = String(flightNumber || "").trim().toUpperCase();
+  if (!key) return;
+
+  const existing = flightCalcRows.find(row => String(row.flightNumber || "").trim().toUpperCase() === key);
+  if (existing) {
+    Object.assign(existing, updates);
+  } else {
+    flightCalcRows.push({ flightNumber, passengerCount: 0, transitCount: 0, crewCount: 0, ...updates });
+  }
+  saveFlightCalcRows();
+  renderFlightCalcTable();
+}
+
+elements.toggleFlightCalc.addEventListener("click", () => {
+  const collapsed = elements.flightCalcPanel.classList.toggle("is-collapsed");
+  elements.toggleFlightCalc.setAttribute("aria-expanded", String(!collapsed));
+});
+
+elements.flightCalcTbody.addEventListener("input", event => {
+  const field = event.target.dataset.flightCalcField;
+  const index = Number(event.target.dataset.flightCalcIndex);
+  if (!field || Number.isNaN(index) || !flightCalcRows[index]) return;
+
+  flightCalcRows[index][field] = field === "flightNumber" ? event.target.value : Number(event.target.value) || 0;
+  saveFlightCalcRows();
+
+  // نحدّث خلية المجموع فقط بدل إعادة رسم الجدول كاملاً، حتى لا يفقد حقل الإدخال
+  // تركيزه (focus) أثناء الكتابة - مهم جدًا لتجربة تعديل شبيهة بجدول إكسل.
+  const totalCell = event.target.closest("tr").querySelector(".flight-calc-total");
+  if (totalCell) totalCell.textContent = flightCalcTotal(flightCalcRows[index]);
+});
+
+elements.flightCalcTbody.addEventListener("click", event => {
+  const removeBtn = event.target.closest("[data-flight-calc-remove]");
+  if (!removeBtn) return;
+  flightCalcRows.splice(Number(removeBtn.dataset.flightCalcRemove), 1);
+  saveFlightCalcRows();
+  renderFlightCalcTable();
+});
+
+elements.flightCalcClear.addEventListener("click", () => {
+  if (!flightCalcRows.length) return;
+  if (!confirm("سيتم حذف جميع الرحلات المحفوظة في الحاسبة نهائيًا من هذا المتصفح. هل تريد المتابعة؟")) return;
+  flightCalcRows = [];
+  saveFlightCalcRows();
+  renderFlightCalcTable();
+  showToast("تم تفريغ الرحلات المحفوظة.");
+});
+
+renderFlightCalcTable();
+
 elements.choose.addEventListener("click", () => elements.input.click());
 elements.input.addEventListener("change", event => handleFile(event.target.files[0]));
 elements.toggleImageImport.addEventListener("click", () => {
@@ -1572,6 +1678,9 @@ elements.clearTransit.addEventListener("click", () => {
   elements.clearTransit.hidden = true;
   elements.transitStatus.textContent = "أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.";
   elements.transitSuccessBadge.hidden = true;
+  if (state.flightNumber) {
+    upsertFlightCalcRow(state.flightNumber, { transitCount: 0 });
+  }
   render();
   showToast("تم إزالة قائمة الترانزيت.");
 });

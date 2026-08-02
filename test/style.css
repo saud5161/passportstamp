@@ -495,6 +495,97 @@ main {
 .image-import-panel.is-collapsed .image-import-body { display: none; }
 .image-import-panel.is-collapsed { padding-top: 13px; padding-bottom: 13px; }
 
+/* ========== حاسبة مخصصة للرحلات ========== */
+.flight-calc-panel {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border: 1px solid #cddfd6;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 8px 20px rgba(20, 62, 48, .06);
+}
+
+.flight-calc-heading {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: right;
+  cursor: pointer;
+}
+.flight-calc-heading h2 { flex: 1; margin: 0; font-size: 13px; }
+.flight-calc-icon { flex: 0 0 auto; font-size: 15px; }
+.flight-calc-heading .collapse-arrow { width: 24px; height: 24px; font-size: 15px; }
+.flight-calc-panel:not(.is-collapsed) .flight-calc-heading .collapse-arrow { transform: rotate(180deg); }
+.flight-calc-panel.is-collapsed .flight-calc-body { display: none; }
+
+.flight-calc-body { margin-top: 10px; }
+
+.flight-calc-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.flight-calc-table {
+  width: 100%;
+  min-width: 460px;
+  border-collapse: collapse;
+  font-size: 12px;
+  direction: rtl;
+}
+.flight-calc-table th, .flight-calc-table td {
+  border: 1px solid var(--line);
+  padding: 6px 8px;
+  text-align: center;
+}
+.flight-calc-table thead th {
+  background: var(--green-100);
+  color: var(--green-800);
+  font-weight: 800;
+  font-size: 11px;
+}
+.flight-calc-table tbody tr:nth-child(even) { background: #fbfdfc; }
+.flight-calc-table tbody tr:hover { background: var(--green-50); }
+
+.flight-calc-table input {
+  width: 100%;
+  min-width: 0;
+  padding: 3px 4px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+}
+.flight-calc-table input:focus {
+  border-color: var(--green-700);
+  background: #fff;
+  outline: 0;
+}
+.flight-calc-table input[readonly] { color: var(--muted); background: transparent; }
+
+.flight-calc-total { font-weight: 900; color: var(--green-800); }
+
+.flight-calc-row-remove {
+  width: 22px; height: 22px; border: 0; border-radius: 6px;
+  color: var(--danger); background: #fff0f0; font-weight: 900; cursor: pointer;
+}
+
+.flight-calc-empty {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.flight-calc-actions { margin-top: 9px; display: flex; justify-content: flex-end; }
+
 .step-chip {
   padding: 6px 10px;
   flex: 0 0 auto;
@@ -1238,6 +1329,13 @@ main {
   .image-import-body { align-items: stretch; flex-direction: column; }
   .image-drop-button, .system-image-preview { width: 100%; }
   .system-image-preview { height: 150px; }
+  .flight-calc-panel { padding: 8px 10px; }
+  .flight-calc-heading h2 { font-size: 12px; }
+  .flight-calc-table { min-width: 340px; font-size: 10px; }
+  .flight-calc-table th, .flight-calc-table td { padding: 4px 5px; }
+  .flight-calc-table thead th { font-size: 9px; }
+  .flight-calc-table input { padding: 2px 3px; font-size: 10px; }
+  .flight-calc-row-remove { width: 18px; height: 18px; font-size: 11px; }
   .summary-bar { gap: 12px; flex-wrap: wrap; }
   .summary-bar .text-button { margin-inline-start: 0; }
   .panel-heading { align-items: flex-start; flex-direction: column; }
