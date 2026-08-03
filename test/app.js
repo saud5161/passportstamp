@@ -3,13 +3,18 @@
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "vendor/pdf.worker.min.js";
 
+const DEFAULT_SEAT_LABEL = "مقعد";
+
 const state = {
   passengers: [],
   selected: [],
   query: "",
   flightNumber: "",
   manifestExpectedCount: 0,
-  transitEntries: []
+  transitEntries: [],
+  // منفست "SEQ" (طيران الرياض) لا يحتوي مقاعد حقيقية، فتتحول هذه التسمية إلى "سكونز"
+  // في كل الواجهة (الرسالة، التنبيهات، حقول التعديل) عند اكتشاف هذا الشكل تحديدًا.
+  seatLabel: DEFAULT_SEAT_LABEL
 };
 
 const elements = {
@@ -60,7 +65,9 @@ const elements = {
   transitLegend: document.getElementById("transit-legend"),
   quickUpdateMessage: document.getElementById("quick-update-message"),
   quickCompleteMessage: document.getElementById("quick-complete-message"),
+  quickOriginalMessage: document.getElementById("quick-original-message"),
   copyManifestEmail: document.getElementById("copy-manifest-email"),
+  toggleDriveNotifications: document.getElementById("toggle-drive-notifications"),
   manifestEmailValue: document.getElementById("manifest-email-value"),
   manifestSuccessBadge: document.getElementById("manifest-success-badge"),
   transitSuccessBadge: document.getElementById("transit-success-badge"),
@@ -68,7 +75,8 @@ const elements = {
   toggleFlightCalc: document.getElementById("toggle-flight-calc"),
   flightCalcTbody: document.getElementById("flight-calc-tbody"),
   flightCalcEmpty: document.getElementById("flight-calc-empty"),
-  flightCalcClear: document.getElementById("flight-calc-clear")
+  flightCalcClear: document.getElementById("flight-calc-clear"),
+  flightCalcAdd: document.getElementById("flight-calc-add")
 };
 
 let searchClearTimer = null;
@@ -126,6 +134,11 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+const ARABIC_INDIC_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+function toArabicDigits(value) {
+  return String(value).replace(/[0-9]/g, digit => ARABIC_INDIC_DIGITS[digit]);
 }
 
 function reportName(rawName) {
@@ -192,6 +205,35 @@ function parseInkCloudPassengerLines(lines) {
       seat: match[3].toUpperCase(),
       passport,
       nationality: match[4].toUpperCase()
+    });
+  });
+
+  return passengers;
+}
+
+// منفست "CHECKED-IN/BOARDED PASSENGERS – APIS MANIFEST (SEQ)" (طيران الرياض) لا
+// يحتوي رقم مقعد إطلاقًا - فقط رقم تسلسلي SEQ. كل سطر: رقم SEQ، الاسم (SURNAME/GIVEN)،
+// الجنسية (3 أحرف)، رقم الجواز، ثم تاريخ الميلاد. نضع رقم SEQ في حقل seat نفسه حتى
+// يتدفق تلقائيًا بكل أنحاء الواجهة والرسالة، وextractPassengers تميّز هذا الشكل عبر
+// format:"seq" لتُستبدل تسمية "مقعد" بـ"سكونز" في كل مكان (انظر state.seatLabel).
+function parseSeqManifestLines(lines) {
+  const passengers = [];
+  const passengerPattern = /^(\d+)\s+(.+?)\s+([A-Z]{3})\s+([A-Z0-9]+)\s+(\d{2}\/\d{2}\/\d{4})$/;
+
+  lines.forEach(lineValue => {
+    const line = lineValue.replace(/\s+/g, " ").trim();
+    const match = line.match(passengerPattern);
+    if (!match || !match[2].includes("/")) return;
+
+    const rawName = match[2].toUpperCase().replace(/#+$/, "");
+    passengers.push({
+      id: `seq-${match[1]}-${passengers.length}-${match[4]}`,
+      sourceNumber: Number(match[1]),
+      name: reportName(rawName),
+      fullName: normalize(rawName),
+      seat: match[1],
+      passport: normalizePassport(match[4]),
+      nationality: match[3].toUpperCase()
     });
   });
 
@@ -355,7 +397,7 @@ function extractFlightNumber(lines) {
 
 function extractManifestExpectedCount(lines) {
   const subtotalCount = lines.reduce((total, line) => {
-    const match = line.replace(/\s+/g, " ").trim().match(/^Subtotal\s+(\d+)\s+Passengers\b/i);
+    const match = line.replace(/\s+/g, " ").trim().match(/^(?:Subtotal|Total)\s+(\d+)\s+Passengers\b/i);
     return total + (match ? Number(match[1]) : 0);
   }, 0);
 
@@ -515,13 +557,15 @@ async function extractPassengers(file) {
   const alteaPassengers = parsePassengerLines(allLines);
   const inkCloudPassengers = parseInkCloudPassengerLines(allLines);
   const tablePassengers = parseTableManifestRows(allRows);
+  const seqPassengers = parseSeqManifestLines(allLines);
 
   // نجرّب كل المحللين المعروفين ونختار من نجح في استخراج أكبر عدد ركاب - هذا يجعل
   // النظام يتعرف تلقائيًا على أي شكل بيان مدعوم دون أي اختيار يدوي من المستخدم.
   const best = [
     { passengers: alteaPassengers, format: "altea" },
     { passengers: inkCloudPassengers, format: "inkcloud" },
-    { passengers: tablePassengers, format: "table" }
+    { passengers: tablePassengers, format: "table" },
+    { passengers: seqPassengers, format: "seq" }
   ].reduce((a, b) => (b.passengers.length > a.passengers.length ? b : a));
 
   return {
@@ -534,6 +578,16 @@ async function extractPassengers(file) {
 
 // precomputedReport اختياري: يُستخدم عندما يكون المستدعي قد استخرج التقرير مسبقًا
 // (مثل loadServerFile عند فحص الملف قبل تحميله) لتفادي قراءة نفس الـ PDF مرتين.
+// يحدّث تلميحات البحث ولصق النص الجماعي بالتسمية الحالية (مقعد/سكونز) - العناصر التي
+// لا تُعاد كتابتها في كل render() لأنها ثابتة أصلًا في HTML، بخلاف الرسائل والتنبيهات
+// التي تُبنى ديناميكيًا وتستخدم state.seatLabel مباشرة عند كل عرض.
+function updateSeatLabelUI() {
+  elements.search.placeholder = `ابحث بالاسم أو رقم الجواز أو رقم ${state.seatLabel}...`;
+  elements.bulkMatchInput.placeholder =
+    `الصق أرقام جوازات أو أسماء الركاب هنا - سطر لكل راكب. يمكن لصق أرقام جوازات فقط، ` +
+    `أو أسماء فقط، أو اسم مع رقم الجواز أو ${state.seatLabel}، أو حتى نفس تنسيق نص الرسالة.`;
+}
+
 async function handleFile(file, precomputedReport = null) {
   if (!file || (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf"))) {
     showToast("يرجى اختيار ملف PDF صحيح.");
@@ -557,6 +611,8 @@ async function handleFile(file, precomputedReport = null) {
     state.flightNumber = report.flightNumber;
     state.manifestExpectedCount = report.manifestExpectedCount;
     state.transitEntries = [];
+    state.seatLabel = report.format === "seq" ? "سكونز" : DEFAULT_SEAT_LABEL;
+    updateSeatLabelUI();
     elements.clearTransit.hidden = true;
     elements.transitStatus.textContent = "أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.";
     elements.search.value = "";
@@ -918,7 +974,7 @@ function renderSource() {
     elements.sourceList.innerHTML = `
       <div class="empty-state">
         <span>⌕</span><strong>لا توجد نتائج مطابقة</strong>
-        <p>جرّب الاسم أو رقم الجواز أو رقم المقعد.</p>
+        <p>جرّب الاسم أو رقم الجواز أو رقم ${state.seatLabel}.</p>
       </div>`;
     return;
   }
@@ -973,7 +1029,7 @@ function renderSelected() {
       <div class="edit-fields">
         <input value="${escapeHtml(passenger.name)}" data-edit-id="${escapeHtml(passenger.id)}" data-field="name" aria-label="اسم الراكب">
         <input value="${escapeHtml(passenger.passport)}" data-edit-id="${escapeHtml(passenger.id)}" data-field="passport" aria-label="رقم الجواز" placeholder="الجواز">
-        <input value="${escapeHtml(passenger.seat)}" data-edit-id="${escapeHtml(passenger.id)}" data-field="seat" aria-label="المقعد" placeholder="المقعد">
+        <input value="${escapeHtml(passenger.seat)}" data-edit-id="${escapeHtml(passenger.id)}" data-field="seat" aria-label="${escapeHtml(state.seatLabel)}" placeholder="${escapeHtml(state.seatLabel)}">
       </div>
       <div class="row-actions">
         <button class="icon-button ${hasNoteText ? "has-note" : ""}" data-note-toggle="${escapeHtml(passenger.id)}" title="إضافة ملاحظة">📝</button>
@@ -997,7 +1053,7 @@ function passengerMessageLines() {
   return state.selected.map((passenger, index) => {
     const note = (passenger.note || "").trim();
     const noteLine = note ? `\nملاحظة / ${note}` : "";
-    return `${index + 1}.${passenger.name.trim()} ${passenger.passport.trim()}\nمقعد : (*${passenger.seat.trim()}*)${noteLine}`;
+    return `${index + 1}.${passenger.name.trim()} ${passenger.passport.trim()}\n${state.seatLabel} : (*${passenger.seat.trim()}*)${noteLine}`;
   }).join("\n\n");
 }
 
@@ -1276,6 +1332,10 @@ function reportWarnings() {
 
   const alSaudFlags = state.passengers.filter(hasSuspiciousAlSaudDocument);
 
+  // ركاب ترانزيت بجنسية سعودية - تنبيه حرج لأن السعوديين لا يُفترض أن يكونوا ضمن
+  // فئة الترانزيت عادة، فيلزم التحقق فورًا (مثل تنبيه الجوازات المكررة بالضبط).
+  const saudiTransitFlags = state.transitEntries.filter(entry => normalize(entry.nationality) === "SAU");
+
   // المقاعد الصحيحة: أرقام فقط للطفل مثل 123،
   // أو رقم/أرقام وحرف للمقعد المعتاد مثل 6A و034C.
   // الرموز التشغيلية غير القياسية مثل JPX1 تظهر ضمن التنبيهات.
@@ -1290,7 +1350,7 @@ function reportWarnings() {
       }
     : null;
 
-  return { duplicates, unclearSeats, duplicateSeats, duplicateNames, noDocument, alSaudFlags, countMismatch };
+  return { duplicates, unclearSeats, duplicateSeats, duplicateNames, noDocument, alSaudFlags, saudiTransitFlags, countMismatch };
 }
 
 function duplicatePassportMessage(group) {
@@ -1298,7 +1358,7 @@ function duplicatePassportMessage(group) {
   group.passengers.forEach((passenger, index) => {
     // المقعد داخل أقواس مع علامة اتجاه (LRM) حتى لا تتلخبط الأرقام والحروف الإنجليزية
     // وسط النص العربي عند عرض الرسالة في واتساب.
-    lines.push(`${index + 1}. ${passenger.name} - المقعد (${passenger.seat || "غير واضح"})‏ - ${passengerOrderLabel(passenger)}`);
+    lines.push(`${index + 1}. ${passenger.name} - ${state.seatLabel} (${passenger.seat || "غير واضح"})‏ - ${passengerOrderLabel(passenger)}`);
   });
   return lines.join("\n");
 }
@@ -1308,7 +1368,7 @@ function duplicatePassportMessage(group) {
 function passengerDetailItem(passenger, { showPassport = false } = {}) {
   const parts = [];
   if (showPassport) parts.push(`P/${escapeHtml(passenger.passport || "بدون وثيقة")}`);
-  parts.push(`المقعد (${escapeHtml(passenger.seat || "-")})`);
+  parts.push(`${escapeHtml(state.seatLabel)} (${escapeHtml(passenger.seat || "-")})`);
   parts.push(escapeHtml(passengerOrderLabel(passenger)));
   return `
     <div class="alert-detail-item">
@@ -1323,7 +1383,7 @@ function passengerListMessage(title, passengers, { showPassport = false } = {}) 
     const parts = [];
     if (showPassport) parts.push(`P/${passenger.passport || "بدون وثيقة"}`);
     parts.push(passengerOrderLabel(passenger));
-    lines.push(`${index + 1}. ${passenger.name}\n   المقعد (${passenger.seat || "-"})‏${parts.length ? "\n   " + parts.join(" - ") : ""}`);
+    lines.push(`${index + 1}. ${passenger.name}\n   ${state.seatLabel} (${passenger.seat || "-"})‏${parts.length ? "\n   " + parts.join(" - ") : ""}`);
   });
   return lines.join("\n");
 }
@@ -1357,8 +1417,8 @@ function renderAlerts() {
     return;
   }
 
-  const { duplicates, unclearSeats, duplicateSeats, duplicateNames, noDocument, alSaudFlags, countMismatch } = reportWarnings();
-  const count = duplicates.length + (unclearSeats.length ? 1 : 0) + (duplicateSeats.length ? 1 : 0)
+  const { duplicates, unclearSeats, duplicateSeats, duplicateNames, noDocument, alSaudFlags, saudiTransitFlags, countMismatch } = reportWarnings();
+  const count = duplicates.length + saudiTransitFlags.length + (unclearSeats.length ? 1 : 0) + (duplicateSeats.length ? 1 : 0)
     + (duplicateNames.length ? 1 : 0) + (noDocument.length ? 1 : 0)
     + (alSaudFlags.length ? 1 : 0) + (countMismatch ? 1 : 0);
   elements.alertsCount.textContent = `${count} ${count === 1 ? "تنبيه" : "تنبيهات"}`;
@@ -1377,7 +1437,7 @@ function renderAlerts() {
     const passengerRows = group.passengers.map(passenger => `
       <div class="danger-passenger-row">
         <strong>${escapeHtml(passenger.name)}</strong>
-        <span>المقعد (${escapeHtml(passenger.seat || "غير واضح")}) - ${escapeHtml(passengerOrderLabel(passenger))}</span>
+        <span>${escapeHtml(state.seatLabel)} (${escapeHtml(passenger.seat || "غير واضح")}) - ${escapeHtml(passengerOrderLabel(passenger))}</span>
       </div>`
     ).join("");
 
@@ -1396,6 +1456,24 @@ function renderAlerts() {
       </div>`;
   }).join("");
 
+  // خطر: راكب ترانزيت سعودي - يظهر مباشرة وبالتفصيل الكامل بنفس أسلوب الجواز المكرر،
+  // لأنه أيضًا تنبيه حرج يلزم التحقق منه فورًا.
+  const saudiTransitCard = saudiTransitFlags.length ? `
+    <div class="danger-alert">
+      <div class="danger-alert-head">
+        <span class="danger-alert-icon">⛔</span>
+        <div class="danger-alert-title">
+          <h3>يوجد سعودي من فئة الترانزيت</h3>
+          <span>تنبيه حرج - يلزم التحقق فورًا</span>
+        </div>
+      </div>
+      ${saudiTransitFlags.map(entry => `
+        <div class="danger-passenger-row">
+          <strong>${escapeHtml(entry.name)}</strong>
+          <span>P/${escapeHtml(entry.passport || "بدون وثيقة")} - ${escapeHtml(passengerOrderLabel(entry))}</span>
+        </div>`).join("")}
+    </div>` : "";
+
   const countCard = countMismatch ? `
     <div class="alert-row alert-row--warning">
       <span class="alert-row-icon">!</span>
@@ -1404,7 +1482,7 @@ function renderAlerts() {
 
   const unclearSeatsRow = alertSummaryRow({
     key: "unclear-seats", colorClass: "alert-row--warning", icon: "!",
-    title: "ركاب بدون مقعد واضح", count: unclearSeats.length,
+    title: `ركاب بدون ${state.seatLabel} واضح`, count: unclearSeats.length,
     detailHtml: `
       <div class="alert-detail-toolbar">${copyGroupButtonHtml("unclear-seats", "")}</div>
       <div class="alert-detail-rows">${unclearSeats.map(passenger => passengerDetailItem(passenger, { showPassport: true })).join("")}</div>`
@@ -1413,7 +1491,7 @@ function renderAlerts() {
   const duplicateSeatsDetail = duplicateSeats.map(group => `
     <div class="alert-detail-group">
       <div class="alert-detail-group-head">
-        <strong>المقعد ${escapeHtml(group.seat || "غير واضح")}</strong>
+        <strong>${escapeHtml(state.seatLabel)} ${escapeHtml(group.seat || "غير واضح")}</strong>
         ${copyGroupButtonHtml("dup-seat", group.seat || "")}
       </div>
       <div class="alert-detail-rows">
@@ -1422,7 +1500,7 @@ function renderAlerts() {
     </div>`).join("");
   const duplicateSeatsRow = alertSummaryRow({
     key: "dup-seats", colorClass: "alert-row--seat", icon: "⌗",
-    title: "ركاب بنفس رقم المقعد", count: duplicateSeats.length,
+    title: `ركاب بنفس رقم ${state.seatLabel}`, count: duplicateSeats.length,
     detailHtml: duplicateSeatsDetail
   });
 
@@ -1459,7 +1537,7 @@ function renderAlerts() {
       <div class="alert-detail-rows">${alSaudFlags.map(passenger => passengerDetailItem(passenger, { showPassport: true })).join("")}</div>`
   });
 
-  elements.alerts.innerHTML = duplicateCards + countCard + unclearSeatsRow
+  elements.alerts.innerHTML = duplicateCards + saudiTransitCard + countCard + unclearSeatsRow
     + duplicateSeatsRow + duplicateNamesRow + noDocumentRow + alSaudRow;
 }
 
@@ -1512,6 +1590,32 @@ async function copyTextToClipboard(text) {
   return success;
 }
 
+// بعض تطبيقات الجداول على الجوال (خصوصًا خارج Excel/Sheets الرسمية) لا توزّع نصًا
+// بمسافات جدولية (Tab) تلقائيًا على خلايا منفصلة عند اللصق داخل خلية واحدة، بل
+// تلصقه كنص واحد حرفيًا. الحل الأكثر موثوقية هو كتابة نسختين للحافظة معًا: نص عادي
+// بمسافات جدولية (fallback)، وHTML بجدول <table> حقيقي - فأغلب التطبيقات التي تفهم
+// اللصق كجدول تُفضّل تمثيل HTML وتوزّعه فعليًا على خلايا منفصلة عند اللصق.
+async function copyValuesAsTable(values) {
+  const plainText = values.join("\t");
+
+  if (navigator.clipboard && window.ClipboardItem) {
+    try {
+      const htmlTable = `<table><tr>${values.map(value => `<td>${escapeHtml(value)}</td>`).join("")}</tr></table>`;
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/plain": new Blob([plainText], { type: "text/plain" }),
+          "text/html": new Blob([htmlTable], { type: "text/html" })
+        })
+      ]);
+      return true;
+    } catch (error) {
+      // نكمل للطريقة الاحتياطية أدناه (نص عادي فقط)
+    }
+  }
+
+  return copyTextToClipboard(plainText);
+}
+
 /* ========== حاسبة مخصصة للرحلات (تُخزَّن في هذا المتصفح فقط) ==========
    كل رحلة يتم إرفاق بيانها تُضاف/تُحدَّث تلقائيًا هنا (رقم الرحلة، عدد الركاب،
    ركاب الترانزيت)، وعدد الملاحين يُدخل يدويًا. المجموع = الركاب + الملاحين - الترانزيت. */
@@ -1536,25 +1640,41 @@ function saveFlightCalcRows() {
 
 let flightCalcRows = loadFlightCalcRows();
 
+// المجموع = الركاب + الملاح + الجثمان (يُضافون) - الترانزيت - المعاد (يُخصمون).
 function flightCalcTotal(row) {
-  return (Number(row.passengerCount) || 0) + (Number(row.crewCount) || 0) - (Number(row.transitCount) || 0);
+  return (Number(row.passengerCount) || 0) + (Number(row.crewCount) || 0) + (Number(row.bodyCount) || 0)
+    - (Number(row.transitCount) || 0) - (Number(row.returneeCount) || 0);
+}
+
+// ترتيب الأعمدة كما طُلب: رقم الرحلة، الركاب، المجموع، ملاح، المعاد، الترانزيت، الجثمان.
+const FLIGHT_CALC_NUMERIC_FIELDS = ["passengerCount", "crewCount", "returneeCount", "transitCount", "bodyCount"];
+
+function flightCalcCell(row, index, field) {
+  return `<td><input type="number" min="0" data-flight-calc-field="${field}" data-flight-calc-index="${index}" value="${row[field] || 0}"></td>`;
 }
 
 function renderFlightCalcTable() {
   elements.flightCalcEmpty.hidden = flightCalcRows.length > 0;
   elements.flightCalcTbody.innerHTML = flightCalcRows.map((row, index) => `
     <tr>
-      <td><input type="text" data-flight-calc-field="flightNumber" data-flight-calc-index="${index}" value="${escapeHtml(row.flightNumber)}"></td>
-      <td><input type="number" min="0" data-flight-calc-field="passengerCount" data-flight-calc-index="${index}" value="${row.passengerCount}"></td>
-      <td><input type="number" min="0" data-flight-calc-field="transitCount" data-flight-calc-index="${index}" value="${row.transitCount}"></td>
-      <td><input type="number" min="0" data-flight-calc-field="crewCount" data-flight-calc-index="${index}" value="${row.crewCount}"></td>
+      <td>
+        <div class="flight-calc-flight-cell">
+          <input type="text" data-flight-calc-field="flightNumber" data-flight-calc-index="${index}" value="${escapeHtml(row.flightNumber)}">
+          <button class="flight-calc-copy-btn" type="button" data-flight-calc-copy="${index}" title="نسخ جدول الرحلة">⧉</button>
+        </div>
+      </td>
+      ${flightCalcCell(row, index, "passengerCount")}
       <td><span class="flight-calc-total">${flightCalcTotal(row)}</span></td>
+      ${flightCalcCell(row, index, "crewCount")}
+      ${flightCalcCell(row, index, "returneeCount")}
+      ${flightCalcCell(row, index, "transitCount")}
+      ${flightCalcCell(row, index, "bodyCount")}
       <td><button class="flight-calc-row-remove" type="button" data-flight-calc-remove="${index}" title="حذف الرحلة">×</button></td>
     </tr>`).join("");
 }
 
 // يضيف رحلة جديدة أو يحدّث رحلة موجودة بنفس رقمها (بلا حساسية لحالة الأحرف) - يُستدعى
-// تلقائيًا عند إرفاق بيان ركاب أو قائمة ترانزيت، ولا يغيّر عدد الملاحين المُدخل يدويًا.
+// تلقائيًا عند إرفاق بيان ركاب أو قائمة ترانزيت، ولا يغيّر الملاح/المعاد/الجثمان المُدخلين يدويًا.
 function upsertFlightCalcRow(flightNumber, updates) {
   const key = String(flightNumber || "").trim().toUpperCase();
   if (!key) return;
@@ -1563,7 +1683,9 @@ function upsertFlightCalcRow(flightNumber, updates) {
   if (existing) {
     Object.assign(existing, updates);
   } else {
-    flightCalcRows.push({ flightNumber, passengerCount: 0, transitCount: 0, crewCount: 0, ...updates });
+    flightCalcRows.push({
+      flightNumber, passengerCount: 0, transitCount: 0, crewCount: 0, returneeCount: 0, bodyCount: 0, ...updates
+    });
   }
   saveFlightCalcRows();
   renderFlightCalcTable();
@@ -1588,7 +1710,49 @@ elements.flightCalcTbody.addEventListener("input", event => {
   if (totalCell) totalCell.textContent = flightCalcTotal(flightCalcRows[index]);
 });
 
-elements.flightCalcTbody.addEventListener("click", event => {
+// يمسح الصفر تلقائيًا عند التركيز على الحقل حتى لا يضطر المستخدم لحذفه يدويًا قبل
+// الكتابة، ويعيده إن تُرك الحقل فارغًا بعد ذلك (focusin/focusout يدعمان التفويض
+// عبر عنصر أب، بخلاف focus/blur اللذين لا ينتشران/يصعدان).
+elements.flightCalcTbody.addEventListener("focusin", event => {
+  if (event.target.matches('input[type="number"]') && event.target.value === "0") {
+    event.target.value = "";
+  }
+});
+
+elements.flightCalcTbody.addEventListener("focusout", event => {
+  if (!event.target.matches('input[type="number"]') || event.target.value.trim() !== "") return;
+  event.target.value = "0";
+  const field = event.target.dataset.flightCalcField;
+  const index = Number(event.target.dataset.flightCalcIndex);
+  if (!field || Number.isNaN(index) || !flightCalcRows[index]) return;
+  flightCalcRows[index][field] = 0;
+  saveFlightCalcRows();
+  const totalCell = event.target.closest("tr").querySelector(".flight-calc-total");
+  if (totalCell) totalCell.textContent = flightCalcTotal(flightCalcRows[index]);
+});
+
+elements.flightCalcTbody.addEventListener("click", async event => {
+  // ينسخ جدولًا مختصرًا (الركاب/المجموع/ملاح/المعاد/الترانزيت) بلا رقم الرحلة ولا
+  // الجثمان، مفصولًا بمسافات جدولية (Tab) حتى يلصق كأعمدة حقيقية في إكسل أو الرسائل.
+  const copyBtn = event.target.closest("[data-flight-calc-copy]");
+  if (copyBtn) {
+    const row = flightCalcRows[Number(copyBtn.dataset.flightCalcCopy)];
+    if (!row) return;
+    // أرقام فقط بلا عناوين، بصيغة جدول حقيقي (وليس نصًا بمسافات جدولية فقط) - لتوزيع
+    // أفضل على خلايا منفصلة عند اللصق في تطبيقات الجداول على الجوال. بالأرقام العربية
+    // (٠١٢٣...) كما طُلب صراحة، وليست الأرقام الإنجليزية (0123...).
+    const values = [
+      row.passengerCount || 0,
+      flightCalcTotal(row),
+      row.crewCount || 0,
+      row.returneeCount || 0,
+      row.transitCount || 0
+    ].map(toArabicDigits);
+    const copied = await copyValuesAsTable(values);
+    showToast(copied ? "تم نسخ الأرقام." : "تعذر النسخ تلقائيًا على هذا المتصفح.");
+    return;
+  }
+
   const removeBtn = event.target.closest("[data-flight-calc-remove]");
   if (!removeBtn) return;
   flightCalcRows.splice(Number(removeBtn.dataset.flightCalcRemove), 1);
@@ -1603,6 +1767,18 @@ elements.flightCalcClear.addEventListener("click", () => {
   saveFlightCalcRows();
   renderFlightCalcTable();
   showToast("تم تفريغ الرحلات المحفوظة.");
+});
+
+// يضيف رحلة فارغة يدويًا (بلا حاجة لإرفاق أي بيان) لتُكتب أرقامها مباشرة بالجدول -
+// لتغطية رحلات لم تُرفَق منفستاتها إطلاقًا في الأداة.
+elements.flightCalcAdd.addEventListener("click", () => {
+  flightCalcRows.push({ flightNumber: "", passengerCount: 0, transitCount: 0, crewCount: 0, returneeCount: 0, bodyCount: 0 });
+  saveFlightCalcRows();
+  elements.flightCalcPanel.classList.remove("is-collapsed");
+  elements.toggleFlightCalc.setAttribute("aria-expanded", "true");
+  renderFlightCalcTable();
+  const newFlightInput = elements.flightCalcTbody.querySelector('tr:last-child input[data-flight-calc-field="flightNumber"]');
+  if (newFlightInput) newFlightInput.focus();
 });
 
 renderFlightCalcTable();
@@ -1791,12 +1967,12 @@ elements.alerts.addEventListener("click", async event => {
     let showPassport = false;
 
     if (type === "unclear-seats") {
-      title = "ركاب بدون مقعد واضح";
+      title = `ركاب بدون ${state.seatLabel} واضح`;
       passengers = warnings.unclearSeats;
       showPassport = true;
     } else if (type === "dup-seat") {
       const group = warnings.duplicateSeats.find(item => item.seat === key);
-      if (group) { title = `مقعد مكرر: ${group.seat}`; passengers = group.passengers; showPassport = true; }
+      if (group) { title = `${state.seatLabel} مكرر: ${group.seat}`; passengers = group.passengers; showPassport = true; }
     } else if (type === "dup-name") {
       const group = warnings.duplicateNames.find(item => item.name === key);
       if (group) { title = `اسم مكرر: ${group.name}`; passengers = group.passengers; showPassport = true; }
@@ -1845,6 +2021,8 @@ elements.reset.addEventListener("click", () => {
   state.flightNumber = "";
   state.manifestExpectedCount = 0;
   state.transitEntries = [];
+  state.seatLabel = DEFAULT_SEAT_LABEL;
+  updateSeatLabelUI();
   elements.clearTransit.hidden = true;
   elements.transitStatus.textContent = "أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.";
   elements.transitSuccessBadge.hidden = true;
@@ -1901,6 +2079,13 @@ elements.quickCompleteMessage.addEventListener("click", () => {
   quickMessageOverride = text;
   elements.message.textContent = text;
   elements.send.disabled = false;
+});
+
+// يلغي أي رسالة سريعة (تحديث/مكتملة) معروضة، ويعيد المعاينة لنص قائمة الركاب
+// الطبيعي فورًا - بديل صريح عن الاعتماد على تغيير غير مباشر بالقائمة لإعادته.
+elements.quickOriginalMessage.addEventListener("click", () => {
+  quickMessageOverride = null;
+  renderMessage();
 });
 
 elements.copyManifestEmail.addEventListener("click", async () => {
@@ -2014,6 +2199,115 @@ async function fetchWithTimeout(url, timeoutMs = 15000, retries = 2) {
       await new Promise(resolve => setTimeout(resolve, 1500 * (attempt + 1)));
     }
   }
+}
+
+/* ========== تنبيه فوري عند وصول منفست جديد (فحص مجلد Drive كل دقيقة) ========== */
+const DRIVE_SEEN_FILES_KEY = "drive_seen_file_ids_v1";
+const DRIVE_NOTIFY_ENABLED_KEY = "drive_notify_enabled_v1";
+let driveNotifyTimer = null;
+
+function loadSeenDriveFileIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(DRIVE_SEEN_FILES_KEY) || "[]");
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch (error) {
+    return new Set();
+  }
+}
+
+function saveSeenDriveFileIds(idsSet) {
+  try {
+    localStorage.setItem(DRIVE_SEEN_FILES_KEY, JSON.stringify([...idsSet]));
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function showDriveNotification(title, body) {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  try {
+    new Notification(title, { body });
+  } catch (error) {
+    console.error(error);
+  }
+  showToast(`${title} - ${body}`);
+}
+
+// يقارن ملفات المجلد الحالية بآخر قائمة "معروفة" مخزّنة - أي ملف جديد يُطلق له إشعارًا.
+// في أول فحص إطلاقًا (لا توجد قائمة معروفة بعد) نكتفي بتسجيل الملفات الحالية كنقطة
+// بداية بصمت، حتى لا يُطلق إشعار عن كل منفست قديم موجود مسبقًا عند أول تفعيل للميزة.
+async function checkForNewDriveManifests() {
+  if (!GOOGLE_DRIVE_API_KEY || GOOGLE_DRIVE_API_KEY === "YOUR_GOOGLE_DRIVE_API_KEY") return;
+
+  try {
+    const query = encodeURIComponent(`'${GOOGLE_DRIVE_FOLDER_ID}' in parents and mimeType='application/pdf' and trashed=false`);
+    const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc&key=${GOOGLE_DRIVE_API_KEY}`;
+    const response = await fetchWithTimeout(url, 15000, 1);
+    if (!response.ok) return;
+    const result = await response.json();
+    const files = result.files || [];
+
+    const hasBaseline = localStorage.getItem(DRIVE_SEEN_FILES_KEY) !== null;
+    const seenIds = loadSeenDriveFileIds();
+    const newFiles = hasBaseline ? files.filter(file => !seenIds.has(file.id)) : [];
+
+    files.forEach(file => seenIds.add(file.id));
+    saveSeenDriveFileIds(seenIds);
+
+    newFiles.forEach(file => {
+      const flightNumber = extractFlightNumberFromFileName(file.name);
+      showDriveNotification("📋 وصل منفست جديد", flightNumber ? `رقم الرحلة: ${flightNumber}` : file.name);
+    });
+  } catch (error) {
+    console.error("drive notify check error:", error);
+  }
+}
+
+function startDriveNotificationPolling() {
+  if (driveNotifyTimer) return;
+  checkForNewDriveManifests();
+  driveNotifyTimer = setInterval(checkForNewDriveManifests, 60 * 1000);
+}
+
+function stopDriveNotificationPolling() {
+  clearInterval(driveNotifyTimer);
+  driveNotifyTimer = null;
+}
+
+function updateDriveNotifyButton(enabled) {
+  elements.toggleDriveNotifications.textContent = enabled ? "🔔 التنبيه مفعّل" : "🔔 تفعيل تنبيه الوصول";
+  elements.toggleDriveNotifications.classList.toggle("is-active", enabled);
+}
+
+elements.toggleDriveNotifications.addEventListener("click", async () => {
+  if (!("Notification" in window)) {
+    showToast("متصفحك لا يدعم إشعارات النظام.");
+    return;
+  }
+
+  if (localStorage.getItem(DRIVE_NOTIFY_ENABLED_KEY) === "1") {
+    localStorage.setItem(DRIVE_NOTIFY_ENABLED_KEY, "0");
+    stopDriveNotificationPolling();
+    updateDriveNotifyButton(false);
+    showToast("تم إيقاف تنبيه وصول المنفست.");
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    showToast("لم يتم منح إذن الإشعارات.");
+    return;
+  }
+
+  localStorage.setItem(DRIVE_NOTIFY_ENABLED_KEY, "1");
+  startDriveNotificationPolling();
+  updateDriveNotifyButton(true);
+  showToast("تم تفعيل تنبيه وصول المنفست - يتم الفحص كل دقيقة.");
+});
+
+if ("Notification" in window && Notification.permission === "granted" && localStorage.getItem(DRIVE_NOTIFY_ENABLED_KEY) === "1") {
+  updateDriveNotifyButton(true);
+  startDriveNotificationPolling();
 }
 
 // قائمة ملفات الايميل لا تتغير كل ثانية، فنحتفظ بها لدقيقة كاملة بدل إعادة طلبها من

@@ -359,6 +359,9 @@ main {
   box-shadow: var(--shadow);
 }
 
+.manifest-email-buttons { flex: 0 0 auto; display: flex; flex-direction: column; gap: 6px; }
+.manifest-email-buttons .small-button.is-active { color: #fff; background: var(--green-700); }
+
 .manifest-email-icon {
   flex: 0 0 auto;
   width: 28px;
@@ -533,7 +536,7 @@ main {
 
 .flight-calc-table {
   width: 100%;
-  min-width: 460px;
+  min-width: 620px;
   border-collapse: collapse;
   font-size: 12px;
   direction: rtl;
@@ -577,6 +580,16 @@ main {
   color: var(--danger); background: #fff0f0; font-weight: 900; cursor: pointer;
 }
 
+.flight-calc-flight-cell { display: flex; align-items: center; gap: 4px; }
+.flight-calc-flight-cell input { flex: 1; min-width: 0; }
+.flight-calc-copy-btn {
+  flex: 0 0 auto;
+  width: 22px; height: 22px; border: 0; border-radius: 6px;
+  color: var(--green-800); background: var(--green-100); font-weight: 900; cursor: pointer;
+  font-size: 12px;
+}
+.flight-calc-copy-btn:hover { background: var(--green-100); filter: brightness(.95); }
+
 .flight-calc-empty {
   margin: 10px 0 0;
   color: var(--muted);
@@ -584,7 +597,7 @@ main {
   text-align: center;
 }
 
-.flight-calc-actions { margin-top: 9px; display: flex; justify-content: flex-end; }
+.flight-calc-actions { margin-top: 9px; display: flex; justify-content: flex-end; gap: 8px; }
 
 .step-chip {
   padding: 6px 10px;
@@ -1005,6 +1018,8 @@ main {
 .quick-message-actions .quick-update:hover { background: #d3ecf9; }
 .quick-message-actions .quick-complete { color: #0f5c38; background: #e0f6ea; border: 1px solid #a9e2c3; }
 .quick-message-actions .quick-complete:hover { background: #cdf0dc; }
+.quick-message-actions .quick-original { color: var(--muted); background: #eef1f3; border: 1px solid #d6dde1; }
+.quick-message-actions .quick-original:hover { background: #e3e7ea; }
 
 .message-preview { margin-top: 12px; padding: 13px; border: 1px solid var(--line); border-radius: 14px; background: #f6faf8; }
 .preview-heading { justify-content: space-between; }
@@ -1319,6 +1334,7 @@ main {
   .manifest-email-banner { flex-wrap: wrap; }
   .manifest-email-info { min-width: calc(100% - 62px); }
   .manifest-email-banner .small-button { width: 100%; }
+  .manifest-email-buttons { width: 100%; flex-direction: row; }
   .upload-panel { align-items: stretch; flex-wrap: wrap; }
   .upload-copy { min-width: calc(100% - 80px); }
   .primary-button { width: 100%; }
@@ -1331,11 +1347,13 @@ main {
   .system-image-preview { height: 150px; }
   .flight-calc-panel { padding: 8px 10px; }
   .flight-calc-heading h2 { font-size: 12px; }
-  .flight-calc-table { min-width: 340px; font-size: 10px; }
-  .flight-calc-table th, .flight-calc-table td { padding: 4px 5px; }
-  .flight-calc-table thead th { font-size: 9px; }
-  .flight-calc-table input { padding: 2px 3px; font-size: 10px; }
+  .flight-calc-table { min-width: 440px; font-size: 10px; }
+  .flight-calc-table th, .flight-calc-table td { padding: 3px 2px; }
+  .flight-calc-table thead th { font-size: 8px; }
+  .flight-calc-table input { padding: 1px 0; font-size: 10px; text-align: center; }
   .flight-calc-row-remove { width: 18px; height: 18px; font-size: 11px; }
+  .flight-calc-copy-btn { width: 18px; height: 18px; font-size: 10px; }
+  .flight-calc-flight-cell { gap: 2px; }
   .summary-bar { gap: 12px; flex-wrap: wrap; }
   .summary-bar .text-button { margin-inline-start: 0; }
   .panel-heading { align-items: flex-start; flex-direction: column; }

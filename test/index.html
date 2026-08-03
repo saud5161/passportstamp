@@ -40,7 +40,10 @@
         <code id="manifest-email-value">manifestdep2@gmail.com</code>
         <p class="manifest-email-hint">أرسل جميع منفستات الرحلات وقوائم الترانزيت إلى هذا العنوان فقط، ليتم استخراجها تلقائيًا وربطها ببعضها.</p>
       </div>
-      <button id="copy-manifest-email" class="small-button" type="button">⧉ نسخ العنوان</button>
+      <div class="manifest-email-buttons">
+        <button id="copy-manifest-email" class="small-button" type="button">⧉ نسخ العنوان</button>
+        <button id="toggle-drive-notifications" class="small-button" type="button">🔔 تفعيل تنبيه الوصول</button>
+      </div>
     </section>
 
     <div class="upload-row">
@@ -126,10 +129,12 @@
             <thead>
               <tr>
                 <th>رقم الرحلة</th>
-                <th>عدد الركاب</th>
-                <th>ركاب الترانزيت</th>
-                <th>الملاحين</th>
+                <th>الركاب</th>
                 <th>المجموع</th>
+                <th>ملاح</th>
+                <th>المعاد</th>
+                <th>الترانزيت</th>
+                <th>الجثمان</th>
                 <th></th>
               </tr>
             </thead>
@@ -138,6 +143,7 @@
         </div>
         <p class="flight-calc-empty" id="flight-calc-empty">لا توجد رحلات محفوظة بعد - تُضاف كل رحلة تلقائيًا عند إرفاق بيانها.</p>
         <div class="flight-calc-actions">
+          <button id="flight-calc-add" class="small-button" type="button">＋ إضافة رحلة</button>
           <button id="flight-calc-clear" class="small-button danger" type="button">🗑️ تفريغ الرحلات</button>
         </div>
       </div>
@@ -173,6 +179,10 @@
           <div class="heading-actions">
             <span id="transit-legend" class="transit-legend" hidden>✈️ يعني راكب ترانزيت</span>
             <span class="hint">انقر على الراكب لإضافته</span>
+            <button id="toggle-transit-only" class="small-button" type="button" aria-pressed="false"
+                    title="إظهار ركاب الترانزيت فقط">
+              ✈️ الترانزيت فقط
+            </button>
             <button id="toggle-bulk-match" class="small-button" type="button"
                     aria-expanded="false" aria-controls="bulk-match-panel">
               ⌕ بحث عن عدة ركاب
@@ -180,12 +190,33 @@
           </div>
         </div>
 
-        <label class="search-box">
-          <span>⌕</span>
-          <input id="passenger-search" type="search"
-                 placeholder="ابحث بالاسم أو رقم الجواز أو المقعد..." autocomplete="off">
-          <button id="clear-search" type="button" title="تفريغ البحث">×</button>
-        </label>
+        <div class="search-row">
+          <label class="search-box">
+            <span>⌕</span>
+            <input id="passenger-search" type="search"
+                   placeholder="ابحث بالاسم أو رقم الجواز أو المقعد..." autocomplete="off">
+            <button id="clear-search" type="button" title="تفريغ البحث">×</button>
+          </label>
+          <button id="toggle-number-pad" class="number-pad-toggle-btn" type="button" title="لوحة أرقام">🔢</button>
+
+          <div class="number-pad" id="number-pad" hidden>
+            <div class="number-pad-grid">
+              <button type="button" data-num-key="1">1</button>
+              <button type="button" data-num-key="2">2</button>
+              <button type="button" data-num-key="3">3</button>
+              <button type="button" data-num-key="4">4</button>
+              <button type="button" data-num-key="5">5</button>
+              <button type="button" data-num-key="6">6</button>
+              <button type="button" data-num-key="7">7</button>
+              <button type="button" data-num-key="8">8</button>
+              <button type="button" data-num-key="9">9</button>
+              <button type="button" class="number-pad-clear" data-num-key="clear">مسح</button>
+              <button type="button" data-num-key="0">0</button>
+              <button type="button" class="number-pad-back" data-num-key="back">⌫</button>
+            </div>
+            <button type="button" class="number-pad-hide" id="hide-number-pad">▲ إخفاء اللوحة</button>
+          </div>
+        </div>
 
         <div class="bulk-match-panel is-collapsed" id="bulk-match-panel">
           <textarea id="bulk-match-input" class="bulk-match-textarea" rows="5"
@@ -231,6 +262,7 @@
         <div class="quick-message-actions">
           <button id="quick-update-message" class="small-button quick-update" type="button">🔄 تحديث على الرحلة</button>
           <button id="quick-complete-message" class="small-button quick-complete" type="button">✅ الجوازات مكتملة</button>
+          <button id="quick-original-message" class="small-button quick-original" type="button">↩ الرسالة الأصلية</button>
         </div>
 
         <div class="message-preview">
