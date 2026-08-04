@@ -897,6 +897,77 @@ main {
 .search-box input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--ink); }
 .search-box button { border: 0; background: transparent; color: #7a8e86; font-size: 22px; }
 
+/* ========== صف البحث + لوحة الأرقام ========== */
+.search-row { position: relative; margin: 15px 0 12px; display: flex; align-items: center; gap: 8px; }
+.search-row .search-box { margin: 0; flex: 1; min-width: 0; }
+
+.number-pad-toggle-btn {
+  flex: 0 0 auto;
+  width: 44px; height: 44px;
+  border: 1px solid #cbdcd4;
+  border-radius: 12px;
+  background: #f8fbf9;
+  color: var(--green-800);
+  font-size: 17px;
+  cursor: pointer;
+}
+.number-pad-toggle-btn.is-active { background: var(--green-700); color: #fff; border-color: var(--green-700); }
+
+/* صغيرة، شفافة جدًا، وعائمة (position:absolute) بعرض محدود بجانب الزر فقط
+   حتى لا تغطي بقية الصفحة. تبقى ظاهرة إلى أن يضغط المستخدم "تم". */
+.number-pad {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 168px;
+  z-index: 40;
+  padding: 7px;
+  border: 1px solid rgba(203, 220, 212, .6);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .5);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  box-shadow: 0 6px 20px rgba(20, 40, 30, .12);
+}
+.number-pad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px dashed rgba(122, 142, 134, .35);
+}
+.number-pad-title { font-size: 10px; font-weight: 700; color: #5c6f66; }
+.number-pad-done {
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 20px;
+  background: rgba(47, 123, 97, .85);
+  color: #fff;
+  font-weight: 800;
+  font-size: 10px;
+  cursor: pointer;
+}
+.number-pad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.number-pad-grid button {
+  height: 30px;
+  border: 1px solid rgba(203, 220, 212, .55);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .55);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.number-pad-grid button:active { background: rgba(47, 123, 97, .18); }
+.number-pad-clear { color: var(--danger); font-size: 10px !important; }
+.number-pad-back { color: var(--danger); }
+
 .passenger-list {
   height: 520px;
   overflow: auto;
@@ -934,6 +1005,24 @@ main {
   border-radius: 7px;
   color: #0e6a80;
   background: #cdf0f7;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+/* سعودي ضمن ركاب الترانزيت (تنبيه أمني) - أولوية بصرية أعلى من تلوين الترانزيت
+   العادي، لذا مُعرَّفة بعده وبنفس درجة الخطورة اللونية المستخدمة لجواز مكرر. */
+.passenger-row.is-transit-alert { border-color: #f0b8b3; background: #fff6f5; }
+.source-panel .passenger-row.is-transit-alert:hover { border-color: #d6544c; background: #ffe9e7; }
+.passenger-row.is-transit-alert.is-selected { background: #fdeceb; }
+
+.transit-alert-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 7px;
+  color: #9c231a;
+  background: #ffd9d5;
   font-size: 10px;
   font-weight: 900;
 }

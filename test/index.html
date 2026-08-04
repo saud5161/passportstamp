@@ -129,11 +129,11 @@
             <thead>
               <tr>
                 <th>رقم الرحلة</th>
-                <th>الركاب</th>
+                <th>🧳 الركاب</th>
                 <th>المجموع</th>
-                <th>ملاح</th>
-                <th>المعاد</th>
-                <th>الترانزيت</th>
+                <th>🧑‍✈️ ملاح</th>
+                <th>🏠 المعاد</th>
+                <th>↗️ الترانزيت</th>
                 <th>الجثمان</th>
                 <th></th>
               </tr>
@@ -200,6 +200,10 @@
           <button id="toggle-number-pad" class="number-pad-toggle-btn" type="button" title="لوحة أرقام">🔢</button>
 
           <div class="number-pad" id="number-pad" hidden>
+            <div class="number-pad-header">
+              <span class="number-pad-title">لوحة الأرقام</span>
+              <button type="button" class="number-pad-done" id="hide-number-pad">تم ✓</button>
+            </div>
             <div class="number-pad-grid">
               <button type="button" data-num-key="1">1</button>
               <button type="button" data-num-key="2">2</button>
@@ -214,7 +218,6 @@
               <button type="button" data-num-key="0">0</button>
               <button type="button" class="number-pad-back" data-num-key="back">⌫</button>
             </div>
-            <button type="button" class="number-pad-hide" id="hide-number-pad">▲ إخفاء اللوحة</button>
           </div>
         </div>
 

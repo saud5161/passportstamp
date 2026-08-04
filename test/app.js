@@ -14,7 +14,9 @@ const state = {
   transitEntries: [],
   // منفست "SEQ" (طيران الرياض) لا يحتوي مقاعد حقيقية، فتتحول هذه التسمية إلى "سكونز"
   // في كل الواجهة (الرسالة، التنبيهات، حقول التعديل) عند اكتشاف هذا الشكل تحديدًا.
-  seatLabel: DEFAULT_SEAT_LABEL
+  seatLabel: DEFAULT_SEAT_LABEL,
+  // فلتر إضافي فوق البحث النصي العادي - لا يستبدله، يعمل معه معًا.
+  transitOnlyFilter: false
 };
 
 const elements = {
@@ -76,7 +78,11 @@ const elements = {
   flightCalcTbody: document.getElementById("flight-calc-tbody"),
   flightCalcEmpty: document.getElementById("flight-calc-empty"),
   flightCalcClear: document.getElementById("flight-calc-clear"),
-  flightCalcAdd: document.getElementById("flight-calc-add")
+  flightCalcAdd: document.getElementById("flight-calc-add"),
+  toggleTransitOnly: document.getElementById("toggle-transit-only"),
+  toggleNumberPad: document.getElementById("toggle-number-pad"),
+  numberPad: document.getElementById("number-pad"),
+  hideNumberPad: document.getElementById("hide-number-pad")
 };
 
 let searchClearTimer = null;
@@ -336,6 +342,19 @@ function findPassengerForTransitEntry(entry) {
 function computeTransitMatchedIds() {
   const ids = new Set();
   state.transitEntries.forEach(entry => {
+    const passenger = findPassengerForTransitEntry(entry);
+    if (passenger) ids.add(passenger.id);
+  });
+  return ids;
+}
+
+// نفس فكرة computeTransitMatchedIds لكن مقصورة على ركاب الترانزيت السعوديين تحديدًا
+// (نفس شرط تنبيه "يوجد سعودي من فئة الترانزيت")، لتمييزهم بلون أحمر في قائمة جميع
+// الركاب أيضًا وليس فقط داخل لوحة التنبيهات.
+function computeSaudiTransitMatchedIds() {
+  const ids = new Set();
+  state.transitEntries.forEach(entry => {
+    if (normalize(entry.nationality) !== "SAU") return;
     const passenger = findPassengerForTransitEntry(entry);
     if (passenger) ids.add(passenger.id);
   });
@@ -812,12 +831,22 @@ async function analyzeSystemImage(options = {}) {
   }
 }
 
+// فلتر "الترانزيت فقط" يعمل فوق نتيجة البحث النصي (وليس بديلًا عنه) - يحافظ على آلية
+// البحث الحالية كاملة كما طُلب، ويُضيف تضييقًا إضافيًا اختياريًا فقط.
 function filteredPassengers() {
   const query = normalize(state.query);
-  if (!query) return state.passengers;
-  return state.passengers.filter(passenger =>
-    normalize(`${passenger.name} ${passenger.passport} ${passenger.seat} ${passenger.nationality}`).includes(query)
-  );
+  let passengers = query
+    ? state.passengers.filter(passenger =>
+        normalize(`${passenger.name} ${passenger.passport} ${passenger.seat} ${passenger.nationality}`).includes(query)
+      )
+    : state.passengers;
+
+  if (state.transitOnlyFilter) {
+    const transitIds = computeTransitMatchedIds();
+    passengers = passengers.filter(passenger => transitIds.has(passenger.id));
+  }
+
+  return passengers;
 }
 
 function extractPassportTokensFromText(text) {
@@ -980,19 +1009,22 @@ function renderSource() {
   }
 
   const transitIds = computeTransitMatchedIds();
+  const saudiTransitIds = computeSaudiTransitMatchedIds();
 
   elements.sourceList.innerHTML = passengers.map(passenger => {
     const selected = state.selected.some(item => item.id === passenger.id);
     const isTransit = transitIds.has(passenger.id);
+    const isSaudiTransitAlert = saudiTransitIds.has(passenger.id);
+    const rowClass = isSaudiTransitAlert ? "is-transit-alert" : (isTransit ? "is-transit" : "");
     return `
-      <div class="passenger-row ${selected ? "is-selected" : ""} ${isTransit ? "is-transit" : ""}" data-add-id="${escapeHtml(passenger.id)}">
+      <div class="passenger-row ${selected ? "is-selected" : ""} ${rowClass}" data-add-id="${escapeHtml(passenger.id)}">
         <span class="row-index">${passenger.sourceNumber}</span>
         <div class="passenger-main">
           <div class="passenger-name">${escapeHtml(passenger.name)}</div>
           <div class="passenger-meta">
             <span>P/${escapeHtml(passenger.passport || "غير متوفر")}</span>
             <span>${escapeHtml(passenger.nationality)}</span>
-            ${isTransit ? '<span class="transit-tag">✈️ ترانزيت</span>' : ""}
+            ${isSaudiTransitAlert ? '<span class="transit-alert-tag">⛔ سعودي ترانزيت</span>' : (isTransit ? '<span class="transit-tag">✈️ ترانزيت</span>' : "")}
           </div>
         </div>
         ${selected ? '<span class="seat-badge">تمت الإضافة</span>' : `<span class="seat-badge">${escapeHtml(passenger.seat)}</span><span class="add-mark">＋</span>`}
@@ -1689,6 +1721,10 @@ function upsertFlightCalcRow(flightNumber, updates) {
   }
   saveFlightCalcRows();
   renderFlightCalcTable();
+  // أي إضافة/تحديث فعلي (بيان جديد، ترانزيت، أو رحلة أُضيفت يدويًا) يُظهر الحاسبة
+  // تلقائيًا بدل بقائها مطوية دون أن ينتبه المستخدم لتحديثها.
+  elements.flightCalcPanel.classList.remove("is-collapsed");
+  elements.toggleFlightCalc.setAttribute("aria-expanded", "true");
 }
 
 elements.toggleFlightCalc.addEventListener("click", () => {
@@ -1879,6 +1915,44 @@ elements.toggleBulkMatch.addEventListener("click", () => {
   elements.toggleBulkMatch.setAttribute("aria-expanded", String(!collapsed));
   elements.toggleBulkMatch.classList.toggle("is-active", !collapsed);
   if (!collapsed) elements.bulkMatchInput.focus();
+});
+
+// فلتر "الترانزيت فقط" - يعمل فوق البحث النصي الحالي دون أي تغيير عليه.
+elements.toggleTransitOnly.addEventListener("click", () => {
+  state.transitOnlyFilter = !state.transitOnlyFilter;
+  elements.toggleTransitOnly.classList.toggle("is-active", state.transitOnlyFilter);
+  elements.toggleTransitOnly.setAttribute("aria-pressed", String(state.transitOnlyFilter));
+  renderSource();
+});
+
+// لوحة أرقام عائمة (شفافة، لا تُزيح أي عنصر) بجانب البحث - تبقى ظاهرة حتى يُضغط
+// زر إخفائها أو زر التبديل مجددًا صراحة، ولا تُغلق تلقائيًا بعد كل رقم.
+elements.toggleNumberPad.addEventListener("click", () => {
+  const willShow = elements.numberPad.hidden;
+  elements.numberPad.hidden = !willShow;
+  elements.toggleNumberPad.classList.toggle("is-active", willShow);
+});
+
+elements.hideNumberPad.addEventListener("click", () => {
+  elements.numberPad.hidden = true;
+  elements.toggleNumberPad.classList.remove("is-active");
+});
+
+elements.numberPad.addEventListener("click", event => {
+  const keyButton = event.target.closest("[data-num-key]");
+  if (!keyButton) return;
+  const key = keyButton.dataset.numKey;
+
+  if (key === "back") {
+    elements.search.value = elements.search.value.slice(0, -1);
+  } else if (key === "clear") {
+    elements.search.value = "";
+  } else {
+    elements.search.value += key;
+  }
+  state.query = elements.search.value;
+  renderSource();
+  elements.search.focus();
 });
 
 elements.bulkMatchClear.addEventListener("click", () => {
