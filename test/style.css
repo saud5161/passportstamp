@@ -552,8 +552,17 @@ main {
   font-weight: 800;
   font-size: 11px;
 }
-.flight-calc-table tbody tr:nth-child(even) { background: #fbfdfc; }
-.flight-calc-table tbody tr:hover { background: var(--green-50); }
+/* تنسيق ألوان متبادل بين الصفوف (فاتح/غامق) بنفس أسلوب جداول الوورد. */
+.flight-calc-table tbody tr:nth-child(odd) { background: #ffffff; }
+.flight-calc-table tbody tr:nth-child(even) { background: #e7f1ec; }
+.flight-calc-table tbody tr:hover { background: var(--green-50); cursor: pointer; }
+
+/* تحديد سطر رحلة بالكامل بالنقر عليه (هايلايت) - يبقى محددًا حتى يُنقر عليه
+   مجددًا لإلغاء التحديد، أو يُنقر على رحلة أخرى فينتقل التحديد إليها. */
+.flight-calc-table tbody tr.is-row-selected,
+.flight-calc-table tbody tr.is-row-selected:hover {
+  background: #ffe9a8;
+}
 
 .flight-calc-table input {
   width: 100%;
@@ -798,6 +807,21 @@ main {
 .summary-bar strong { color: var(--green-700); font-size: 22px; }
 .summary-bar span { color: var(--muted); font-size: 12px; font-weight: 700; }
 .summary-bar .text-button { margin-inline-start: auto; }
+
+/* عدد الملاحين وركاب الترانزيت - حقلان قابلان للتعديل مباشرة، ومرتبطان بحاسبة
+   الرحلات (نفس الرحلة الحالية): تلقائي من البيانات المرفقة، أو إدخال يدوي. */
+.summary-editable input {
+  width: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px 4px;
+  color: var(--green-700);
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  background: var(--green-50);
+}
+.summary-editable input:focus { outline: 0; border-color: var(--green-700); background: #fff; }
 
 .text-button { padding: 8px 12px; color: var(--green-800); background: transparent; }
 .danger { color: var(--danger) !important; }

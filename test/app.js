@@ -24,6 +24,7 @@ const elements = {
   choose: document.getElementById("choose-file"),
   dropZone: document.getElementById("drop-zone"),
   fileStatus: document.getElementById("file-status"),
+  viewManifest: document.getElementById("view-manifest"),
   search: document.getElementById("passenger-search"),
   clearSearch: document.getElementById("clear-search"),
   toggleBulkMatch: document.getElementById("toggle-bulk-match"),
@@ -36,9 +37,10 @@ const elements = {
   selectedList: document.getElementById("selected-list"),
   message: document.getElementById("message-output"),
   totalCount: document.getElementById("total-count"),
-  transitCountTile: document.getElementById("transit-count"),
-  visibleCount: document.getElementById("visible-count"),
+  transitCountInput: document.getElementById("transit-count-input"),
   selectedCount: document.getElementById("selected-count"),
+  crewCountInput: document.getElementById("crew-count-input"),
+  expectedTotal: document.getElementById("expected-total"),
   send: document.getElementById("send-whatsapp"),
   copy: document.getElementById("copy-message"),
   clearSelected: document.getElementById("clear-selected"),
@@ -88,6 +90,7 @@ const elements = {
 let searchClearTimer = null;
 let systemImageFile = null;
 let systemImageUrl = "";
+let manifestFile = null;
 let ocrIsAnalyzing = false;
 let ocrAutoTimer = null;
 let ocrMatchFlashTimer = null;
@@ -147,6 +150,31 @@ function toArabicDigits(value) {
   return String(value).replace(/[0-9]/g, digit => ARABIC_INDIC_DIGITS[digit]);
 }
 
+// يحوّل الأرقام العربية/الفارسية (٠-٩ و۰-۹) إلى أرقام إنجليزية - يشمل خانة الجواز
+// ورقم المقعد وغيرها، وليس فقط الخانات الرقمية بحتة، لأن بعضها نص حر يحتوي أرقامًا.
+const EASTERN_ARABIC_TO_ENGLISH_DIGITS = {
+  "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4", "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
+  "۰": "0", "۱": "1", "۲": "2", "۳": "3", "۴": "4", "۵": "5", "۶": "6", "۷": "7", "۸": "8", "۹": "9"
+};
+function toEnglishDigits(value) {
+  return String(value).replace(/[٠-٩۰-۹]/g, digit => EASTERN_ARABIC_TO_ENGLISH_DIGITS[digit]);
+}
+
+// تحويل فوري لأي أرقام عربية تُكتب في أي حقل بالصفحة إلى أرقام إنجليزية - بمرحلة
+// الالتقاط (capture) حتى يسبق أي معالج آخر مرتبط بنفس الحقل (بحث، حاسبة الرحلات...)
+// فيرى القيمة المحوَّلة مباشرة لا الأصلية.
+document.addEventListener("input", event => {
+  const el = event.target;
+  if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
+  const converted = toEnglishDigits(el.value);
+  if (converted === el.value) return;
+  const caret = el.selectionStart;
+  el.value = converted;
+  if (caret !== null && typeof el.setSelectionRange === "function") {
+    try { el.setSelectionRange(caret, caret); } catch (e) { /* بعض أنواع الحقول لا تدعم التحديد */ }
+  }
+}, true);
+
 function reportName(rawName) {
   const [surname = "", givenNames = ""] = rawName.split("/");
   const firstGivenName = givenNames.trim().split(/\s+/)[0] || "";
@@ -178,9 +206,13 @@ const passengerPattern = /^(\d+)\.(.*?)\s+(?:(?:MR|MRS|MS|MISS|MSTR|PRCS)\s+)?[A
     }
 
     const passport = joinPassports(passports);
+    // نستخدم ترتيب الظهور الفعلي بالمستند (passengers.length + 1) بدل الرقم
+    // المطبوع بالمنفست نفسه، لأن عمود الترقيم في بعض المنفستات ذو خانتين ثابتتين
+    // فيُسقط الخانة الأولى تلقائيًا لأي رقم 100 فأكثر (100 تُطبع "00" وهكذا)،
+    // ما يسبب تكرار/خطأ برقم "ترتيبه في المنفست" لمنفستات 100 راكب فأكثر.
     passengers.push({
       id: `pdf-${match[1]}-${passport || index}`,
-      sourceNumber: Number(match[1]),
+      sourceNumber: passengers.length + 1,
       name: reportName(match[2].toUpperCase()),
       fullName: normalize(match[2].toUpperCase()),
       seat: match[3].toUpperCase(),
@@ -280,8 +312,10 @@ function parseTransitPassengerLines(lines) {
 
     const passport = joinPassports(passports);
     const rawName = match[2].toUpperCase();
+    // بنفس منطق parsePassengerLines: ترتيب الظهور الفعلي، لا الرقم المطبوع (قد
+    // يُقتطع لأي رقم 100 فأكثر بمنفستات ذات عمود ترقيم ثابت الخانتين).
     passengers.push({
-      sourceNumber: Number(match[1]),
+      sourceNumber: passengers.length + 1,
       name: reportName(rawName),
       fullName: normalize(rawName),
       passport,
@@ -545,9 +579,11 @@ function parseTableManifestRows(rows) {
     const nationality = (values.nationality || "").toUpperCase().trim();
     const rawName = `${surname}/${forename}`.toUpperCase();
 
+    // ترتيب الظهور الفعلي بالجدول لا رقم العمود الأول المطبوع (لنفس سبب
+    // parsePassengerLines: بعض المنفستات تقتطع خانة الأرقام 100 فأكثر).
     passengers.push({
       id: `table-${firstItem.text}-${passport || passengers.length}`,
-      sourceNumber: Number(firstItem.text),
+      sourceNumber: passengers.length + 1,
       name: reportName(rawName),
       fullName: normalize(rawName),
       seat,
@@ -641,6 +677,12 @@ async function handleFile(file, precomputedReport = null) {
       : "";
     elements.fileStatus.innerHTML = `${flightLabel}<span class="status-success">تم استخراج ${passengers.length}${countLabel} راكب</span>`;
     elements.manifestSuccessBadge.hidden = false;
+
+    // نحتفظ بملف الـ PDF نفسه مؤقتًا (بالذاكرة فقط) لعرضه لاحقًا داخل الصفحة عند
+    // الضغط على "مشاهدة المنفست" - يُصيَّر صفحة بصفحة عند الفتح، وليس مسبقًا.
+    manifestFile = file;
+    elements.viewManifest.hidden = false;
+
     if (state.flightNumber) {
       upsertFlightCalcRow(state.flightNumber, { passengerCount: passengers.length, transitCount: 0 });
     }
@@ -988,7 +1030,6 @@ function updatePassengerNote(id, value) {
 
 function renderSource() {
   const passengers = filteredPassengers();
-  elements.visibleCount.textContent = passengers.length;
 
   if (!state.passengers.length) {
     elements.sourceList.innerHTML = `
@@ -1385,14 +1426,13 @@ function reportWarnings() {
   return { duplicates, unclearSeats, duplicateSeats, duplicateNames, noDocument, alSaudFlags, saudiTransitFlags, countMismatch };
 }
 
+// نفس أسلوب عرض المقعد المستخدم في رسالة الواتساب الرئيسية بالضبط
+// (seatLabel : (*seat*)) - راكب واحد لكل سطرين، وسطر فارغ يفصل بين الركاب.
 function duplicatePassportMessage(group) {
-  const lines = [`*جواز سفر مكرر: ${group.passport}*`];
-  group.passengers.forEach((passenger, index) => {
-    // المقعد داخل أقواس مع علامة اتجاه (LRM) حتى لا تتلخبط الأرقام والحروف الإنجليزية
-    // وسط النص العربي عند عرض الرسالة في واتساب.
-    lines.push(`${index + 1}. ${passenger.name} - ${state.seatLabel} (${passenger.seat || "غير واضح"})‏ - ${passengerOrderLabel(passenger)}`);
-  });
-  return lines.join("\n");
+  const passengerBlocks = group.passengers.map(passenger =>
+    `${passenger.name.trim()}\n${state.seatLabel} : (*${(passenger.seat || "غير واضح").trim()}*)`
+  ).join("\n\n");
+  return `ركاب على رحلة (${state.flightNumber}) بجوازات سفر مكررة\n\n${group.passport}\n${passengerBlocks}`;
 }
 
 // صف بيانات راكب واحد داخل تفاصيل التنبيه - عناصر منفصلة بتخطيط مرن بدل نص واحد مختلط
@@ -1573,10 +1613,29 @@ function renderAlerts() {
     + duplicateSeatsRow + duplicateNamesRow + noDocumentRow + alSaudRow;
 }
 
+// الرحلة الحالية بحاسبة الرحلات (إن وُجدت) - تُستخدم لربط عدد الملاحين والمجموع
+// المتوقع بشريط الملخص تلقائيًا بنفس رقم الرحلة المرفقة حاليًا.
+function currentFlightCalcRow() {
+  const key = String(state.flightNumber || "").trim().toUpperCase();
+  if (!key) return null;
+  return flightCalcRows.find(row => String(row.flightNumber || "").trim().toUpperCase() === key) || null;
+}
+
 function render() {
   elements.totalCount.textContent = state.passengers.length;
   if (elements.transitLegend) elements.transitLegend.hidden = !state.transitEntries.length;
-  if (elements.transitCountTile) elements.transitCountTile.textContent = state.transitEntries.length || "-";
+
+  // عدد الملاحين وركاب الترانزيت والمجموع المتوقع تُؤخذ من حاسبة الرحلات (نفس رقم
+  // الرحلة الحالي) - لا نلمس أي حقل أثناء كتابة المستخدم فيه حتى لا يفقد تركيزه.
+  const calcRow = currentFlightCalcRow();
+  if (document.activeElement !== elements.crewCountInput) {
+    elements.crewCountInput.value = calcRow ? (calcRow.crewCount || 0) : "";
+  }
+  if (document.activeElement !== elements.transitCountInput) {
+    elements.transitCountInput.value = calcRow ? (calcRow.transitCount || 0) : (state.transitEntries.length || 0);
+  }
+  elements.expectedTotal.textContent = calcRow ? flightCalcTotal(calcRow) : "-";
+
   renderSource();
   renderSelected();
   renderMessage();
@@ -1681,14 +1740,17 @@ function flightCalcTotal(row) {
 // ترتيب الأعمدة كما طُلب: رقم الرحلة، الركاب، المجموع، ملاح، المعاد، الترانزيت، الجثمان.
 const FLIGHT_CALC_NUMERIC_FIELDS = ["passengerCount", "crewCount", "returneeCount", "transitCount", "bodyCount"];
 
+// type="text" + inputmode="numeric" بدل type="number" حتى تُقبل الأرقام العربية
+// أثناء الكتابة وتُحوَّل تلقائيًا (حقول type="number" ترفض الرقم العربي وتُفرغ
+// القيمة فورًا قبل أن يصل حدث input لمعالج التحويل).
 function flightCalcCell(row, index, field) {
-  return `<td><input type="number" min="0" data-flight-calc-field="${field}" data-flight-calc-index="${index}" value="${row[field] || 0}"></td>`;
+  return `<td><input type="text" inputmode="numeric" pattern="[0-9]*" class="flight-calc-number" data-flight-calc-field="${field}" data-flight-calc-index="${index}" value="${row[field] || 0}"></td>`;
 }
 
 function renderFlightCalcTable() {
   elements.flightCalcEmpty.hidden = flightCalcRows.length > 0;
   elements.flightCalcTbody.innerHTML = flightCalcRows.map((row, index) => `
-    <tr>
+    <tr data-flight-calc-row="${index}">
       <td>
         <div class="flight-calc-flight-cell">
           <input type="text" data-flight-calc-field="flightNumber" data-flight-calc-index="${index}" value="${escapeHtml(row.flightNumber)}">
@@ -1720,11 +1782,9 @@ function upsertFlightCalcRow(flightNumber, updates) {
     });
   }
   saveFlightCalcRows();
+  // نُحدّث/نخزّن بيانات الرحلة بالحاسبة دون إظهار لوحتها تلقائيًا - تبقى مطوية
+  // أو مفتوحة حسب ما تركها المستخدم، ويفتحها بنفسه يدويًا متى أراد مراجعتها.
   renderFlightCalcTable();
-  // أي إضافة/تحديث فعلي (بيان جديد، ترانزيت، أو رحلة أُضيفت يدويًا) يُظهر الحاسبة
-  // تلقائيًا بدل بقائها مطوية دون أن ينتبه المستخدم لتحديثها.
-  elements.flightCalcPanel.classList.remove("is-collapsed");
-  elements.toggleFlightCalc.setAttribute("aria-expanded", "true");
 }
 
 elements.toggleFlightCalc.addEventListener("click", () => {
@@ -1750,13 +1810,13 @@ elements.flightCalcTbody.addEventListener("input", event => {
 // الكتابة، ويعيده إن تُرك الحقل فارغًا بعد ذلك (focusin/focusout يدعمان التفويض
 // عبر عنصر أب، بخلاف focus/blur اللذين لا ينتشران/يصعدان).
 elements.flightCalcTbody.addEventListener("focusin", event => {
-  if (event.target.matches('input[type="number"]') && event.target.value === "0") {
+  if (event.target.matches(".flight-calc-number") && event.target.value === "0") {
     event.target.value = "";
   }
 });
 
 elements.flightCalcTbody.addEventListener("focusout", event => {
-  if (!event.target.matches('input[type="number"]') || event.target.value.trim() !== "") return;
+  if (!event.target.matches(".flight-calc-number") || event.target.value.trim() !== "") return;
   event.target.value = "0";
   const field = event.target.dataset.flightCalcField;
   const index = Number(event.target.dataset.flightCalcIndex);
@@ -1768,6 +1828,17 @@ elements.flightCalcTbody.addEventListener("focusout", event => {
 });
 
 elements.flightCalcTbody.addEventListener("click", async event => {
+  // النقر في أي مكان بسطر رحلة يضع هايلايت مؤقتًا على السطر كاملًا - تحديد سطر
+  // واحد فقط في كل مرة (اختيار سطر آخر يلغي تحديد السابق تلقائيًا)، والنقر على
+  // نفس السطر المحدد يلغي تحديده.
+  const row = event.target.closest("tr[data-flight-calc-row]");
+  if (row) {
+    const wasSelected = row.classList.contains("is-row-selected");
+    elements.flightCalcTbody.querySelectorAll("tr.is-row-selected")
+      .forEach(selectedRow => selectedRow.classList.remove("is-row-selected"));
+    if (!wasSelected) row.classList.add("is-row-selected");
+  }
+
   // ينسخ جدولًا مختصرًا (الركاب/المجموع/ملاح/المعاد/الترانزيت) بلا رقم الرحلة ولا
   // الجثمان، مفصولًا بمسافات جدولية (Tab) حتى يلصق كأعمدة حقيقية في إكسل أو الرسائل.
   const copyBtn = event.target.closest("[data-flight-calc-copy]");
@@ -1817,10 +1888,53 @@ elements.flightCalcAdd.addEventListener("click", () => {
   if (newFlightInput) newFlightInput.focus();
 });
 
+// عدد الملاحين بشريط الملخص - إدخال يدوي يُحدّث نفس صف الرحلة الحالية بحاسبة
+// الرحلات مباشرة (يُنشئ الصف تلقائيًا إن لم يكن موجودًا، بنفس آلية upsertFlightCalcRow).
+elements.crewCountInput.addEventListener("input", event => {
+  const crewCount = Number(event.target.value) || 0;
+  upsertFlightCalcRow(state.flightNumber, { crewCount });
+  const calcRow = currentFlightCalcRow();
+  elements.expectedTotal.textContent = calcRow ? flightCalcTotal(calcRow) : "-";
+});
+
+// ركاب الترانزيت بشريط الملخص - تلقائي من قائمة الترانزيت المرفقة، لكن يمكن
+// تعديله يدويًا أيضًا (بنفس مبدأ عدد الملاحين)، وينعكس مباشرة في حاسبة الرحلات.
+elements.transitCountInput.addEventListener("input", event => {
+  const transitCount = Number(event.target.value) || 0;
+  upsertFlightCalcRow(state.flightNumber, { transitCount });
+  const calcRow = currentFlightCalcRow();
+  elements.expectedTotal.textContent = calcRow ? flightCalcTotal(calcRow) : "-";
+});
+
+// يمسح الصفر تلقائيًا عند التركيز على الخانة حتى لا يضطر المستخدم لحذفه يدويًا
+// قبل كتابة العدد الفعلي، ويعيده إن تُرك الحقل فارغًا بعد ذلك.
+elements.transitCountInput.addEventListener("focus", () => {
+  if (elements.transitCountInput.value === "0") elements.transitCountInput.value = "";
+});
+elements.transitCountInput.addEventListener("blur", () => {
+  if (elements.transitCountInput.value.trim() === "") elements.transitCountInput.value = "0";
+});
+
 renderFlightCalcTable();
 
 elements.choose.addEventListener("click", () => elements.input.click());
 elements.input.addEventListener("change", event => handleFile(event.target.files[0]));
+
+// "مشاهدة المنفست" يحمّل ملف الـ PDF نفسه إلى الجهاز مباشرة (بنفس اسمه الأصلي)
+// ثم يفتحه فورًا بعد التحميل - يعتمد على أن المتصفح/نظام الجهاز يفتح الملف
+// المُحمَّل تلقائيًا بعارض PDF الافتراضي فيه (سلوك قياسي لملفات PDF بمعظم الأجهزة).
+elements.viewManifest.addEventListener("click", () => {
+  if (!manifestFile) return;
+  const url = URL.createObjectURL(manifestFile);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = manifestFile.name || "منفست.pdf";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // نؤخر تحرير الرابط قليلًا حتى يبدأ التحميل فعليًا قبل إبطاله.
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+});
 elements.toggleImageImport.addEventListener("click", () => {
   const collapsed = elements.imageImportPanel.classList.toggle("is-collapsed");
   elements.toggleImageImport.setAttribute("aria-expanded", String(!collapsed));
@@ -2107,6 +2221,8 @@ elements.reset.addEventListener("click", () => {
   if (systemImageUrl) URL.revokeObjectURL(systemImageUrl);
   systemImageFile = null;
   systemImageUrl = "";
+  manifestFile = null;
+  elements.viewManifest.hidden = true;
   elements.systemImagePreview.removeAttribute("src");
   elements.systemImagePreviewWrap.classList.add("is-empty");
   elements.ocrProgress.style.width = "0";

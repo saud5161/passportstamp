@@ -56,6 +56,7 @@
           <p class="manifest-support-note">⚠️ المنفستات المدعومة: الخطوط السعودية وطيران الرياض فقط، وأي منفست بنفس شكل الخطوط السعودية (مثل القطرية والهولندية والفلبينية وغيرها).</p>
           <div class="upload-actions">
             <button class="primary-button" id="choose-file" type="button">اختيار ملف PDF</button>
+            <button id="view-manifest" class="secondary-button" type="button" hidden>⬇ تحميل وفتح المنفست</button>
             <button id="choose-server-file" class="server-button" type="button">📧 من الايميل</button>
             <button id="reset-all" class="secondary-button danger" type="button">بدء بيان جديد</button>
           </div>
@@ -111,9 +112,16 @@
 
     <section class="summary-bar" aria-live="polite">
       <div><strong id="total-count">0</strong><span>إجمالي الركاب</span></div>
-      <div><strong id="transit-count">-</strong><span>ركاب الترانزيت</span></div>
-      <div><strong id="visible-count">0</strong><span>نتائج البحث</span></div>
+      <div class="summary-editable">
+        <input id="transit-count-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" title="ركاب الترانزيت - تلقائي من قائمة الترانزيت أو إدخال يدوي">
+        <span>ركاب الترانزيت</span>
+      </div>
       <div><strong id="selected-count">0</strong><span>تم اختيارهم</span></div>
+      <div class="summary-editable">
+        <input id="crew-count-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" title="عدد الملاحين - من حاسبة الرحلات أو إدخال يدوي">
+        <span>عدد الملاحين</span>
+      </div>
+      <div><strong id="expected-total">-</strong><span>المجموع المتوقع</span></div>
     </section>
 
     <section class="flight-calc-panel is-collapsed" id="flight-calc-panel">
