@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رحلات مطار الملك خالد الدولي - لوحة الرحلات المباشرة</title>
+<meta name="description" content="لوحة عرض مباشرة لجميع رحلات القدوم والمغادرة في مطار الملك خالد الدولي بالرياض مع إمكانية الفلترة حسب الصالة والنوع والتاريخ">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="brand">
+      <div class="logo">✈️</div>
+      <div>
+        <h1 id="airportName">مطار الملك خالد الدولي - الرياض</h1>
+        <p>لوحة الرحلات المباشرة · قدوم ومغادرة جميع الصالات</p>
+      </div>
+    </div>
+    <div class="status-strip">
+      <div class="clock">
+        <div class="time" id="clockTime">--:--:--</div>
+        <div class="date" id="clockDate">--</div>
+      </div>
+      <div class="live-badge" id="liveBadge">
+        <span class="live-dot"></span>
+        <span id="liveBadgeText">بيانات مباشرة</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toolbar / Filters -->
+  <section class="toolbar">
+    <div class="toolbar-row">
+
+      <div class="field">
+        <label>نوع الرحلة</label>
+        <div class="seg" id="typeSeg">
+          <button data-val="all" class="active">الكل</button>
+          <button data-val="arrival">قدوم</button>
+          <button data-val="departure">مغادرة</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="terminalFilter">الصالة (المبنى)</label>
+        <select id="terminalFilter">
+          <option value="all">جميع الصالات</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="statusFilter">حالة الرحلة</label>
+        <select id="statusFilter">
+          <option value="all">جميع الحالات</option>
+          <option value="scheduled">مجدولة</option>
+          <option value="boarding">صعود الركاب</option>
+          <option value="on-time">في الوقت المحدد</option>
+          <option value="delayed">متأخرة</option>
+          <option value="departed">أقلعت</option>
+          <option value="landed">هبطت</option>
+          <option value="cancelled">ملغاة</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="dateFilter">التاريخ</label>
+        <input type="date" id="dateFilter">
+      </div>
+
+      <div class="field field-grow">
+        <label for="searchBox">بحث (رقم الرحلة / شركة الطيران / المدينة)</label>
+        <input type="text" id="searchBox" placeholder="مثال: SV1024 أو القاهرة أو الخطوط السعودية">
+      </div>
+
+      <div class="field">
+        <label>&nbsp;</label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-primary" id="refreshBtn">
+            <span id="refreshIcon">⟳</span> تحديث
+          </button>
+          <button class="btn btn-ghost" id="copyBtn">📋 نسخ الجدول</button>
+          <button class="btn btn-ghost" id="printBtn">🖨️ طباعة / PDF</button>
+          <button class="btn btn-ghost" id="exportWordBtn">📄 تصدير Word</button>
+          <div class="col-toggle-wrap">
+            <button class="btn btn-ghost" id="columnsBtn">🧩 الأعمدة</button>
+            <div class="col-toggle-panel" id="columnsPanel" hidden></div>
+          </div>
+          <button class="btn btn-ghost" id="resetBtn">إعادة تعيين</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="toolbar-row" style="margin-top:14px">
+
+      <div class="field">
+        <label for="airlineFilter">شركة الطيران</label>
+        <select id="airlineFilter">
+          <option value="all">جميع شركات الطيران</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="timeFrom">من الساعة</label>
+        <input type="time" id="timeFrom">
+      </div>
+
+      <div class="field">
+        <label for="timeTo">إلى الساعة</label>
+        <input type="time" id="timeTo">
+      </div>
+
+      <div class="field">
+        <label>&nbsp;</label>
+        <label class="toggle-check">
+          <input type="checkbox" id="upcomingOnly">
+          <span>الرحلات القادمة فقط</span>
+        </label>
+      </div>
+
+    </div>
+
+    <div class="chips" id="activeChips"></div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats" id="statsRow">
+    <div class="stat-card info">
+      <div class="n" id="statTotal">0</div>
+      <div class="l">إجمالي الرحلات</div>
+    </div>
+    <div class="stat-card ok">
+      <div class="n" id="statOnTime">0</div>
+      <div class="l">في الوقت المحدد</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="n" id="statDelayed">0</div>
+      <div class="l">متأخرة</div>
+    </div>
+    <div class="stat-card danger">
+      <div class="n" id="statCancelled">0</div>
+      <div class="l">ملغاة</div>
+    </div>
+    <div class="stat-card">
+      <div class="n" id="statArr">0</div>
+      <div class="l">رحلات قدوم</div>
+    </div>
+    <div class="stat-card">
+      <div class="n" id="statDep">0</div>
+      <div class="l">رحلات مغادرة</div>
+    </div>
+  </section>
+
+  <!-- Table -->
+  <section class="table-panel">
+    <div class="table-scroll">
+      <table>
+        <thead id="tableHead">
+          <!-- header cells injected by JS based on visible columns -->
+        </thead>
+        <tbody id="flightsBody">
+          <!-- rows injected by JS -->
+        </tbody>
+      </table>
+    </div>
+    <div id="stateBox"></div>
+    <div class="table-footer">
+      <span id="resultCount">0 نتيجة</span>
+      <span>💡 اضغط "نسخ الجدول" ثم الصق (Ctrl+V) مباشرة في إكسل أو وورد</span>
+      <button class="btn-link" id="resetPaxBtn">إعادة تعيين عدد الركاب المُدخل</button>
+      <span id="lastUpdated">آخر تحديث: --</span>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div>المصدر الأساسي: البيانات الرسمية لموقع مطار الملك خالد الدولي (kkia.sa)، مع AeroDataBox كمصدر احتياطي عند الحاجة.</div>
+    <div>للتحقق من الأوقات النهائية يرجى مراجعة شركة الطيران أو الموقع الرسمي لمطار الملك خالد الدولي.</div>
+  </footer>
+
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
