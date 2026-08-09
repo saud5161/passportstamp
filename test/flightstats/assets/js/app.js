@@ -1173,18 +1173,38 @@ function buildPrintableDocument(filtered) {
 function printFlights() {
   const filtered = getFilteredFlights();
   const html = buildPrintableDocument(filtered);
-  const win = window.open("", "_blank");
-  if (!win) {
-    alert("يرجى السماح بالنوافذ المنبثقة (Popups) لهذا الموقع لتتمكن من الطباعة.");
-    return;
+  // نطبع دائماً عبر إطار مخفي داخل الصفحة نفسها بدل فتح نافذة/تبويب جديد: عند تشغيل الموقع
+  // كتطبيق ويب مثبّت على الشاشة الرئيسية بالآيفون (PWA)، تفتح نافذة window.open فعلاً لكن
+  // بدون أي شريط تنقل أو زر رجوع، مما يحبس المستخدم في تلك الصفحة. الإطار المخفي يتجنب
+  // المشكلة كلياً لأنه لا يُظهر للمستخدم شيئاً سوى نافذة الطباعة الأصلية لنظام التشغيل.
+  printViaHiddenFrame(html);
+}
+
+// طباعة عبر iframe مخفي داخل الصفحة نفسها - يتجنب مشكلة عدم القدرة على الرجوع بعد فتح
+// صفحة/نافذة منفصلة عند تشغيل الموقع كتطبيق ويب مثبّت على الشاشة الرئيسية (PWA) في الآيفون
+function printViaHiddenFrame(html) {
+  let frame = document.getElementById("printFrame");
+  if (!frame) {
+    frame = document.createElement("iframe");
+    frame.id = "printFrame";
+    frame.style.cssText = "position:fixed; right:0; bottom:0; width:0; height:0; border:0; visibility:hidden;";
+    document.body.appendChild(frame);
   }
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  win.onload = () => win.print();
-  // بعض المتصفحات لا تُطلق onload على نافذة مكتوبة بـ document.write بشكل موثوق
-  setTimeout(() => { try { win.print(); } catch {} }, 400);
+  const doc = frame.contentWindow.document;
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  const triggerPrint = () => {
+    try {
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+    } catch {
+      alert("تعذّر فتح نافذة الطباعة. يرجى التأكد من السماح بالنوافذ المنبثقة لهذا الموقع.");
+    }
+  };
+  frame.onload = triggerPrint;
+  setTimeout(triggerPrint, 400);
 }
 
 function exportWordDocument() {
