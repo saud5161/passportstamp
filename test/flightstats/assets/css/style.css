@@ -303,4 +303,14 @@ tbody td{
   tbody tr.expanded::after{content:"إخفاء التفاصيل  ▴"}
 
   .table-footer{flex-direction:column; align-items:flex-start; gap:6px}
+
+  /* لوحة تخصيص الأعمدة: تظهر كنافذة مركزية ثابتة بدل قائمة منسدلة قد تخرج عن حدود الشاشة */
+  .col-toggle-panel{
+    position:fixed !important; top:50% !important; left:50% !important; right:auto !important;
+    transform:translate(-50%,-50%) !important; width:min(88vw, 320px) !important; max-height:75vh;
+    overflow-y:auto; z-index:200;
+  }
+  .col-toggle-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:190;
+  }
 }

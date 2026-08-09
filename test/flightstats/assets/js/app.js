@@ -788,15 +788,31 @@ function initUI() {
   setActiveSeg(state.filters.type);
 
   renderColumnsPanel();
+
+  function setColumnsPanelOpen(open) {
+    const panel = document.getElementById("columnsPanel");
+    panel.hidden = !open;
+    let backdrop = document.querySelector(".col-toggle-backdrop");
+    if (open && window.matchMedia("(max-width: 720px)").matches) {
+      if (!backdrop) {
+        backdrop = document.createElement("div");
+        backdrop.className = "col-toggle-backdrop";
+        backdrop.addEventListener("click", () => setColumnsPanelOpen(false));
+        document.body.appendChild(backdrop);
+      }
+    } else if (backdrop) {
+      backdrop.remove();
+    }
+  }
+
   document.getElementById("columnsBtn").addEventListener("click", (e) => {
     e.stopPropagation();
     const panel = document.getElementById("columnsPanel");
-    panel.hidden = !panel.hidden;
+    setColumnsPanelOpen(panel.hidden);
   });
   document.addEventListener("click", (e) => {
     const wrap = document.querySelector(".col-toggle-wrap");
-    const panel = document.getElementById("columnsPanel");
-    if (wrap && !wrap.contains(e.target)) panel.hidden = true;
+    if (wrap && !wrap.contains(e.target)) setColumnsPanelOpen(false);
   });
 
   document.getElementById("flightsBody").addEventListener("input", (e) => {
