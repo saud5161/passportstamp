@@ -198,6 +198,74 @@ body{
   background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
   box-shadow:var(--shadow);overflow:hidden;
 }
+
+.density-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 18px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);
+}
+.density-bar-label{font-size:13px;color:var(--text-dim);font-weight:700}
+.density-bar-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mobile-only{display:none}
+
+/* ===== نافذة الكثافة الزمنية / الإدخال السريع ===== */
+.density-backdrop, .quickpax-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:240}
+.density-modal, .quickpax-modal{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:250;
+  background:var(--panel-2);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);
+  width:min(92vw,600px);max-height:82vh;overflow-y:auto;padding:22px;
+}
+
+.quickpax-list{display:flex;flex-direction:column;gap:2px;margin-top:14px}
+.quickpax-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 10px;border-bottom:1px solid var(--border);
+}
+.quickpax-row:last-child{border-bottom:none}
+.quickpax-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.quickpax-flightno{font-weight:900;font-size:15px}
+.quickpax-meta{font-size:12px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quickpax-row .pax-cell{flex:none}
+.quickpax-row .pax-input{width:72px;font-size:16px;padding:9px 8px;border-radius:8px}
+.quickpax-row .pax-bar-track{width:60px}
+.density-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.density-modal-header h3{margin:0;font-size:17px;font-weight:800}
+.density-mode-note{font-size:12.5px;color:var(--text-dim);line-height:1.8;margin-bottom:14px}
+.density-peak{
+  display:flex;align-items:center;gap:10px;background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.3);color:#f87171;font-weight:800;font-size:13.5px;
+  padding:10px 14px;border-radius:10px;margin-bottom:18px;
+}
+.density-chart{
+  display:flex;align-items:flex-end;gap:4px;height:180px;
+  border-bottom:1px solid var(--border);padding-bottom:2px;overflow-x:auto;
+}
+.density-col{
+  flex:1;min-width:16px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  height:100%;gap:4px;cursor:pointer;border-radius:4px;padding-top:4px;
+}
+.density-col:hover{background:rgba(255,255,255,.04)}
+.density-col-bar{
+  width:100%;max-width:22px;border-radius:4px 4px 0 0;min-height:2px;
+  transition:height .2s ease;position:relative;
+}
+.density-col.peak .density-col-bar{box-shadow:0 0 0 2px var(--danger) inset}
+.density-col.selected .density-col-bar{box-shadow:0 0 0 2px var(--accent) inset}
+.density-col-hour{font-size:9.5px;color:var(--text-dim);writing-mode:horizontal-tb;white-space:nowrap;transform:rotate(0deg)}
+.density-col.peak .density-col-hour{color:var(--danger);font-weight:800}
+.density-col.selected .density-col-hour{color:var(--accent);font-weight:800}
+.density-empty{text-align:center;color:var(--text-dim);padding:30px 10px;font-size:13.5px}
+
+.density-detail{
+  margin-top:16px;border-top:1px solid var(--border);padding-top:14px;
+  max-height:180px;overflow-y:auto;
+}
+.density-detail h4{margin:0 0 10px;font-size:13.5px;font-weight:800;color:var(--text)}
+.density-detail-row{
+  display:flex;justify-content:space-between;gap:10px;font-size:12.5px;
+  padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.06);
+}
+.density-detail-row:last-child{border-bottom:none}
+.density-detail-row .pax-val{font-weight:800;color:var(--accent-2)}
 .table-scroll{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:920px;user-select:text}
 thead th{
@@ -257,30 +325,41 @@ tbody td{
   .stats{grid-template-columns:repeat(2,1fr);gap:10px}
   .stat-card{padding:12px 14px}
   .stat-card .n{font-size:21px}
+  .density-bar{flex-direction:column;align-items:stretch;gap:8px}
+  .density-bar-actions{justify-content:flex-start;gap:8px}
+  .density-bar-actions .btn{
+    flex:none;padding:7px 10px;font-size:12px;gap:5px;
+  }
+  .mobile-only{display:inline-flex}
 
   /* تحويل الجدول إلى بطاقات ذكية قابلة للطي: تعرض البطاقة رقم الرحلة/الوجهة/البوابة/الحالة
-     فقط، وعند النقر عليها تظهر بقية التفاصيل (شركة الطيران، الصالة، الأوقات، عدد الركاب...) */
+     فقط، وعند النقر عليها تظهر بقية التفاصيل (شركة الطيران، الصالة، الأوقات، عدد الركاب...)
+     البطاقات تُصف اثنتين بجانب بعض لتوفير المساحة، وتتمدد البطاقة الموسَّعة لعرض السطر كاملاً */
   .table-scroll{overflow-x:visible}
   table{min-width:0}
   thead{display:none}
-  tbody, tr, td{display:block; width:100%}
+  tbody{display:grid; grid-template-columns:1fr 1fr; gap:9px; width:100%}
+  tr, td{display:block; width:100%}
   tbody tr{
-    border:1px solid var(--border); border-radius:12px; margin:0 0 10px; overflow:hidden;
+    border:1px solid var(--border); border-radius:12px; margin:0; overflow:hidden;
     background:var(--panel-2); cursor:pointer; transition:border-color .15s;
   }
-  tbody tr.expanded{border-color:var(--accent)}
+  tbody tr.expanded{border-color:var(--accent); grid-column:1 / -1}
   tbody td{
-    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    display:flex; justify-content:space-between; align-items:center; gap:6px;
     border:none; white-space:normal; text-align:left;
-    padding:10px 14px;
+    padding:8px 10px;
   }
   tbody td::before{
-    content:attr(data-label); font-weight:800; color:var(--text-dim); font-size:12px; flex:none;
+    content:attr(data-label); font-weight:800; color:var(--text-dim); font-size:10.5px; flex:none;
+  }
+  .cell-value{
+    min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; text-align:left;
   }
 
   /* الحقول الأساسية الظاهرة دائماً */
-  tbody td[data-col="flightNo"]{font-weight:900; font-size:15px; padding-top:12px}
-  tbody td[data-col="status"]{padding-bottom:12px}
+  tbody td[data-col="flightNo"]{font-weight:900; font-size:14px; padding-top:10px}
+  tbody td[data-col="status"]{padding-bottom:10px}
   tbody tr:not(.expanded) td[data-col="status"]{border-bottom:none}
   tbody tr.expanded td[data-col="status"]{border-bottom:1px solid var(--border)}
 

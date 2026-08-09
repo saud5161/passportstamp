@@ -58,7 +58,6 @@
         <label for="statusFilter">حالة الرحلة</label>
         <select id="statusFilter">
           <option value="all">جميع الحالات</option>
-          <option value="scheduled">مجدولة</option>
           <option value="boarding">صعود الركاب</option>
           <option value="on-time">في الوقت المحدد</option>
           <option value="delayed">متأخرة</option>
@@ -87,10 +86,6 @@
           <button class="btn btn-ghost" id="copyBtn">📋 نسخ الجدول</button>
           <button class="btn btn-ghost" id="printBtn">🖨️ طباعة / PDF</button>
           <button class="btn btn-ghost" id="exportWordBtn">📄 تصدير Word</button>
-          <div class="col-toggle-wrap">
-            <button class="btn btn-ghost" id="columnsBtn">🧩 تخصيص الأعمدة</button>
-            <div class="col-toggle-panel" id="columnsPanel" hidden></div>
-          </div>
           <button class="btn btn-ghost" id="resetBtn">إعادة تعيين</button>
         </div>
       </div>
@@ -107,12 +102,12 @@
       </div>
 
       <div class="field">
-        <label for="timeFrom">من الساعة</label>
+        <label for="timeFrom">🕐 من الساعة</label>
         <input type="time" id="timeFrom">
       </div>
 
       <div class="field">
-        <label for="timeTo">إلى الساعة</label>
+        <label for="timeTo">🕐 إلى الساعة</label>
         <input type="time" id="timeTo">
       </div>
 
@@ -120,7 +115,7 @@
         <label>&nbsp;</label>
         <label class="toggle-check">
           <input type="checkbox" id="upcomingOnly">
-          <span>الرحلات القادمة فقط</span>
+          <span>الرحلات القادمة حالياً فقط</span>
         </label>
       </div>
 
@@ -159,6 +154,17 @@
 
   <!-- Table -->
   <section class="table-panel">
+    <div class="density-bar">
+      <span class="density-bar-label">عرض الرحلات</span>
+      <div class="density-bar-actions">
+        <div class="col-toggle-wrap">
+          <button class="btn btn-ghost" id="columnsBtn">🧩 تخصيص الأعمدة</button>
+          <div class="col-toggle-panel" id="columnsPanel" hidden></div>
+        </div>
+        <button class="btn btn-ghost" id="densityBtn">📊 معرفة الكثافة</button>
+        <button class="btn btn-ghost mobile-only" id="quickPaxBtn">⚡ إدخال سريع للركاب</button>
+      </div>
+    </div>
     <div class="table-scroll">
       <table>
         <thead id="tableHead">
@@ -182,6 +188,30 @@
     <div>المصدر الأساسي: البيانات الرسمية لموقع مطار الملك خالد الدولي (kkia.sa)، مع AeroDataBox كمصدر احتياطي عند الحاجة.</div>
     <div>للتحقق من الأوقات النهائية يرجى مراجعة شركة الطيران أو الموقع الرسمي لمطار الملك خالد الدولي.</div>
   </footer>
+
+  <!-- نافذة الكثافة الزمنية -->
+  <div class="density-modal" id="densityModal" hidden>
+    <div class="density-modal-header">
+      <h3>كثافة الرحلات حسب الوقت</h3>
+      <button class="btn-link" id="closeDensityBtn" type="button">إغلاق ✕</button>
+    </div>
+    <div class="density-mode-note" id="densityModeNote"></div>
+    <div class="density-peak" id="densityPeak"></div>
+    <div class="density-chart" id="densityChart"></div>
+    <div class="density-detail" id="densityDetail">
+      <div class="density-empty">اضغط على أي عمود لعرض تفاصيل الرحلات وعدد الركاب في تلك الساعة</div>
+    </div>
+  </div>
+
+  <!-- نافذة الإدخال السريع لعدد الركاب (للجوال) -->
+  <div class="quickpax-modal" id="quickPaxModal" hidden>
+    <div class="density-modal-header">
+      <h3>إدخال سريع لعدد الركاب</h3>
+      <button class="btn-link" id="closeQuickPaxBtn" type="button">إغلاق ✕</button>
+    </div>
+    <div class="density-mode-note">اكتب العدد ثم اضغط "التالي" أو Enter بلوحة المفاتيح للانتقال للرحلة التالية مباشرة.</div>
+    <div class="quickpax-list" id="quickPaxList"></div>
+  </div>
 
 </div>
 

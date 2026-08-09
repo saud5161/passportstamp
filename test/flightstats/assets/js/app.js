@@ -151,8 +151,13 @@ let state = {
 /* ---------------------------- Helpers ---------------------------- */
 
 function todayStr() {
+  // نستخدم مكوّنات التاريخ المحلية وليس toISOString() (الذي يعيد تاريخ UTC) لأن الرياض
+  // بتوقيت UTC+3، فاستخدام UTC كان يجعل الصفحة تعرض تاريخ الأمس خلال أول 3 ساعات من كل يوم محلي.
   const d = new Date();
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function pad(n) { return String(n).padStart(2, "0"); }
@@ -230,6 +235,41 @@ function toTitleCase(str) {
 let CITY_NAME_AR = new Map();
 let AIRLINE_NAME_AR = new Map();
 let refDataPromise = null;
+
+// قائمة احتياطية بأسماء مدن شائعة بالعربي - تُستخدم عندما لا تغطي قائمة kkia.sa (159 وجهة فقط) مدينة الرحلة
+const CITY_NAME_AR_FALLBACK = {
+  "ALEXANDRIA": "الإسكندرية", "AMMAN": "عمّان", "MADRID": "مدريد", "PHUKET": "بوكيت",
+  "SAN FRANCISCO": "سان فرانسيسكو", "TRABZON": "طرابزون", "BARCELONA": "برشلونة",
+  "ROME": "روما", "MILAN": "ميلانو", "ATHENS": "أثينا", "VIENNA": "فيينا",
+  "ZURICH": "زيورخ", "GENEVA": "جنيف", "AMSTERDAM": "أمستردام", "BRUSSELS": "بروكسل",
+  "MUNICH": "ميونخ", "BERLIN": "برلين", "HAMBURG": "هامبورغ", "COPENHAGEN": "كوبنهاغن",
+  "STOCKHOLM": "ستوكهولم", "OSLO": "أوسلو", "HELSINKI": "هلسنكي", "WARSAW": "وارسو",
+  "PRAGUE": "براغ", "BUDAPEST": "بودابست", "LISBON": "لشبونة", "DUBLIN": "دبلن",
+  "MANCHESTER": "مانشستر", "BIRMINGHAM": "برمنغهام", "MOSCOW": "موسكو",
+  "NEW YORK": "نيويورك", "LOS ANGELES": "لوس أنجلوس", "CHICAGO": "شيكاغو",
+  "WASHINGTON": "واشنطن", "TORONTO": "تورنتو", "MONTREAL": "مونتريال",
+  "BEIJING": "بكين", "SHANGHAI": "شنغهاي", "GUANGZHOU": "قوانغتشو", "HONG KONG": "هونغ كونغ",
+  "TOKYO": "طوكيو", "OSAKA": "أوساكا", "SEOUL": "سول", "SINGAPORE": "سنغافورة",
+  "BANGKOK": "بانكوك", "MANILA": "مانيلا", "HANOI": "هانوي", "HO CHI MINH CITY": "هوشي منه",
+  "NEW DELHI": "نيودلهي", "DELHI": "دلهي", "MUMBAI": "مومباي", "BENGALURU": "بنغالورو",
+  "CHENNAI": "تشيناي", "HYDERABAD": "حيدر أباد", "KOLKATA": "كولكاتا",
+  "LAHORE": "لاهور", "KARACHI": "كراتشي", "ISLAMABAD": "إسلام أباد",
+  "DHAKA": "دكا", "COLOMBO": "كولومبو", "KATHMANDU": "كاتماندو",
+  "JAKARTA": "جاكرتا", "KUALA LUMPUR": "كوالالمبور", "BALI": "بالي", "DENPASAR": "دنباسار",
+  "NAIROBI": "نيروبي", "ADDIS ABABA": "أديس أبابا", "LAGOS": "لاغوس", "ACCRA": "أكرا",
+  "JOHANNESBURG": "جوهانسبرغ", "CASABLANCA": "الدار البيضاء", "TUNIS": "تونس",
+  "ALGIERS": "الجزائر", "TRIPOLI": "طرابلس", "KHARTOUM": "الخرطوم",
+  "BAGHDAD": "بغداد", "BASRA": "البصرة", "ERBIL": "أربيل", "DAMASCUS": "دمشق",
+  "BEIRUT": "بيروت", "TEHRAN": "طهران", "BAKU": "باكو", "TBILISI": "تبليسي",
+  "YEREVAN": "يريفان", "ALMATY": "ألماتي", "TASHKENT": "طشقند",
+  "SYDNEY": "سيدني", "MELBOURNE": "ملبورن", "AUCKLAND": "أوكلاند",
+  "ANTALYA": "أنطاليا", "ADANA": "أضنة", "GAZIANTEP": "غازي عنتاب",
+};
+
+function normalizeCityName(rawName) {
+  if (!rawName) return null;
+  return CITY_NAME_AR_FALLBACK[rawName.trim().toUpperCase()] || null;
+}
 
 async function loadReferenceData() {
   if (refDataPromise) return refDataPromise;
@@ -316,7 +356,10 @@ function normalizeOfficialFlight(f, now) {
     flightNo: `${f.airline?.code || ""} ${f.number || ""}`.trim() || "—",
     airline: AIRLINE_NAME_OVERRIDES[airlineCode] || AIRLINE_NAME_AR.get(airlineCode) || toTitleCase(f.airline?.description) || "غير معروف",
     airlineCode: f.airline?.code || "",
-    city: CITY_NAME_AR.get(otherAirportCode) || toTitleCase(otherAirport?.city?.name || otherAirport?.name) || "—",
+    city: CITY_NAME_AR.get(otherAirportCode)
+      || normalizeCityName(otherAirport?.city?.name || otherAirport?.name)
+      || toTitleCase(otherAirport?.city?.name || otherAirport?.name)
+      || "—",
     terminal: terminalNum ? `الصالة ${terminalNum}` : "—",
     gate,
     scheduled,
@@ -415,7 +458,8 @@ function normalizeApiFlight(f, direction) {
     flightNo: f.number || "—",
     airline: f.airline?.name || "غير معروف",
     airlineCode: f.airline?.iata || "",
-    city: move?.airport?.municipalityName || move?.airport?.name || "—",
+    city: normalizeCityName(move?.airport?.municipalityName || move?.airport?.name)
+      || move?.airport?.municipalityName || move?.airport?.name || "—",
     terminal: local?.terminal ? `الصالة ${local.terminal}` : "—",
     gate: local?.gate || "—",
     scheduled,
@@ -565,8 +609,8 @@ function renderChips() {
     const opt = [...document.getElementById("airlineFilter").options].find((o) => o.value === airline);
     chips.push({ key: "airline", label: opt ? opt.textContent : airline });
   }
-  if (timeFrom || timeTo) chips.push({ key: "timeRange", label: `الوقت: ${timeFrom || "00:00"} - ${timeTo || "23:59"}` });
-  if (upcomingOnly) chips.push({ key: "upcoming", label: "القادمة فقط" });
+  if (timeFrom || timeTo) chips.push({ key: "timeRange", label: `🕐 الوقت: ${timeFrom || "00:00"} - ${timeTo || "23:59"}` });
+  if (upcomingOnly) chips.push({ key: "upcoming", label: "القادمة حالياً فقط" });
   if (q) chips.push({ key: "q", label: `بحث: ${q}` });
 
   const box = document.getElementById("activeChips");
@@ -621,27 +665,49 @@ function paxBarPct(count) {
   return Math.max(0, Math.min(100, (count / PAX_BAR_MAX) * 100));
 }
 
+// معالجة موحّدة لحقل إدخال عدد الركاب - تُستخدم من جدول الرحلات ومن نافذة الإدخال السريع معاً
+function applyPaxInputChange(target) {
+  const flightId = target.dataset.flightId;
+  const val = target.value;
+  if (val === "") {
+    delete state.paxCounts[flightId];
+  } else {
+    state.paxCounts[flightId] = Number(val);
+  }
+  savePaxCounts(state.paxCounts);
+
+  const num = val === "" ? null : Number(val);
+  document.querySelectorAll(`.pax-input[data-flight-id="${CSS.escape(flightId)}"]`).forEach((input) => {
+    if (input !== target) input.value = val;
+    const track = input.closest(".pax-cell")?.querySelector(".pax-bar-fill");
+    if (track) {
+      track.style.width = (num ? paxBarPct(num) : 0) + "%";
+      track.style.background = num ? paxBarColor(num) : "var(--border)";
+    }
+  });
+}
+
 // في نسخة الجوال، هذه الأعمدة فقط تظهر افتراضياً في البطاقة، والباقي يظهر عند النقر على البطاقة
 const MOBILE_PRIMARY_COLS = ["flightNo", "city", "gate", "scheduled", "status"];
 
 function buildCellContent(col, f) {
   switch (col.key) {
     case "type":
-      return { html: f.type === "arrival" ? "قدوم" : "مغادرة" };
+      return { html: `<span class="cell-value">${f.type === "arrival" ? "قدوم" : "مغادرة"}</span>` };
     case "flightNo":
-      return { html: escapeHtml(f.flightNo) };
+      return { html: `<span class="cell-value">${escapeHtml(f.flightNo)}</span>` };
     case "airline":
-      return { html: escapeHtml(f.airline) };
+      return { html: `<span class="cell-value">${escapeHtml(f.airline)}</span>` };
     case "city":
-      return { html: escapeHtml(f.city) };
+      return { html: `<span class="cell-value">${escapeHtml(f.city)}</span>` };
     case "terminal":
-      return { html: escapeHtml(f.terminal) };
+      return { html: `<span class="cell-value">${escapeHtml(f.terminal)}</span>` };
     case "gate":
-      return { html: escapeHtml(f.gate) };
+      return { html: `<span class="cell-value">${escapeHtml(f.gate)}</span>` };
     case "scheduled":
-      return { html: f.scheduled ? fmtTime(f.scheduled) : "—", extraClass: "time-cell" };
+      return { html: `<span class="cell-value">${f.scheduled ? fmtTime(f.scheduled) : "—"}</span>`, extraClass: "time-cell" };
     case "actual":
-      return { html: f.actual ? fmtTime(f.actual) : "—", extraClass: "time-cell" };
+      return { html: `<span class="cell-value">${f.actual ? fmtTime(f.actual) : "—"}</span>`, extraClass: "time-cell" };
     case "status": {
       const st = STATUS_MAP[f.status] || STATUS_MAP.scheduled;
       return { html: `<span class="status-text ${st.cls}">${st.label}</span>` };
@@ -816,23 +882,8 @@ function initUI() {
   });
 
   document.getElementById("flightsBody").addEventListener("input", (e) => {
-    const target = e.target;
-    if (!target.classList.contains("pax-input")) return;
-    const flightId = target.dataset.flightId;
-    const val = target.value;
-    if (val === "") {
-      delete state.paxCounts[flightId];
-    } else {
-      state.paxCounts[flightId] = Number(val);
-    }
-    savePaxCounts(state.paxCounts);
-
-    const num = val === "" ? null : Number(val);
-    const track = target.closest(".pax-cell")?.querySelector(".pax-bar-fill");
-    if (track) {
-      track.style.width = (num ? paxBarPct(num) : 0) + "%";
-      track.style.background = num ? paxBarColor(num) : "var(--border)";
-    }
+    if (!e.target.classList.contains("pax-input")) return;
+    applyPaxInputChange(e.target);
   });
 
   // بطاقات الجوال: النقر على أي بطاقة يوسّعها لإظهار بقية التفاصيل (لا يفعّل عند النقر على حقل الإدخال)
@@ -848,6 +899,33 @@ function initUI() {
     state.paxCounts = {};
     savePaxCounts(state.paxCounts);
     renderTable(getFilteredFlights());
+  });
+
+  document.getElementById("densityBtn").addEventListener("click", () => setDensityModalOpen(true));
+  document.getElementById("closeDensityBtn").addEventListener("click", () => setDensityModalOpen(false));
+  document.getElementById("densityChart").addEventListener("click", (e) => {
+    const col = e.target.closest(".density-col");
+    if (!col) return;
+    showDensityDetail(Number(col.dataset.hour));
+  });
+
+  document.getElementById("quickPaxBtn").addEventListener("click", () => setQuickPaxModalOpen(true));
+  document.getElementById("closeQuickPaxBtn").addEventListener("click", () => setQuickPaxModalOpen(false));
+
+  document.getElementById("quickPaxList").addEventListener("input", (e) => {
+    if (!e.target.classList.contains("pax-input")) return;
+    applyPaxInputChange(e.target);
+  });
+
+  // الانتقال السريع للحقل التالي بالضغط على Enter لتسريع الإدخال المتتابع
+  document.getElementById("quickPaxList").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || !e.target.classList.contains("pax-input")) return;
+    e.preventDefault();
+    const inputs = [...document.querySelectorAll("#quickPaxList .pax-input")];
+    const idx = inputs.indexOf(e.target);
+    const next = inputs[idx + 1];
+    if (next) { next.focus(); next.select(); }
+    else e.target.blur();
   });
 
   document.querySelectorAll("#typeSeg button").forEach((btn) => {
@@ -876,12 +954,24 @@ function initUI() {
   });
 
   document.getElementById("timeFrom").addEventListener("change", (e) => {
-    state.filters.timeFrom = e.target.value;
+    const val = e.target.value;
+    if (val && state.filters.timeTo && val > state.filters.timeTo) {
+      alert("لا يمكن اختيار وقت \"من الساعة\" لاحقاً لوقت \"إلى الساعة\" المحدد بالفعل (" + state.filters.timeTo + "). يرجى اختيار وقت أبكر أو تعديل \"إلى الساعة\" أولاً.");
+      e.target.value = state.filters.timeFrom;
+      return;
+    }
+    state.filters.timeFrom = val;
     renderAll();
   });
 
   document.getElementById("timeTo").addEventListener("change", (e) => {
-    state.filters.timeTo = e.target.value;
+    const val = e.target.value;
+    if (val && state.filters.timeFrom && val < state.filters.timeFrom) {
+      alert("لا يمكن اختيار وقت سابق لوقت \"من الساعة\" (" + state.filters.timeFrom + "). يرجى اختيار وقت لاحق له.");
+      e.target.value = state.filters.timeTo;
+      return;
+    }
+    state.filters.timeTo = val;
     renderAll();
   });
 
@@ -998,15 +1088,54 @@ async function copyTableToClipboard() {
 
 /* ---------------------------- طباعة / PDF / تصدير Word ---------------------------- */
 
+// ألوان صريحة (وليست متغيرات CSS) لأن مستند Word لا يدعم متغيرات CSS، وحتى تظهر الألوان بشكل صحيح في PDF أيضاً
+function paxBarColorHex(count) {
+  if (count > PAX_EXPECTED) return "#ef4444";
+  if (count >= PAX_EXPECTED * 0.75) return "#f59e0b";
+  return "#22c55e";
+}
+
+// نستخدم جدولاً داخلياً بسيطاً (بدل flex/متغيرات CSS) ليعمل الشريط الملوّن بشكل صحيح
+// سواء عند الطباعة/PDF أو عند فتح الملف في Word، لأن محرك عرض Word محدود الدعم لـ CSS الحديث
+function buildPaxBarCellHtml(f) {
+  const raw = state.paxCounts[f.id];
+  const num = raw === undefined || raw === "" || raw === null ? null : Number(raw);
+  if (num === null) return "—";
+
+  const pct = Math.max(2, Math.round(paxBarPct(num)));
+  const color = paxBarColorHex(num);
+  return `
+    <table cellpadding="0" cellspacing="0" style="border-collapse:collapse; display:inline-table; vertical-align:middle;">
+      <tr>
+        <td style="font-weight:bold; padding-left:6px; white-space:nowrap; border:none;">${num}</td>
+        <td style="border:none;">
+          <table cellpadding="0" cellspacing="0" width="90" height="10"
+                 style="border-collapse:collapse; width:90px; height:10px; background:#e5e7eb; border:1px solid #ccc;">
+            <tr>
+              <td width="${pct}%" style="background:${color}; height:10px; font-size:1px; line-height:1px; border:none;">&nbsp;</td>
+              <td style="font-size:1px; line-height:1px; border:none;">&nbsp;</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>`;
+}
+
+// نضع حدود/تباعد الجدول الخارجي كأنماط inline صريحة (وليس عبر قواعد CSS للوسم <td> عموماً)
+// لأن Word لا يدعم موصّلات CSS مثل ">" لعزل الجداول المتداخلة (شريط الركاب)، فأي قاعدة عامة
+// على <td> كانت ستُطبَّق أيضاً على خلايا الشريط الداخلية وتُفسد شكلها.
+const PRINT_CELL_STYLE = "border:1px solid #333;padding:6px 8px;text-align:right;";
+const PRINT_HEAD_STYLE = PRINT_CELL_STYLE + "background:#eee;font-weight:bold;";
+
 function buildPrintableHtmlTable(filtered) {
   const visible = getVisibleColumns();
   const rows = filtered.map((f) => `
-      <tr>${visible.map((c) => `<td>${escapeHtml(getCellPlainValue(c, f))}</td>`).join("")}</tr>`).join("");
+      <tr>${visible.map((c) => `<td style="${PRINT_CELL_STYLE}">${c.key === "pax" ? buildPaxBarCellHtml(f) : escapeHtml(getCellPlainValue(c, f))}</td>`).join("")}</tr>`).join("");
 
   return `
-    <table>
+    <table class="flights-table" style="width:100%;border-collapse:collapse;">
       <thead>
-        <tr>${visible.map((c) => `<th>${escapeHtml(c.label)}</th>`).join("")}</tr>
+        <tr>${visible.map((c) => `<th style="${PRINT_HEAD_STYLE}">${escapeHtml(c.label)}</th>`).join("")}</tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>`;
@@ -1026,10 +1155,10 @@ function buildPrintableDocument(filtered) {
   body{font-family:Tahoma,Arial,sans-serif;color:#111;margin:24px;}
   h1{font-size:18px;margin:0 0 4px;}
   .meta{font-size:12px;color:#555;margin-bottom:18px;}
-  table{width:100%;border-collapse:collapse;font-size:12px;}
-  th,td{border:1px solid #333;padding:6px 8px;text-align:right;}
-  th{background:#eee;font-weight:bold;}
-  tr{page-break-inside:avoid;}
+  table.flights-table{width:100%;border-collapse:collapse;font-size:12px;}
+  table.flights-table > thead > tr > th, table.flights-table > tbody > tr > td{border:1px solid #333;padding:6px 8px;text-align:right;}
+  table.flights-table > thead > tr > th{background:#eee;font-weight:bold;}
+  table.flights-table > tbody > tr{page-break-inside:avoid;}
   @page{size:landscape;margin:14mm;}
 </style>
 </head>
@@ -1069,9 +1198,7 @@ function exportWordDocument() {
 <style>
   body{font-family:Tahoma,Arial,sans-serif;color:#111; direction:rtl;}
   h1{font-size:16pt;}
-  table{width:100%;border-collapse:collapse;font-size:10.5pt;}
-  th,td{border:1px solid #333;padding:5px 8px;text-align:right;}
-  th{background:#eee;font-weight:bold;}
+  table.flights-table{width:100%;border-collapse:collapse;font-size:10.5pt;}
 </style>
 </head>
 <body>
@@ -1090,6 +1217,158 @@ function exportWordDocument() {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+/* ---------------------------- كثافة الرحلات حسب الوقت ---------------------------- */
+
+// إن أُدخل عدد ركاب يدوياً لأي رحلة ضمن الرحلات المعروضة، تُحسب الكثافة بمجموع الركاب لكل ساعة.
+// وإلا (لا يوجد أي عدد ركاب مُدخل) تُحسب الكثافة بعدد الرحلات المجدولة في كل ساعة كبديل معقول.
+function computeDensity(filtered) {
+  const buckets = Array.from({ length: 24 }, (_, h) => ({ hour: h, value: 0, flights: [] }));
+  const hasPax = filtered.some((f) => {
+    const raw = state.paxCounts[f.id];
+    return raw !== undefined && raw !== "" && raw !== null && Number(raw) > 0;
+  });
+
+  filtered.forEach((f) => {
+    if (!f.scheduled) return;
+    const h = f.scheduled.getHours();
+    const raw = state.paxCounts[f.id];
+    const num = raw === undefined || raw === "" || raw === null ? null : Number(raw);
+    buckets[h].flights.push({ flightNo: f.flightNo, city: f.city, type: f.type, pax: num });
+    buckets[h].value += hasPax ? (num || 0) : 1;
+  });
+
+  buckets.forEach((b) => b.flights.sort((a, c) => (c.pax || 0) - (a.pax || 0)));
+
+  return { buckets, mode: hasPax ? "pax" : "flights" };
+}
+
+// آخر بيانات كثافة محسوبة، تُستخدم عند النقر على أي عمود لعرض تفاصيل تلك الساعة
+let lastDensityBuckets = [];
+let lastDensityMode = "flights";
+
+function renderDensityChart() {
+  const filtered = getFilteredFlights();
+  const { buckets, mode } = computeDensity(filtered);
+  lastDensityBuckets = buckets;
+  lastDensityMode = mode;
+
+  const maxVal = Math.max(...buckets.map((b) => b.value), 0);
+
+  const noteEl = document.getElementById("densityModeNote");
+  const peakEl = document.getElementById("densityPeak");
+  const chartEl = document.getElementById("densityChart");
+  const detailEl = document.getElementById("densityDetail");
+
+  detailEl.innerHTML = `<div class="density-empty">اضغط على أي عمود لعرض تفاصيل الرحلات وعدد الركاب في تلك الساعة</div>`;
+
+  noteEl.textContent = mode === "pax"
+    ? "الكثافة محسوبة بناءً على عدد الركاب المُدخل يدوياً لكل رحلة ضمن الرحلات المعروضة حالياً."
+    : "لا يوجد عدد ركاب مُدخل حتى الآن، لذلك الكثافة محسوبة بناءً على عدد الرحلات المجدولة في كل ساعة.";
+
+  if (maxVal <= 0) {
+    peakEl.style.display = "none";
+    chartEl.innerHTML = `<div class="density-empty">لا توجد رحلات كافية لعرض الكثافة ضمن الفلاتر الحالية.</div>`;
+    return;
+  }
+
+  const peakHours = buckets.filter((b) => b.value === maxVal).map((b) => b.hour);
+  peakEl.style.display = "flex";
+  const peakLabel = peakHours.map((h) => `${pad(h)}:00`).join("، ");
+  peakEl.innerHTML = `⏰ وقت الذروة: <span>${escapeHtml(peakLabel)}</span> (${maxVal} ${mode === "pax" ? "راكب متوقع" : "رحلة"})`;
+
+  chartEl.innerHTML = buckets.map((b) => {
+    const pct = Math.max(4, (b.value / maxVal) * 100);
+    const isPeak = b.value === maxVal;
+    const color = b.value === 0 ? "var(--border)" : isPeak ? "var(--danger)" : (b.value / maxVal > 0.6 ? "var(--warn)" : "var(--ok)");
+    return `
+      <div class="density-col ${isPeak ? "peak" : ""}" data-hour="${b.hour}" title="${pad(b.hour)}:00 — ${b.value} ${mode === "pax" ? "راكب" : "رحلة"} (اضغط للتفاصيل)">
+        <div class="density-col-bar" style="height:${pct}%; background:${color}"></div>
+        <div class="density-col-hour">${pad(b.hour)}</div>
+      </div>`;
+  }).join("");
+}
+
+function showDensityDetail(hour) {
+  const bucket = lastDensityBuckets[hour];
+  const detailEl = document.getElementById("densityDetail");
+  document.querySelectorAll(".density-col").forEach((c) => c.classList.toggle("selected", Number(c.dataset.hour) === hour));
+
+  if (!bucket || !bucket.flights.length) {
+    detailEl.innerHTML = `<div class="density-empty">لا توجد رحلات مجدولة الساعة ${pad(hour)}:00</div>`;
+    return;
+  }
+
+  const rows = bucket.flights.map((f) => {
+    const dir = f.type === "arrival" ? "قدوم" : "مغادرة";
+    const paxLabel = f.pax !== null ? `<span class="pax-val">${f.pax} راكب</span>` : `<span>— لم يُدخل</span>`;
+    return `<div class="density-detail-row"><span>${escapeHtml(f.flightNo)} · ${escapeHtml(dir)} · ${escapeHtml(f.city)}</span>${paxLabel}</div>`;
+  }).join("");
+
+  detailEl.innerHTML = `<h4>تفاصيل الساعة ${pad(hour)}:00 — ${bucket.flights.length} رحلة</h4>${rows}`;
+}
+
+function setDensityModalOpen(open) {
+  const modal = document.getElementById("densityModal");
+  modal.hidden = !open;
+  let backdrop = document.querySelector(".density-backdrop");
+  if (open) {
+    if (!backdrop) {
+      backdrop = document.createElement("div");
+      backdrop.className = "density-backdrop";
+      backdrop.addEventListener("click", () => setDensityModalOpen(false));
+      document.body.appendChild(backdrop);
+    }
+    renderDensityChart();
+  } else if (backdrop) {
+    backdrop.remove();
+  }
+}
+
+/* ---------------------------- إدخال سريع لعدد الركاب (الجوال) ---------------------------- */
+
+function renderQuickPaxList() {
+  const filtered = getFilteredFlights();
+  const list = document.getElementById("quickPaxList");
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="density-empty">لا توجد رحلات مطابقة للفلاتر الحالية.</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((f) => {
+    const dir = f.type === "arrival" ? "قدوم" : "مغادرة";
+    const time = f.scheduled ? fmtTime(f.scheduled) : "—";
+    const paxHtml = buildCellContent({ key: "pax" }, f).html;
+    return `
+      <div class="quickpax-row">
+        <div class="quickpax-info">
+          <div class="quickpax-flightno">${escapeHtml(f.flightNo)}</div>
+          <div class="quickpax-meta">${escapeHtml(dir)} · ${escapeHtml(f.city)} · ${time}</div>
+        </div>
+        ${paxHtml}
+      </div>`;
+  }).join("");
+}
+
+function setQuickPaxModalOpen(open) {
+  const modal = document.getElementById("quickPaxModal");
+  modal.hidden = !open;
+  let backdrop = document.querySelector(".quickpax-backdrop");
+  if (open) {
+    if (!backdrop) {
+      backdrop = document.createElement("div");
+      backdrop.className = "quickpax-backdrop";
+      backdrop.addEventListener("click", () => setQuickPaxModalOpen(false));
+      document.body.appendChild(backdrop);
+    }
+    renderQuickPaxList();
+    const firstInput = document.querySelector("#quickPaxList .pax-input");
+    if (firstInput) setTimeout(() => firstInput.focus(), 50);
+  } else if (backdrop) {
+    backdrop.remove();
+  }
 }
 
 /* ---------------------------- Boot ---------------------------- */
