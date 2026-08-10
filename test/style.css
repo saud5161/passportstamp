@@ -1389,6 +1389,30 @@ main {
 .server-modal-head h3 { margin: 0; font-size: 15px; }
 .server-modal-head-actions { display: flex; gap: 6px; }
 
+/* فلتر رحلات اليوم/الأيام السابقة أعلى قائمة ملفات الايميل - "اليوم" مفعّل
+   افتراضيًا عند كل فتح للنافذة. */
+.server-modal-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px 0;
+}
+.server-modal-tab {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f8fbf9;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+}
+.server-modal-tab.is-active {
+  background: var(--green-700);
+  color: #fff;
+  border-color: var(--green-700);
+}
+
 .server-files-list {
   padding: 10px;
   overflow-y: auto;

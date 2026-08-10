@@ -2355,6 +2355,17 @@ const serverModalRefresh = document.getElementById("server-modal-refresh");
 const serverModalTitle = document.getElementById("server-modal-title");
 let serverFilesTarget = "main";
 let lastDriveFiles = [];
+const serverModalTabs = document.getElementById("server-modal-tabs");
+let driveFilesFilter = "today"; // "today" أو "previous" - يعود لـ"اليوم" تلقائيًا عند كل فتح للنافذة
+
+// يقارن التاريخ فقط (بلا الوقت) بتوقيت الجهاز المحلي - أي ملف بنفس يوم/شهر/سنة اليوم يُعتبر "رحلات اليوم".
+function isDriveFileToday(iso) {
+  const fileDate = new Date(iso);
+  const now = new Date();
+  return fileDate.getFullYear() === now.getFullYear()
+    && fileDate.getMonth() === now.getMonth()
+    && fileDate.getDate() === now.getDate();
+}
 
 // نعرض الوقت مع التاريخ (وليس التاريخ فقط) حتى يتضح "متى وصل هذا المنفست بالضبط"
 // بشكل مستقل عن اسم الملف نفسه.
@@ -2506,13 +2517,18 @@ if ("Notification" in window && Notification.permission === "granted" && localSt
 let lastDriveFilesFetchedAt = 0;
 const DRIVE_FILES_CACHE_TTL_MS = 60 * 1000;
 
-function renderServerFilesList(files) {
+function renderServerFilesList(allFiles) {
+  const files = driveFilesFilter === "today"
+    ? allFiles.filter(file => isDriveFileToday(file.modifiedTime))
+    : allFiles.filter(file => !isDriveFileToday(file.modifiedTime));
+
   if (!files.length) {
+    const isToday = driveFilesFilter === "today";
     serverFilesList.innerHTML = `
       <div class="empty-state">
         <span>📭</span>
-        <strong>لا توجد ملفات بعد</strong>
-        <p>ستظهر هنا كل ملفات المنفست المرفوعة من الايميل.</p>
+        <strong>${isToday ? "لا توجد رحلات اليوم بعد" : "لا توجد رحلات سابقة"}</strong>
+        <p>${isToday ? "ستظهر هنا منفستات اليوم فور وصولها." : "ستظهر هنا كل منفستات الأيام السابقة (بخلاف اليوم)."}</p>
       </div>`;
     return;
   }
@@ -2535,6 +2551,13 @@ async function openServerFilesModal(target = "main", forceRefresh = false) {
   serverFilesTarget = target;
   serverModalTitle.textContent = target === "transit" ? "اختر ملف الترانزيت من الايميل" : "اختر ملف من الايميل";
   serverFilesModal.hidden = false;
+
+  // يعرض "رحلات اليوم" تلقائيًا أولًا عند كل فتح للنافذة، بغض النظر عن آخر فلتر
+  // كان مفعّلًا في المرة السابقة.
+  driveFilesFilter = "today";
+  serverModalTabs.querySelectorAll(".server-modal-tab").forEach(tab => {
+    tab.classList.toggle("is-active", tab.dataset.driveFilter === "today");
+  });
 
   const cacheIsFresh = lastDriveFiles.length && (Date.now() - lastDriveFilesFetchedAt) < DRIVE_FILES_CACHE_TTL_MS;
   if (!forceRefresh && cacheIsFresh) {
@@ -2689,6 +2712,18 @@ elements.chooseServerFile.addEventListener("click", () => openServerFilesModal("
 elements.chooseServerTransitFile.addEventListener("click", () => openServerFilesModal("transit"));
 serverModalRefresh.addEventListener("click", () => openServerFilesModal(serverFilesTarget, true));
 serverModalClose.addEventListener("click", closeServerFilesModal);
+
+// التبديل بين "رحلات اليوم" و"الأيام السابقة" فلترة محلية فقط على الملفات المُحمَّلة
+// أصلًا (lastDriveFiles) - بلا أي طلب إضافي لجوجل درايف.
+serverModalTabs.addEventListener("click", event => {
+  const tabButton = event.target.closest("[data-drive-filter]");
+  if (!tabButton) return;
+  driveFilesFilter = tabButton.dataset.driveFilter;
+  serverModalTabs.querySelectorAll(".server-modal-tab").forEach(tab => {
+    tab.classList.toggle("is-active", tab === tabButton);
+  });
+  renderServerFilesList(lastDriveFiles);
+});
 serverFilesModal.addEventListener("click", event => {
   if (event.target === serverFilesModal) closeServerFilesModal();
 });
