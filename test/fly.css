@@ -245,16 +245,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2mm 2mm;
-  border-bottom: 3px solid #000;
+  padding: 0 2mm 0;
   gap: 14px;
   flex-shrink: 0;
 }
-.airport-block { display: flex; align-items: center; justify-content: center; flex: 1; }
+.airport-block { display: flex; align-items: center; justify-content: center; flex: 1; min-width: 0; }
 
 .airport-logo {
-  max-height: 60mm;
-  max-width: 115mm;
+  max-height: 16mm;
+  max-width: 100%;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -267,7 +266,7 @@
   border: 0.7mm solid #000;
   table-layout: fixed;
   direction: rtl;
-  margin: 3mm 0 0;
+  margin: 14mm 0 0;
   flex-shrink: 0;
 }
 .manifest-table td {
@@ -299,9 +298,17 @@
   font-size: 13pt;
   padding: 3.5mm;
 }
-.manifest-table .data-cell { height: 12mm; }
+.manifest-table .data-cell { height: 12mm; position: relative; overflow: visible; }
 .manifest-table .value-wide { text-align: center; }
-.sig-img { max-height: 15mm; max-width: 100%; object-fit: contain;  }
+.sig-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-height: 22mm;
+  max-width: 96%;
+  object-fit: contain;
+}
 .manifest-table .ltr-value { direction: ltr; unicode-bidi: plaintext; font-weight: 400; font-size: 11pt; }
 
 .form-body-spacer { flex: 1 1 auto; }
@@ -323,7 +330,7 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 2.5mm 2mm 0;
   border-top: 0.3mm solid #999;
   font-size: 8.5pt;

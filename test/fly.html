@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=1180">
   <title>نظام إدارة ومتابعة رحلات المنفست</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="fly.css?v=20260716c">
+  <link rel="stylesheet" href="fly.css?v=20260810f">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
@@ -60,8 +60,8 @@
             <h3>إضافة يدوية</h3>
             <div class="manual-mini-grid">
               <input id="manual-flight-number" type="text" placeholder="رقم الرحلة SV708" style="text-transform:uppercase">
-              <input id="manual-destination" type="text" placeholder="الوجهة KHI" maxlength="3" style="text-transform:uppercase">
-              <input id="manual-time" type="text" inputmode="numeric" maxlength="5" placeholder="18:30 (24 ساعة)">
+              <input id="manual-destination" type="text" placeholder="الوجهة KHI أو القاهرة">
+              <input id="manual-time" type="time" step="60" placeholder="18:30 (24 ساعة)">
               <button id="manual-add-btn" class="primary-button" type="button">إضافة</button>
             </div>
           </div>
@@ -201,6 +201,6 @@
   <div id="toast" class="toast" role="status"></div>
 
   <script src="vendor/pdf.min.js"></script>
-  <script src="fly.js?v=20260716c"></script>
+  <script src="fly.js?v=20260810f"></script>
 </body>
 </html>

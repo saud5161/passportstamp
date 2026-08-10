@@ -205,6 +205,18 @@ function destinationName(code) {
   return DEST_NAMES[code] || code;
 }
 
+function resolveDestinationCode(rawValue) {
+  const value = rawValue.trim();
+  if (!value) return null;
+  if (/^[A-Za-z]{3}$/.test(value)) return value.toUpperCase();
+
+  const exactMatch = Object.entries(DEST_NAMES).find(([, name]) => name === value);
+  if (exactMatch) return exactMatch[0];
+
+  const partialMatch = Object.entries(DEST_NAMES).find(([, name]) => name.includes(value) || value.includes(name));
+  return partialMatch ? partialMatch[0] : null;
+}
+
 function pad2(value) {
   return String(value).padStart(2, "0");
 }
@@ -220,11 +232,11 @@ function formatClock(iso) {
   return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
-function getTodayHijri() {
+function getHijriDate(date) {
   const formatter = new Intl.DateTimeFormat("en-US-u-ca-islamic-umalqura", {
     year: "numeric", month: "numeric", day: "numeric"
   });
-  const parts = formatter.formatToParts(new Date());
+  const parts = formatter.formatToParts(date);
   const day = parts.find(part => part.type === "day").value;
   const month = parts.find(part => part.type === "month").value;
   const year = (parts.find(part => part.type === "year") || parts.find(part => part.type === "relatedYear")).value;
@@ -286,6 +298,7 @@ async function loadAddViewFlightsFromDb() {
       id: row.id,
       flightNumber: row.flight_number,
       destinationCode: row.destination_code,
+      scheduledAt: row.scheduled_at,
       scheduledTime: isoToHHMM(row.scheduled_at),
       actualTime: row.actual_departure_at ? isoToHHMM(row.actual_departure_at) : ""
     }));
@@ -463,11 +476,11 @@ const TIME_24H_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 async function addManualFlight() {
   const flightNumber = elements.manualFlightNumber.value.trim().toUpperCase();
-  const destinationCode = elements.manualDestination.value.trim().toUpperCase();
+  const destinationCode = resolveDestinationCode(elements.manualDestination.value);
   const timeValue = elements.manualTime.value.trim();
 
   if (!/^[A-Z]{1,3}\d{1,4}$/.test(flightNumber)) { showToast("رقم رحلة غير صحيح."); return; }
-  if (!/^[A-Z]{3}$/.test(destinationCode)) { showToast("رمز وجهة غير صحيح (3 أحرف)."); return; }
+  if (!destinationCode) { showToast("وجهة غير معروفة، اكتب الرمز مثل KHI أو اسم المدينة مثل كراتشي."); return; }
   if (!TIME_24H_RE.test(timeValue)) { showToast("صيغة الوقت غير صحيحة، استخدم نظام 24 ساعة مثل 18:30."); return; }
 
   const scheduledIso = scheduledIsoFromTodayTime(timeValue);
@@ -575,13 +588,14 @@ function airportHeaderHtml() {
     </div>`;
 }
 
-function getTodayWeekday() {
-  return new Intl.DateTimeFormat("ar-SA", { weekday: "long" }).format(new Date());
+function getWeekdayName(date) {
+  return new Intl.DateTimeFormat("ar-SA", { weekday: "long" }).format(date);
 }
 
-function buildFlightPageHtml(flight, index, allFlights) {
-  const hijri = getTodayHijri();
-  const weekday = getTodayWeekday();
+function buildFlightPageHtml(flight) {
+  const flightDate = flight.scheduledAt ? new Date(flight.scheduledAt) : new Date();
+  const hijri = getHijriDate(flightDate);
+  const weekday = getWeekdayName(flightDate);
   const carrierName = escapeHtml(elements.carrierEmployee.value.trim());
   const passportName = escapeHtml(elements.passportEmployee.value.trim());
   const actualOrScheduled = flight.actualTime || flight.scheduledTime;
@@ -595,7 +609,7 @@ function buildFlightPageHtml(flight, index, allFlights) {
 
       <table class="manifest-table">
         <colgroup>
-          <col style="width:34%"><col style="width:22%"><col style="width:22%"><col style="width:22%">
+          <col style="width:32%"><col style="width:30%"><col style="width:20%"><col style="width:18%">
         </colgroup>
         <tr class="title-row"><td colspan="4">نموذج تسليم بيان الركاب (المنفست)</td></tr>
         <tr>
@@ -646,7 +660,6 @@ function buildFlightPageHtml(flight, index, allFlights) {
       </div>
 
       <div class="form-page-footer">
-        <span>الصفحة ${index + 1} من ${allFlights.length}</span>
         <span>Classified as Internal Use Only</span>
       </div>
     </div>`;
@@ -656,7 +669,7 @@ function generateForms() {
   if (!state.flights.length) return;
 
   elements.printRoot.innerHTML = state.flights
-    .map((flight, index) => buildFlightPageHtml(flight, index, state.flights))
+    .map(flight => buildFlightPageHtml(flight))
     .join("");
   elements.printRoot.hidden = false;
   elements.generatedCount.textContent = state.flights.length;
@@ -726,15 +739,14 @@ const PRINT_CSS = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2mm 2mm;
-    border-bottom: 1mm solid #000;
+    padding: 0 2mm 0;
     gap: 6mm;
     flex-shrink: 0;
   }
-  .airport-block { display: flex; align-items: center; justify-content: center; flex: 1; }
+  .airport-block { display: flex; align-items: center; justify-content: center; flex: 1; min-width: 0; }
   .airport-logo {
-    max-height: 60mm;
-    max-width: 115mm;
+    max-height: 16mm;
+    max-width: 100%;
     width: auto;
     height: auto;
     object-fit: contain;
@@ -747,7 +759,7 @@ const PRINT_CSS = `
     border: 0.7mm solid #000;
     table-layout: fixed;
     direction: rtl;
-    margin: 3mm 0 0;
+    margin: 14mm 0 0;
     flex-shrink: 0;
   }
   .manifest-table td {
@@ -764,8 +776,16 @@ const PRINT_CSS = `
   .manifest-table .title-row td { font-size: 15pt; font-weight: 900; padding: 4.5mm; background: #f4f4f4; }
   .manifest-table .header-cell { font-weight: 800; background: #f8f8f8; font-size: 10pt; }
   .manifest-table .section-cell { font-weight: 900; background: #ececec; text-align: center; font-size: 13pt; padding: 3.5mm; }
-  .manifest-table .data-cell { height: 12mm; }
-  .sig-img { max-height: 15mm; max-width: 100%; object-fit: contain; }
+  .manifest-table .data-cell { height: 12mm; position: relative; overflow: visible; }
+  .sig-img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-height: 22mm;
+    max-width: 96%;
+    object-fit: contain;
+  }
   .manifest-table .value-wide { text-align: center; }
   .manifest-table .ltr-value { direction: ltr; unicode-bidi: plaintext; font-weight: 400; font-size: 11pt; }
 
@@ -788,7 +808,7 @@ const PRINT_CSS = `
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding: 2.5mm 2mm 0;
     border-top: 0.3mm solid #999;
     font-size: 8.5pt;
