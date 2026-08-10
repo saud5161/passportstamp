@@ -580,10 +580,10 @@ function airportHeaderHtml() {
   return `
     <div class="form-header">
       <div class="airport-block">
-        <img class="airport-logo" src="${ASSET_BASE}assets/riyadh-airports-logo.png" alt="مطارات الرياض">
+        <img class="airport-logo" src="${ASSET_BASE}assets/riyadh-airports-logo.png?v=20260810g" alt="مطارات الرياض">
       </div>
       <div class="airport-block">
-        <img class="airport-logo" src="${ASSET_BASE}assets/king-khalid-logo.png" alt="مطار الملك خالد الدولي">
+        <img class="airport-logo" src="${ASSET_BASE}assets/king-khalid-logo.png?v=20260810g" alt="مطار الملك خالد الدولي">
       </div>
     </div>`;
 }
