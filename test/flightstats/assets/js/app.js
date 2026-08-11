@@ -141,7 +141,7 @@ let state = {
     status: "all",
     airline: "all",
     date: todayStr(),
-    timeFrom: "",
+    timeFrom: nowTimeStr(),
     timeTo: "",
     upcomingOnly: false,
     q: "",
@@ -161,6 +161,13 @@ function todayStr() {
 }
 
 function pad(n) { return String(n).padStart(2, "0"); }
+
+// وقت الفتح الحالي (HH:MM) - يُستخدم كقيمة افتراضية لحقل "من الساعة" عند فتح/تحديث الصفحة فقط،
+// ولا يتحدّث تلقائياً بعد ذلك إلا عند إعادة تحميل الصفحة أو الضغط على "إعادة تعيين"
+function nowTimeStr() {
+  const d = new Date();
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function pick(arr) { return arr[rand(0, arr.length - 1)]; }
@@ -368,6 +375,17 @@ function normalizeOfficialFlight(f, now) {
   };
 }
 
+// نتحقق أن التاريخ المحلي الفعلي لوقت الرحلة المجدول يطابق التاريخ المطلوب تماماً - لأن استجابة
+// موقع المطار أحياناً تُرجع نافذة زمنية أوسع قليلاً من يوم تقويمي واحد صارم (تسرّب رحلات من اليوم
+// التالي/السابق قرب منتصف الليل)، وهذا كان يسبب ظهور رحلات من تاريخ آخر ضمن قائمة اليوم المحدد.
+function isSameLocalDate(date, dateStr) {
+  if (!date) return false;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}` === dateStr;
+}
+
 async function fetchOfficialFlights(dateStr) {
   const [res] = await Promise.all([
     fetch(`${KKIA_API_BASE}/flightsInformation?date=${dateStr}`),
@@ -382,9 +400,44 @@ async function fetchOfficialFlights(dateStr) {
   }
   const now = new Date();
   const normalized = data.map((f) => normalizeOfficialFlight(f, now));
-  const onlyAllowedTerminals = normalized.filter((f) => TERMINALS.includes(f.terminal));
-  onlyAllowedTerminals.sort((a, b) => (a.scheduled?.getTime() || 0) - (b.scheduled?.getTime() || 0));
-  return onlyAllowedTerminals;
+  const filtered = normalized.filter((f) => TERMINALS.includes(f.terminal) && isSameLocalDate(f.scheduled, dateStr));
+
+  // إزالة التكرار: عند إعادة جدولة رحلة (تأخير) يُصدر المصدر أحياناً سجلاً جديداً بوقت مجدول مختلف
+  // مع إبقاء السجل القديم أيضاً، فتظهر نفس الرحلة مرتين (مرة بوقتها الأصلي ومرة "متأخرة" بوقت جديد).
+  // نجمع حسب رقم الرحلة+النوع+المدينة (بدل الوقت المجدول الذي قد يتغيّر) ونُبقي فقط على النسخة
+  // ذات الحالة الأكثر تأكيداً (متأخرة/أقلعت/هبطت...) بدل الحالة الافتراضية، ما لم يكن الفارق
+  // الزمني بين النسختين كبيراً (أكثر من 6 ساعات) فتُعامَلان كرحلتين مختلفتين فعلياً بنفس الرقم.
+  function statusConfidenceRank(status) {
+    return (status === "scheduled" || status === "on-time") ? 0 : 1;
+  }
+
+  const dedupeMap = new Map();
+  filtered.forEach((f) => {
+    const baseKey = `${f.type}-${f.flightNo}-${f.city}`;
+    const existing = dedupeMap.get(baseKey);
+    if (!existing) {
+      dedupeMap.set(baseKey, f);
+      return;
+    }
+    const diffHours = Math.abs((f.scheduled?.getTime() || 0) - (existing.scheduled?.getTime() || 0)) / 3600000;
+    if (diffHours > 6) {
+      // فارق كبير جداً - على الأرجح رحلتان منفصلتان فعلاً بنفس الرقم، لا تكرار لنفس الرحلة
+      dedupeMap.set(`${baseKey}-${f.scheduled?.getTime()}`, f);
+      return;
+    }
+    const existingRank = statusConfidenceRank(existing.status);
+    const currentRank = statusConfidenceRank(f.status);
+    if (currentRank > existingRank) {
+      dedupeMap.set(baseKey, f);
+    } else if (currentRank === existingRank && (f.scheduled?.getTime() || 0) > (existing.scheduled?.getTime() || 0)) {
+      // عند تعادل درجة التأكد، نفضّل الوقت المجدول الأحدث لأنه غالباً التحديث الأخير
+      dedupeMap.set(baseKey, f);
+    }
+  });
+
+  const deduped = [...dedupeMap.values()];
+  deduped.sort((a, b) => (a.scheduled?.getTime() || 0) - (b.scheduled?.getTime() || 0));
+  return deduped;
 }
 
 /* ---------------------------- Live API (AeroDataBox - مصدر احتياطي) ---------------------------- */
@@ -851,6 +904,7 @@ function initUI() {
   document.getElementById("airportName").textContent = CFG.AIRPORT_NAME_AR || "مطار الملك خالد الدولي";
   document.getElementById("dateFilter").value = state.filters.date;
   document.getElementById("terminalFilter").value = state.filters.terminal;
+  document.getElementById("timeFrom").value = state.filters.timeFrom;
   setActiveSeg(state.filters.type);
 
   renderColumnsPanel();
@@ -1006,7 +1060,7 @@ function initUI() {
   document.getElementById("resetBtn").addEventListener("click", () => {
     state.filters = {
       type: "all", terminal: "all", status: "all", airline: "all",
-      date: todayStr(), timeFrom: "", timeTo: "", upcomingOnly: false, q: "",
+      date: todayStr(), timeFrom: nowTimeStr(), timeTo: "", upcomingOnly: false, q: "",
     };
     saveTypeFilter("all");
     saveTerminalFilter("all");
@@ -1014,7 +1068,7 @@ function initUI() {
     document.getElementById("terminalFilter").value = "all";
     document.getElementById("statusFilter").value = "all";
     document.getElementById("airlineFilter").value = "all";
-    document.getElementById("timeFrom").value = "";
+    document.getElementById("timeFrom").value = state.filters.timeFrom;
     document.getElementById("timeTo").value = "";
     document.getElementById("upcomingOnly").checked = false;
     document.getElementById("dateFilter").value = state.filters.date;
@@ -1025,6 +1079,7 @@ function initUI() {
   document.getElementById("copyBtn").addEventListener("click", copyTableToClipboard);
   document.getElementById("printBtn").addEventListener("click", printFlights);
   document.getElementById("exportWordBtn").addEventListener("click", exportWordDocument);
+  document.getElementById("exportReportsBtn").addEventListener("click", exportReportsWordDocument);
 }
 
 /* ---------------------------- Copy table (Excel-friendly) ---------------------------- */
@@ -1233,6 +1288,67 @@ function exportWordDocument() {
   const a = document.createElement("a");
   a.href = url;
   a.download = `رحلات-${state.filters.date || todayStr()}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+const ARABIC_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+function toArabicDigits(value) {
+  return String(value).replace(/[0-9]/g, (d) => ARABIC_DIGITS[Number(d)]);
+}
+
+// تصدير Word مبسّط للتقارير: 3 أعمدة فقط (رمز الرحلة / رقم الرحلة / المدينة) بأرقام عربية
+function exportReportsWordDocument() {
+  const filtered = getFilteredFlights();
+  const airport = CFG.AIRPORT_NAME_AR || "مطار الملك خالد الدولي";
+  const cellStyle = "border:1px solid #333;padding:6px 10px;text-align:center;";
+  const headStyle = cellStyle + "background:#eee;font-weight:bold;";
+
+  const rows = filtered.map((f) => {
+    const parts = (f.flightNo || "").trim().split(/\s+/);
+    const code = parts[0] || "—";
+    const number = parts.length > 1 ? parts.slice(1).join(" ") : "";
+    return `<tr>
+      <td style="${cellStyle}">${escapeHtml(code)}</td>
+      <td style="${cellStyle}">${escapeHtml(toArabicDigits(number))}</td>
+      <td style="${cellStyle}">${escapeHtml(f.city)}</td>
+    </tr>`;
+  }).join("");
+
+  const html = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<title>${escapeHtml(airport)} - تقرير الرحلات</title>
+<style>
+  body{font-family:Tahoma,Arial,sans-serif;color:#111; direction:rtl;}
+  h1{font-size:16pt;}
+  table.report-table{width:100%;border-collapse:collapse;font-size:12pt;}
+</style>
+</head>
+<body>
+  <h1>${escapeHtml(airport)} - تقرير الرحلات</h1>
+  <p>عدد الرحلات: ${toArabicDigits(filtered.length)}</p>
+  <table class="report-table">
+    <thead>
+      <tr>
+        <th style="${headStyle}">رمز الرحلة</th>
+        <th style="${headStyle}">رقم الرحلة</th>
+        <th style="${headStyle}">المدينة</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+</body>
+</html>`;
+
+  const blob = new Blob(["﻿", html], { type: "application/msword" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `تقرير-رحلات-${state.filters.date || todayStr()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
