@@ -245,6 +245,8 @@ let refDataPromise = null;
 
 // قائمة احتياطية بأسماء مدن شائعة بالعربي - تُستخدم عندما لا تغطي قائمة kkia.sa (159 وجهة فقط) مدينة الرحلة
 const CITY_NAME_AR_FALLBACK = {
+  "PARIS": "باريس", "LONDON": "لندن", "DUBAI": "دبي", "ISTANBUL": "إسطنبول",
+  "DELI": "دلهي", "BERGAMO": "بيرغامو", "CAIRO": "القاهرة", "ALEPPO": "حلب",
   "ALEXANDRIA": "الإسكندرية", "AMMAN": "عمّان", "MADRID": "مدريد", "PHUKET": "بوكيت",
   "SAN FRANCISCO": "سان فرانسيسكو", "TRABZON": "طرابزون", "BARCELONA": "برشلونة",
   "ROME": "روما", "MILAN": "ميلانو", "ATHENS": "أثينا", "VIENNA": "فيينا",
@@ -511,7 +513,8 @@ function normalizeApiFlight(f, direction) {
     flightNo: f.number || "—",
     airline: f.airline?.name || "غير معروف",
     airlineCode: f.airline?.iata || "",
-    city: normalizeCityName(move?.airport?.municipalityName || move?.airport?.name)
+    city: (move?.airport?.iata && CITY_NAME_AR.get(move.airport.iata.toUpperCase()))
+      || normalizeCityName(move?.airport?.municipalityName || move?.airport?.name)
       || move?.airport?.municipalityName || move?.airport?.name || "—",
     terminal: local?.terminal ? `الصالة ${local.terminal}` : "—",
     gate: local?.gate || "—",
@@ -544,6 +547,41 @@ async function fetchLiveFlights(dateStr) {
   return onlyAllowedTerminals;
 }
 
+// نجلب قائمة الرحلات الأساسية من AeroDataBox، ثم نجلب موقع المطار الرسمي بأفضل جهد
+// (best-effort) لنستبدل حقول الحالة/الوقت الفعلي/البوابة/الصالة بقيمه الأدق كلما وُجدت
+// رحلة مطابقة (نفس النوع ورقم الرحلة). إن تعذّر الوصول لموقع المطار نُبقي بيانات AeroDataBox كما هي.
+async function fetchHybridFlights(dateStr) {
+  // نضمن تحميل قاموس ترجمة المدن/شركات الطيران العربي أولاً حتى تستفيد منه بيانات AeroDataBox أيضاً
+  await loadReferenceData();
+  const aeroFlights = await fetchLiveFlights(dateStr);
+
+  let officialByKey = new Map();
+  let officialOk = false;
+  try {
+    const officialFlights = await fetchOfficialFlights(dateStr);
+    officialFlights.forEach((f) => officialByKey.set(`${f.type}-${f.flightNo}`, f));
+    officialOk = true;
+  } catch (err) {
+    console.error("تعذّر جلب تحديثات موقع المطار الرسمي، سيتم عرض حالة AeroDataBox كما هي:", err);
+  }
+
+  let matchedCount = 0;
+  const enriched = aeroFlights.map((f) => {
+    const match = officialByKey.get(`${f.type}-${f.flightNo}`);
+    if (!match) return f;
+    matchedCount++;
+    return {
+      ...f,
+      status: match.status,
+      actual: match.actual,
+      gate: match.gate && match.gate !== "—" ? match.gate : f.gate,
+      terminal: match.terminal && match.terminal !== "—" ? match.terminal : f.terminal,
+    };
+  });
+
+  return { flights: enriched, officialOk, matchedCount, total: aeroFlights.length };
+}
+
 /* ---------------------------- Data loading orchestration ---------------------------- */
 
 async function loadFlights() {
@@ -553,30 +591,40 @@ async function loadFlights() {
 
   const dateStr = state.filters.date || todayStr();
 
-  // 1) نجرّب أولاً المصدر الرسمي لموقع مطار الملك خالد الدولي (مجاني، لا يحتاج مفتاحاً، وأدق في التأخير)
-  try {
-    state.flights = await fetchOfficialFlights(dateStr);
-    state.usingMock = false;
-    state.dataSource = "official";
-    state.error = null;
-  } catch (officialErr) {
-    console.error("official source failed:", officialErr);
-
-    // 2) في حال فشل المصدر الرسمي، نجرّب AeroDataBox إن توفر مفتاح
-    if (HAS_KEY) {
+  if (HAS_KEY) {
+    // 1) الوضع الهجين: قائمة الرحلات من AeroDataBox + تحديثات الحالة من موقع المطار الرسمي
+    try {
+      const result = await fetchHybridFlights(dateStr);
+      state.flights = result.flights;
+      state.usingMock = false;
+      state.dataSource = result.officialOk ? "hybrid" : "aerodatabox";
+      state.hybridMeta = { matchedCount: result.matchedCount, total: result.total };
+      state.error = result.officialOk ? null : "تعذّر جلب تحديثات موقع المطار الرسمي - تُعرض حالة AeroDataBox كما هي.";
+    } catch (aeroErr) {
+      console.error("AeroDataBox (المصدر الأساسي للقائمة) فشل:", aeroErr);
+      // 2) احتياط: نجرّب موقع المطار الرسمي وحده كقائمة كاملة
       try {
-        state.flights = await fetchLiveFlights(dateStr);
+        state.flights = await fetchOfficialFlights(dateStr);
         state.usingMock = false;
-        state.dataSource = "aerodatabox";
-        state.error = null;
-      } catch (adbErr) {
-        console.error("AeroDataBox failed:", adbErr);
+        state.dataSource = "official";
+        state.error = "تعذّر الاتصال بـ AeroDataBox (" + aeroErr.message + "). يتم الآن عرض بيانات موقع المطار الرسمي فقط.";
+      } catch (officialErr) {
+        console.error("موقع المطار الرسمي فشل أيضاً:", officialErr);
         state.flights = generateMockFlights(dateStr);
         state.usingMock = true;
         state.dataSource = "mock";
         state.error = "تعذّر الاتصال بكل مصادر البيانات الحية. يتم الآن عرض بيانات تجريبية.";
       }
-    } else {
+    }
+  } else {
+    // بدون مفتاح AeroDataBox لا يمكن استخدامه كقائمة أساسية - نعتمد موقع المطار الرسمي فقط
+    try {
+      state.flights = await fetchOfficialFlights(dateStr);
+      state.usingMock = false;
+      state.dataSource = "official";
+      state.error = null;
+    } catch (officialErr) {
+      console.error("official source failed:", officialErr);
       state.flights = generateMockFlights(dateStr);
       state.usingMock = true;
       state.dataSource = "mock";
@@ -850,6 +898,12 @@ function renderMeta(filtered) {
     badge.style.borderColor = "rgba(34,197,94,.35)";
     badge.style.color = "#22c55e";
     badgeText.textContent = "بيانات مباشرة وفق المصادر الرسمية لمطار الملك خالد الدولي";
+  } else if (state.dataSource === "hybrid") {
+    badge.style.background = "rgba(34,197,94,.12)";
+    badge.style.borderColor = "rgba(34,197,94,.35)";
+    badge.style.color = "#22c55e";
+    const m = state.hybridMeta || {};
+    badgeText.textContent = `بيانات مباشرة — الرحلات من AeroDataBox، والتحديثات من مطار الملك خالد (${m.matchedCount || 0}/${m.total || 0} رحلة محدَّثة)`;
   } else {
     badge.style.background = "rgba(34,197,94,.12)";
     badge.style.borderColor = "rgba(34,197,94,.35)";
@@ -1079,7 +1133,7 @@ function initUI() {
   document.getElementById("copyBtn").addEventListener("click", copyTableToClipboard);
   document.getElementById("printBtn").addEventListener("click", printFlights);
   document.getElementById("exportWordBtn").addEventListener("click", exportWordDocument);
-  document.getElementById("exportReportsBtn").addEventListener("click", exportReportsWordDocument);
+  document.getElementById("exportReportsBtn").addEventListener("click", copyReportsToClipboard);
 }
 
 /* ---------------------------- Copy table (Excel-friendly) ---------------------------- */
@@ -1299,60 +1353,43 @@ function toArabicDigits(value) {
   return String(value).replace(/[0-9]/g, (d) => ARABIC_DIGITS[Number(d)]);
 }
 
-// تصدير Word مبسّط للتقارير: 3 أعمدة فقط (رمز الرحلة / رقم الرحلة / المدينة) بأرقام عربية
-function exportReportsWordDocument() {
-  const filtered = getFilteredFlights();
-  const airport = CFG.AIRPORT_NAME_AR || "مطار الملك خالد الدولي";
-  const cellStyle = "border:1px solid #333;padding:6px 10px;text-align:center;";
-  const headStyle = cellStyle + "background:#eee;font-weight:bold;";
-
-  const rows = filtered.map((f) => {
+// نسخ سريع للتقارير: 3 أعمدة فقط (رمز الرحلة / رقم الرحلة بالعربي / المدينة) بدون عناوين أعمدة،
+// يُنسخ مباشرة للحافظة (وليس ملف Word) ليُلصق فوراً في أي تقرير أو رسالة
+function buildReportsTsv(filtered) {
+  return filtered.map((f) => {
     const parts = (f.flightNo || "").trim().split(/\s+/);
     const code = parts[0] || "—";
     const number = parts.length > 1 ? parts.slice(1).join(" ") : "";
-    return `<tr>
-      <td style="${cellStyle}">${escapeHtml(code)}</td>
-      <td style="${cellStyle}">${escapeHtml(toArabicDigits(number))}</td>
-      <td style="${cellStyle}">${escapeHtml(f.city)}</td>
-    </tr>`;
-  }).join("");
+    return [code, toArabicDigits(number), f.city].join("\t");
+  }).join("\n");
+}
 
-  const html = `<!DOCTYPE html>
-<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-<head>
-<meta charset="UTF-8">
-<title>${escapeHtml(airport)} - تقرير الرحلات</title>
-<style>
-  body{font-family:Tahoma,Arial,sans-serif;color:#111; direction:rtl;}
-  h1{font-size:16pt;}
-  table.report-table{width:100%;border-collapse:collapse;font-size:12pt;}
-</style>
-</head>
-<body>
-  <h1>${escapeHtml(airport)} - تقرير الرحلات</h1>
-  <p>عدد الرحلات: ${toArabicDigits(filtered.length)}</p>
-  <table class="report-table">
-    <thead>
-      <tr>
-        <th style="${headStyle}">رمز الرحلة</th>
-        <th style="${headStyle}">رقم الرحلة</th>
-        <th style="${headStyle}">المدينة</th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>
-</body>
-</html>`;
+async function copyReportsToClipboard() {
+  const filtered = getFilteredFlights();
+  const tsv = buildReportsTsv(filtered);
+  const btn = document.getElementById("exportReportsBtn");
+  const original = btn.innerHTML;
 
-  const blob = new Blob(["﻿", html], { type: "application/msword" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `تقرير-رحلات-${state.filters.date || todayStr()}.doc`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  try {
+    await navigator.clipboard.writeText(tsv);
+    btn.innerHTML = "✅ تم النسخ";
+  } catch {
+    const ta = document.createElement("textarea");
+    ta.value = tsv;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      btn.innerHTML = "✅ تم النسخ";
+    } catch {
+      btn.innerHTML = "⚠️ تعذّر النسخ";
+    }
+    document.body.removeChild(ta);
+  }
+
+  setTimeout(() => { btn.innerHTML = original; }, 1800);
 }
 
 /* ---------------------------- كثافة الرحلات حسب الوقت ---------------------------- */
