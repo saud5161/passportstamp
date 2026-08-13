@@ -287,6 +287,7 @@ main {
 .review-note-box textarea:focus { border-color: var(--green-700); box-shadow: 0 0 0 4px rgba(47, 123, 97, .1); }
 
 .upload-panel {
+  position: relative;
   min-height: 112px;
   padding: 20px 24px;
   display: flex;
@@ -298,6 +299,22 @@ main {
   box-shadow: var(--shadow);
   transition: .2s ease;
 }
+
+/* عدد الركاب/الترانزيت في الزاوية اليسرى العلوية لكل مربع إرفاق - يظهر فقط بعد
+   وجود عدد فعلي. */
+.upload-count-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--green-700);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .18);
+}
+.upload-count-badge[hidden] { display: none; }
 
 .upload-panel.dragging {
   border-color: var(--gold);
@@ -792,36 +809,50 @@ main {
 }
 .server-button:hover { background: var(--green-100); }
 
+/* شبكة منظمة بخلايا متساوية بدل صف نصي متلاصق - كل خانة بطاقة مستقلة بعنوان
+   صغير أعلاها وقيمة كبيرة تحتها، فيسهل قراءة كل رقم بمكانه بلمحة. */
 .summary-bar {
   margin: 15px 0;
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 30px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: rgba(255, 255, 255, .86);
 }
 
-.summary-bar div { display: flex; align-items: baseline; gap: 8px; }
-.summary-bar strong { color: var(--green-700); font-size: 22px; }
-.summary-bar span { color: var(--muted); font-size: 12px; font-weight: 700; }
-.summary-bar .text-button { margin-inline-start: auto; }
+.summary-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: 12px;
+  background: var(--green-50);
+  text-align: center;
+}
+.summary-label { color: var(--muted); font-size: 10.5px; font-weight: 700; }
+.summary-cell strong { color: var(--green-700); font-size: 20px; }
 
-/* عدد الملاحين وركاب الترانزيت - حقلان قابلان للتعديل مباشرة، ومرتبطان بحاسبة
-   الرحلات (نفس الرحلة الحالية): تلقائي من البيانات المرفقة، أو إدخال يدوي. */
-.summary-editable input {
-  width: 46px;
-  border: 1px solid var(--line);
+/* عدد الملاحين وركاب الترانزيت (والمختم) - حقول قابلة للتعديل مباشرة، ومرتبطة
+   بحاسبة الرحلات (نفس الرحلة الحالية): تلقائي من البيانات المرفقة، أو إدخال يدوي.
+   خلفية خضراء واضحة تميّزها بصريًا كخانات قابلة للكتابة عن الخانات الثابتة (strong). */
+.summary-cell--editable input {
+  width: 100%;
+  max-width: 56px;
+  border: 1px solid var(--green-700);
   border-radius: 8px;
   padding: 3px 4px;
-  color: var(--green-700);
+  color: #fff;
   font-size: 18px;
   font-weight: 800;
   text-align: center;
-  background: var(--green-50);
+  background: var(--green-700);
 }
-.summary-editable input:focus { outline: 0; border-color: var(--green-700); background: #fff; }
+.summary-cell--editable input::placeholder { color: rgba(255, 255, 255, .75); }
+.summary-cell--editable input:focus { outline: 0; box-shadow: 0 0 0 3px rgba(47, 123, 97, .3); }
 
 .text-button { padding: 8px 12px; color: var(--green-800); background: transparent; }
 .danger { color: var(--danger) !important; }
@@ -977,6 +1008,9 @@ main {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
+  /* الصفحة RTL فتقلب ترتيب أعمدة الشبكة افتراضيًا (١ يظهر يمينًا) - نجبرها LTR
+     هنا فقط حتى تكون اللوحة بترتيب لوحة أرقام صحيحة: ١ في أقصى اليسار كالمعتاد. */
+  direction: ltr;
 }
 .number-pad-grid button {
   height: 30px;
@@ -1491,8 +1525,9 @@ main {
   .flight-calc-row-remove { width: 18px; height: 18px; font-size: 11px; }
   .flight-calc-copy-btn { width: 18px; height: 18px; font-size: 10px; }
   .flight-calc-flight-cell { gap: 2px; }
-  .summary-bar { gap: 12px; flex-wrap: wrap; }
-  .summary-bar .text-button { margin-inline-start: 0; }
+  .summary-bar { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .summary-label { font-size: 9.5px; }
+  .summary-cell strong { font-size: 17px; }
   .panel-heading { align-items: flex-start; flex-direction: column; }
   .heading-actions { flex-wrap: wrap; }
   .bulk-match-footer { flex-direction: column; align-items: stretch; }

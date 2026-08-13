@@ -38,6 +38,7 @@ const elements = {
   message: document.getElementById("message-output"),
   totalCount: document.getElementById("total-count"),
   transitCountInput: document.getElementById("transit-count-input"),
+  transitStampedInput: document.getElementById("transit-stamped-input"),
   selectedCount: document.getElementById("selected-count"),
   crewCountInput: document.getElementById("crew-count-input"),
   expectedTotal: document.getElementById("expected-total"),
@@ -75,6 +76,8 @@ const elements = {
   manifestEmailValue: document.getElementById("manifest-email-value"),
   manifestSuccessBadge: document.getElementById("manifest-success-badge"),
   transitSuccessBadge: document.getElementById("transit-success-badge"),
+  manifestCountBadge: document.getElementById("manifest-count-badge"),
+  transitCountBadge: document.getElementById("transit-count-badge"),
   flightCalcPanel: document.getElementById("flight-calc-panel"),
   toggleFlightCalc: document.getElementById("toggle-flight-calc"),
   flightCalcTbody: document.getElementById("flight-calc-tbody"),
@@ -406,7 +409,9 @@ function applyTransitEntries(entries) {
   elements.transitSuccessBadge.hidden = false;
   elements.clearTransit.hidden = false;
   if (state.flightNumber) {
-    upsertFlightCalcRow(state.flightNumber, { transitCount: entries.length });
+    // العدد المُدخل بالحاسبة هو عدد ركاب الترانزيت الذين تم العثور عليهم فعليًا
+    // ضمن بيان الركاب (matchedCount)، وليس إجمالي قائمة الترانزيت الخام (entries.length).
+    upsertFlightCalcRow(state.flightNumber, { transitCount: matchedCount });
   }
   render();
   showToast(`تم استخراج ${entries.length} راكب ترانزيت، وتمت مطابقة ${matchedCount} منهم.`);
@@ -1407,7 +1412,11 @@ function reportWarnings() {
 
   // ركاب ترانزيت بجنسية سعودية - تنبيه حرج لأن السعوديين لا يُفترض أن يكونوا ضمن
   // فئة الترانزيت عادة، فيلزم التحقق فورًا (مثل تنبيه الجوازات المكررة بالضبط).
-  const saudiTransitFlags = state.transitEntries.filter(entry => normalize(entry.nationality) === "SAU");
+  // نكتفي بمن تم العثور عليهم فعليًا ضمن بيان الركاب - راكب ترانزيت سعودي غير مدرج
+  // أصلًا بالمنفست (مثلًا سافر على رحلة أخرى) لا داعي للتنبيه عنه هنا.
+  const saudiTransitFlags = state.transitEntries.filter(entry =>
+    normalize(entry.nationality) === "SAU" && findPassengerForTransitEntry(entry)
+  );
 
   // المقاعد الصحيحة: أرقام فقط للطفل مثل 123،
   // أو رقم/أرقام وحرف للمقعد المعتاد مثل 6A و034C.
@@ -1625,6 +1634,14 @@ function render() {
   elements.totalCount.textContent = state.passengers.length;
   if (elements.transitLegend) elements.transitLegend.hidden = !state.transitEntries.length;
 
+  // شارة عدد الركاب/الترانزيت بزاوية مربع الإرفاق - تظهر فقط بعد وجود عدد فعلي،
+  // وتعرض عدد ركاب الترانزيت المُطابَق فعليًا مع بيان الركاب (وليس إجمالي القائمة الخام).
+  elements.manifestCountBadge.hidden = !state.passengers.length;
+  elements.manifestCountBadge.textContent = `👤 ${state.passengers.length}`;
+  const transitMatchedCount = computeTransitMatchedIds().size;
+  elements.transitCountBadge.hidden = !state.transitEntries.length;
+  elements.transitCountBadge.textContent = `✈️ ${transitMatchedCount}`;
+
   // عدد الملاحين وركاب الترانزيت والمجموع المتوقع تُؤخذ من حاسبة الرحلات (نفس رقم
   // الرحلة الحالي) - لا نلمس أي حقل أثناء كتابة المستخدم فيه حتى لا يفقد تركيزه.
   const calcRow = currentFlightCalcRow();
@@ -1632,7 +1649,12 @@ function render() {
     elements.crewCountInput.value = calcRow ? (calcRow.crewCount || 0) : "";
   }
   if (document.activeElement !== elements.transitCountInput) {
-    elements.transitCountInput.value = calcRow ? (calcRow.transitCount || 0) : (state.transitEntries.length || 0);
+    // العدد الافتراضي (قبل إنشاء صف بالحاسبة) هو المُطابَق فعليًا مع بيان الركاب،
+    // لا إجمالي قائمة الترانزيت الخام - بنفس منطق applyTransitEntries.
+    elements.transitCountInput.value = calcRow ? (calcRow.transitCount || 0) : computeTransitMatchedIds().size;
+  }
+  if (document.activeElement !== elements.transitStampedInput) {
+    elements.transitStampedInput.value = calcRow ? (calcRow.transitStampedCount || 0) : "";
   }
   elements.expectedTotal.textContent = calcRow ? flightCalcTotal(calcRow) : "-";
 
@@ -1778,7 +1800,7 @@ function upsertFlightCalcRow(flightNumber, updates) {
     Object.assign(existing, updates);
   } else {
     flightCalcRows.push({
-      flightNumber, passengerCount: 0, transitCount: 0, crewCount: 0, returneeCount: 0, bodyCount: 0, ...updates
+      flightNumber, passengerCount: 0, transitCount: 0, transitStampedCount: 0, crewCount: 0, returneeCount: 0, bodyCount: 0, ...updates
     });
   }
   saveFlightCalcRows();
@@ -1879,7 +1901,7 @@ elements.flightCalcClear.addEventListener("click", () => {
 // يضيف رحلة فارغة يدويًا (بلا حاجة لإرفاق أي بيان) لتُكتب أرقامها مباشرة بالجدول -
 // لتغطية رحلات لم تُرفَق منفستاتها إطلاقًا في الأداة.
 elements.flightCalcAdd.addEventListener("click", () => {
-  flightCalcRows.push({ flightNumber: "", passengerCount: 0, transitCount: 0, crewCount: 0, returneeCount: 0, bodyCount: 0 });
+  flightCalcRows.push({ flightNumber: "", passengerCount: 0, transitCount: 0, transitStampedCount: 0, crewCount: 0, returneeCount: 0, bodyCount: 0 });
   saveFlightCalcRows();
   elements.flightCalcPanel.classList.remove("is-collapsed");
   elements.toggleFlightCalc.setAttribute("aria-expanded", "true");
@@ -1906,13 +1928,34 @@ elements.transitCountInput.addEventListener("input", event => {
   elements.expectedTotal.textContent = calcRow ? flightCalcTotal(calcRow) : "-";
 });
 
-// يمسح الصفر تلقائيًا عند التركيز على الخانة حتى لا يضطر المستخدم لحذفه يدويًا
-// قبل كتابة العدد الفعلي، ويعيده إن تُرك الحقل فارغًا بعد ذلك.
-elements.transitCountInput.addEventListener("focus", () => {
-  if (elements.transitCountInput.value === "0") elements.transitCountInput.value = "";
+// ترانزيت مختم - كل عدد يُكتب هنا يُخصم فورًا من "ركاب الترانزيت" (وليس مجرد رقم
+// منفصل يُعرض بجانبه). نحسب "delta" (الفرق عن آخر قيمة مختومة) بدل طرح القيمة
+// الكاملة المكتوبة في كل ضغطة زر، حتى لا يتضاعف الخصم أثناء كتابة رقم من خانتين
+// فأكثر (مثال: 10 ترانزيت، كتابة 2 مختم => يصبح الترانزيت 8).
+elements.transitStampedInput.addEventListener("input", event => {
+  const newStamped = Number(event.target.value) || 0;
+  const calcRow = currentFlightCalcRow();
+  const previousStamped = calcRow ? (calcRow.transitStampedCount || 0) : 0;
+  const currentTransit = calcRow ? (calcRow.transitCount || 0) : 0;
+  const nextTransit = Math.max(0, currentTransit - (newStamped - previousStamped));
+
+  upsertFlightCalcRow(state.flightNumber, { transitStampedCount: newStamped, transitCount: nextTransit });
+  if (document.activeElement !== elements.transitCountInput) {
+    elements.transitCountInput.value = nextTransit;
+  }
+  const updatedCalcRow = currentFlightCalcRow();
+  elements.expectedTotal.textContent = updatedCalcRow ? flightCalcTotal(updatedCalcRow) : "-";
 });
-elements.transitCountInput.addEventListener("blur", () => {
-  if (elements.transitCountInput.value.trim() === "") elements.transitCountInput.value = "0";
+
+// يمسح الصفر تلقائيًا عند التركيز على أي من الخانات الثلاث حتى لا يضطر المستخدم
+// لحذفه يدويًا قبل كتابة العدد الفعلي، ويعيده إن تُرك الحقل فارغًا بعد ذلك.
+[elements.transitCountInput, elements.crewCountInput, elements.transitStampedInput].forEach(input => {
+  input.addEventListener("focus", () => {
+    if (input.value === "0") input.value = "";
+  });
+  input.addEventListener("blur", () => {
+    if (input.value.trim() === "") input.value = "0";
+  });
 });
 
 renderFlightCalcTable();

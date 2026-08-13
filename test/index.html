@@ -48,6 +48,7 @@
 
     <div class="upload-row">
       <section class="upload-panel compact" id="drop-zone">
+        <span class="upload-count-badge" id="manifest-count-badge" hidden></span>
         <input id="pdf-input" type="file" accept="application/pdf,.pdf" hidden>
         <div class="upload-icon">PDF<span class="success-badge" id="manifest-success-badge" hidden>✓</span></div>
         <div class="upload-copy">
@@ -64,6 +65,7 @@
       </section>
 
       <section class="upload-panel compact transit-panel" id="transit-drop-zone">
+        <span class="upload-count-badge" id="transit-count-badge" hidden></span>
         <input id="transit-input" type="file" accept="application/pdf,.pdf" hidden>
         <div class="upload-icon transit-icon">✈️<span class="success-badge" id="transit-success-badge" hidden>✓</span></div>
         <div class="upload-copy">
@@ -77,6 +79,26 @@
         </div>
       </section>
     </div>
+
+    <section class="alerts-panel">
+      <div class="alerts-heading">
+        <div>
+          <span class="alert-symbol">!</span>
+          <div>
+            <h2>تنبيهات المنفست</h2>
+            <p>مراجعة الجوازات المكررة والمقاعد غير الواضحة قبل إرسال القائمة.</p>
+          </div>
+        </div>
+        <span id="alerts-count" class="alerts-count">0 تنبيه</span>
+      </div>
+      <div id="report-alerts" class="report-alerts">
+        <div class="alerts-empty">
+          <span>✓</span>
+          <strong>لا توجد تنبيهات حاليًا</strong>
+          <p>سيتم فحص المنفست تلقائيًا بعد إرفاقه.</p>
+        </div>
+      </div>
+    </section>
 
     <section class="image-import-panel is-collapsed" id="image-import-panel">
       <input id="system-image-input" type="file" accept="image/*" capture="environment" hidden>
@@ -111,17 +133,30 @@
     </section>
 
     <section class="summary-bar" aria-live="polite">
-      <div><strong id="total-count">0</strong><span>إجمالي الركاب</span></div>
-      <div class="summary-editable">
+      <div class="summary-cell">
+        <span class="summary-label">إجمالي الركاب</span>
+        <strong id="total-count">0</strong>
+      </div>
+      <div class="summary-cell summary-cell--editable">
+        <span class="summary-label">ركاب الترانزيت</span>
         <input id="transit-count-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" title="ركاب الترانزيت - تلقائي من قائمة الترانزيت أو إدخال يدوي">
-        <span>ركاب الترانزيت</span>
       </div>
-      <div><strong id="selected-count">0</strong><span>تم اختيارهم</span></div>
-      <div class="summary-editable">
+      <div class="summary-cell summary-cell--editable">
+        <span class="summary-label">ترانزيت مختم</span>
+        <input id="transit-stamped-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" title="عدد ركاب الترانزيت الذين تم ختمهم - يُخصم تلقائيًا من عدد ركاب الترانزيت">
+      </div>
+      <div class="summary-cell">
+        <span class="summary-label">تم اختيارهم</span>
+        <strong id="selected-count">0</strong>
+      </div>
+      <div class="summary-cell summary-cell--editable">
+        <span class="summary-label">عدد الملاحين</span>
         <input id="crew-count-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" title="عدد الملاحين - من حاسبة الرحلات أو إدخال يدوي">
-        <span>عدد الملاحين</span>
       </div>
-      <div><strong id="expected-total">-</strong><span>المجموع المتوقع</span></div>
+      <div class="summary-cell">
+        <span class="summary-label">المجموع المتوقع</span>
+        <strong id="expected-total">-</strong>
+      </div>
     </section>
 
     <section class="flight-calc-panel is-collapsed" id="flight-calc-panel">
@@ -153,26 +188,6 @@
         <div class="flight-calc-actions">
           <button id="flight-calc-add" class="small-button" type="button">＋ إضافة رحلة</button>
           <button id="flight-calc-clear" class="small-button danger" type="button">🗑️ تفريغ الرحلات</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="alerts-panel">
-      <div class="alerts-heading">
-        <div>
-          <span class="alert-symbol">!</span>
-          <div>
-            <h2>تنبيهات المنفست</h2>
-            <p>مراجعة الجوازات المكررة والمقاعد غير الواضحة قبل إرسال القائمة.</p>
-          </div>
-        </div>
-        <span id="alerts-count" class="alerts-count">0 تنبيه</span>
-      </div>
-      <div id="report-alerts" class="report-alerts">
-        <div class="alerts-empty">
-          <span>✓</span>
-          <strong>لا توجد تنبيهات حاليًا</strong>
-          <p>سيتم فحص المنفست تلقائيًا بعد إرفاقه.</p>
         </div>
       </div>
     </section>
