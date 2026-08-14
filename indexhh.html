@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.js"></script>
-    <script src="stragglers-ocr.js"></script>
 
     <style>
         :root {
@@ -1576,19 +1575,6 @@ function calcPresence() {
         for(let i=1; i<=cnt; i++) {
             box.innerHTML += `<div class="passenger-group">
                 <h5>متخلف ${i}</h5>
-                <div class="input-group" style="background:#f4f9ff; border:1px dashed #8ab4f8; border-radius:10px; padding:12px;">
-                    <label style="display:flex; align-items:center; gap:6px; color:var(--primary-dark); font-weight:800;"><i class="fas fa-camera"></i> إرفاق/التقاط صورة من نظام سيتا لتعبئة البيانات تلقائياً</label>
-                    <input type="file" accept="image/*" id="st_img_${i}" onchange="StragglersOCR.handleImage(${i}, this)" style="margin-top:8px; width:100%;">
-                    <div style="display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap;">
-                        <img id="st_img_preview_${i}" class="gif-preview" style="display:none;">
-                        <span id="st_img_status_${i}" style="display:none; align-items:center; gap:6px; font-size:0.8rem; color:#555;"></span>
-                    </div>
-                    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-                        <button type="button" onclick="StragglersOCR.clearImage(${i})" style="background:#eee; border:1px solid #ccc; border-radius:6px; padding:5px 10px; font-size:0.75rem; cursor:pointer;">مسح الصورة</button>
-                        <button type="button" onclick="StragglersOCR.toggleRaw(${i})" style="background:#eef8f5; border:1px solid #d7e8e2; color:var(--primary-dark); border-radius:6px; padding:5px 10px; font-size:0.75rem; cursor:pointer;">عرض النص المستخرج (للمراجعة اليدوية)</button>
-                    </div>
-                    <textarea id="st_img_raw_${i}" readonly rows="3" placeholder="سيظهر هنا النص الخام المستخرج من الصورة" style="display:none; margin-top:8px; font-size:0.72rem; direction:ltr; text-align:left; color:#666;"></textarea>
-                </div>
                 <div class="input-group"><label>🔹 الاسم</label><input type="text" id="st_name_${i}"></div>
                 <div class="input-group"><label>الجنسية</label><input type="text" id="st_nat_${i}"></div>
                 <div class="input-group"><label>رقم الجواز</label><input type="text" id="st_pass_${i}" class="en-num"></div>
