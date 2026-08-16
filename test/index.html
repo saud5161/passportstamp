@@ -46,6 +46,13 @@
       </div>
     </section>
 
+    <div class="new-trip-row">
+      <button id="reset-all" class="new-trip-button" type="button">
+        <span class="new-trip-icon">🔄</span>
+        <span>بدء رحلة جديدة</span>
+      </button>
+    </div>
+
     <div class="upload-row">
       <section class="upload-panel compact" id="drop-zone">
         <span class="upload-count-badge" id="manifest-count-badge" hidden></span>
@@ -54,12 +61,10 @@
         <div class="upload-copy">
           <h2>إرفاق بيان الركاب</h2>
           <p id="file-status">اسحب ملف PDF هنا، أو اختره من الجهاز</p>
-          <p class="manifest-support-note">⚠️ المنفستات المدعومة: الخطوط السعودية وطيران الرياض فقط، وأي منفست بنفس شكل الخطوط السعودية (مثل القطرية والهولندية والفلبينية وغيرها).</p>
           <div class="upload-actions">
             <button class="primary-button" id="choose-file" type="button">اختيار ملف PDF</button>
             <button id="view-manifest" class="secondary-button" type="button" hidden>⬇ تحميل وفتح المنفست</button>
             <button id="choose-server-file" class="server-button" type="button">📧 من الايميل</button>
-            <button id="reset-all" class="secondary-button danger" type="button">بدء بيان جديد</button>
           </div>
         </div>
       </section>
@@ -80,13 +85,13 @@
       </section>
     </div>
 
-    <section class="alerts-panel">
+    <section class="alerts-panel" id="alerts-panel">
       <div class="alerts-heading">
         <div>
           <span class="alert-symbol">!</span>
           <div>
             <h2>تنبيهات المنفست</h2>
-            <p>مراجعة الجوازات المكررة والمقاعد غير الواضحة قبل إرسال القائمة.</p>
+            <p class="alerts-types-list">⛔ ترانزيت سعوديين · ⛔ جوازات مكررة · وتنبيهات أخرى (مقاعد غير واضحة، أسماء/مقاعد مكررة، بلا وثيقة...)</p>
           </div>
         </div>
         <span id="alerts-count" class="alerts-count">0 تنبيه</span>
@@ -152,6 +157,14 @@
       <div class="summary-cell summary-cell--editable">
         <span class="summary-label">عدد الملاحين</span>
         <input id="crew-count-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" title="عدد الملاحين - من حاسبة الرحلات أو إدخال يدوي">
+      </div>
+      <div class="summary-cell summary-cell--editable">
+        <span class="summary-label">معاد</span>
+        <input id="returnee-count-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" title="عدد الركاب المعادين - من حاسبة الرحلات أو إدخال يدوي">
+      </div>
+      <div class="summary-cell summary-cell--editable">
+        <span class="summary-label">جثمان</span>
+        <input id="body-count-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" title="عدد الجثامين - من حاسبة الرحلات أو إدخال يدوي">
       </div>
       <div class="summary-cell">
         <span class="summary-label">المجموع المتوقع</span>

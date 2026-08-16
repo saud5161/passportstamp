@@ -41,6 +41,8 @@ const elements = {
   transitStampedInput: document.getElementById("transit-stamped-input"),
   selectedCount: document.getElementById("selected-count"),
   crewCountInput: document.getElementById("crew-count-input"),
+  returneeCountInput: document.getElementById("returnee-count-input"),
+  bodyCountInput: document.getElementById("body-count-input"),
   expectedTotal: document.getElementById("expected-total"),
   send: document.getElementById("send-whatsapp"),
   copy: document.getElementById("copy-message"),
@@ -49,6 +51,7 @@ const elements = {
   addManual: document.getElementById("add-manual"),
   alerts: document.getElementById("report-alerts"),
   alertsCount: document.getElementById("alerts-count"),
+  alertsPanel: document.getElementById("alerts-panel"),
   imageImportPanel: document.getElementById("image-import-panel"),
   toggleImageImport: document.getElementById("toggle-image-import"),
   systemImageInput: document.getElementById("system-image-input"),
@@ -1490,6 +1493,8 @@ function alertSummaryRow({ key, colorClass, icon, title, count, detailHtml }) {
 function renderAlerts() {
   if (!state.passengers.length) {
     elements.alertsCount.textContent = "0 تنبيه";
+    // بلا أي تنبيهات، تصغّر لوحة التنبيهات (على الجوال) بدل أخذ مساحة كبيرة بلا داعٍ.
+    elements.alertsPanel.classList.add("is-compact");
     elements.alerts.innerHTML = `
       <div class="alerts-empty">
         <span>✓</span><strong>لا توجد تنبيهات حاليًا</strong>
@@ -1503,6 +1508,7 @@ function renderAlerts() {
     + (duplicateNames.length ? 1 : 0) + (noDocument.length ? 1 : 0)
     + (alSaudFlags.length ? 1 : 0) + (countMismatch ? 1 : 0);
   elements.alertsCount.textContent = `${count} ${count === 1 ? "تنبيه" : "تنبيهات"}`;
+  elements.alertsPanel.classList.toggle("is-compact", count === 0);
 
   if (!count) {
     elements.alerts.innerHTML = `
@@ -1655,6 +1661,12 @@ function render() {
   }
   if (document.activeElement !== elements.transitStampedInput) {
     elements.transitStampedInput.value = calcRow ? (calcRow.transitStampedCount || 0) : "";
+  }
+  if (document.activeElement !== elements.returneeCountInput) {
+    elements.returneeCountInput.value = calcRow ? (calcRow.returneeCount || 0) : "";
+  }
+  if (document.activeElement !== elements.bodyCountInput) {
+    elements.bodyCountInput.value = calcRow ? (calcRow.bodyCount || 0) : "";
   }
   elements.expectedTotal.textContent = calcRow ? flightCalcTotal(calcRow) : "-";
 
@@ -1947,9 +1959,28 @@ elements.transitStampedInput.addEventListener("input", event => {
   elements.expectedTotal.textContent = updatedCalcRow ? flightCalcTotal(updatedCalcRow) : "-";
 });
 
-// يمسح الصفر تلقائيًا عند التركيز على أي من الخانات الثلاث حتى لا يضطر المستخدم
-// لحذفه يدويًا قبل كتابة العدد الفعلي، ويعيده إن تُرك الحقل فارغًا بعد ذلك.
-[elements.transitCountInput, elements.crewCountInput, elements.transitStampedInput].forEach(input => {
+// معاد وجثمان بشريط الملخص - إدخال يدوي يُحدّث نفس صف الرحلة الحالية بحاسبة
+// الرحلات مباشرة، بنفس مبدأ عدد الملاحين تمامًا.
+elements.returneeCountInput.addEventListener("input", event => {
+  const returneeCount = Number(event.target.value) || 0;
+  upsertFlightCalcRow(state.flightNumber, { returneeCount });
+  const calcRow = currentFlightCalcRow();
+  elements.expectedTotal.textContent = calcRow ? flightCalcTotal(calcRow) : "-";
+});
+
+elements.bodyCountInput.addEventListener("input", event => {
+  const bodyCount = Number(event.target.value) || 0;
+  upsertFlightCalcRow(state.flightNumber, { bodyCount });
+  const calcRow = currentFlightCalcRow();
+  elements.expectedTotal.textContent = calcRow ? flightCalcTotal(calcRow) : "-";
+});
+
+// يمسح الصفر تلقائيًا عند التركيز على أي من الخانات القابلة للتعديل حتى لا يضطر
+// المستخدم لحذفه يدويًا قبل كتابة العدد الفعلي، ويعيده إن تُرك الحقل فارغًا بعد ذلك.
+[
+  elements.transitCountInput, elements.crewCountInput, elements.transitStampedInput,
+  elements.returneeCountInput, elements.bodyCountInput
+].forEach(input => {
   input.addEventListener("focus", () => {
     if (input.value === "0") input.value = "";
   });

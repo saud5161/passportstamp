@@ -417,6 +417,28 @@ main {
   font-size: 10px;
 }
 
+/* زر "بدء رحلة جديدة" في المنتصف تمامًا فوق مربعي إرفاق بيان الركاب والترانزيت -
+   شكل واضح ومميز (كبسولة بحدود بارزة وأيقونة) بدل مظهر الزر الوردي الباهت
+   العادي (secondary-button)، حتى يبرز كإجراء مستقل ومقصود. */
+.new-trip-row { display: flex; justify-content: center; margin: 15px 0 12px; }
+.new-trip-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 26px;
+  border: 2px solid var(--danger);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--danger);
+  font-weight: 900;
+  font-size: 13.5px;
+  box-shadow: 0 6px 16px rgba(199, 59, 59, .18);
+  cursor: pointer;
+  transition: .2s ease;
+}
+.new-trip-button:hover { background: var(--danger); color: #fff; transform: translateY(-1px); }
+.new-trip-icon { font-size: 18px; }
+
 .upload-row { display: flex; align-items: stretch; gap: 14px; }
 .upload-row .upload-panel { flex: 1; min-width: 0; }
 
@@ -459,19 +481,6 @@ main {
 
 @media (max-width: 900px) {
   .upload-row { flex-direction: column; }
-}
-
-.upload-copy .manifest-support-note {
-  margin-top: 3px;
-  display: block;
-  padding: 1px 3px;
-  font-size: 8px;
-  font-weight: 400;
-  color: #8a5a0a;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  line-height: 1.25;
 }
 
 .image-import-panel {
@@ -813,10 +822,10 @@ main {
    صغير أعلاها وقيمة كبيرة تحتها، فيسهل قراءة كل رقم بمكانه بلمحة. */
 .summary-bar {
   margin: 15px 0;
-  padding: 12px;
+  padding: 8px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 6px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: rgba(255, 255, 255, .86);
@@ -827,26 +836,26 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 10px 6px;
-  border-radius: 12px;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: 10px;
   background: var(--green-50);
   text-align: center;
 }
-.summary-label { color: var(--muted); font-size: 10.5px; font-weight: 700; }
-.summary-cell strong { color: var(--green-700); font-size: 20px; }
+.summary-label { color: var(--muted); font-size: 9px; font-weight: 700; }
+.summary-cell strong { color: var(--green-700); font-size: 15px; }
 
 /* عدد الملاحين وركاب الترانزيت (والمختم) - حقول قابلة للتعديل مباشرة، ومرتبطة
    بحاسبة الرحلات (نفس الرحلة الحالية): تلقائي من البيانات المرفقة، أو إدخال يدوي.
    خلفية خضراء واضحة تميّزها بصريًا كخانات قابلة للكتابة عن الخانات الثابتة (strong). */
 .summary-cell--editable input {
   width: 100%;
-  max-width: 56px;
+  max-width: 42px;
   border: 1px solid var(--green-700);
-  border-radius: 8px;
-  padding: 3px 4px;
+  border-radius: 7px;
+  padding: 2px 3px;
   color: #fff;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 800;
   text-align: center;
   background: var(--green-700);
@@ -1208,6 +1217,17 @@ main {
 .alerts-heading > div { gap: 12px; }
 .alerts-heading h2 { margin: 0 0 4px; font-size: 17px; }
 .alerts-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+/* قائمة أنواع التنبيهات المتاحة - خط صغير جدًا، ومحدودة بسطرين كحد أقصى مهما طال
+   النص (قصّ بثلاث نقاط عند التجاوز) حتى لا تأخذ مساحة كبيرة بلوحة التنبيهات.
+   (تحديد أدق من .alerts-heading p عمدًا حتى يتغلب عليها). */
+.alerts-heading p.alerts-types-list {
+  font-size: 9.5px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 .alert-symbol {
   width: 38px; height: 38px; display: grid; place-items: center;
@@ -1502,20 +1522,44 @@ main {
   main { width: min(100% - 20px, 1440px); }
   .app-header { padding: 28px 18px 45px; }
   .privacy-badge { white-space: normal; }
-  .manifest-email-banner { flex-wrap: wrap; }
+
+  /* عنوان استقبال المنفستات: نص التلميح الطويل يُخفى فيبقى الصندوق بسطرين فقط
+     (العنوان البريدي + قيمته)، وأزرار النسخ/التنبيه تصبح صفًا واحدًا مضغوطًا. */
+  .manifest-email-banner { flex-wrap: wrap; padding: 6px 10px; }
   .manifest-email-info { min-width: calc(100% - 62px); }
+  .manifest-email-hint { display: none; }
   .manifest-email-banner .small-button { width: 100%; }
   .manifest-email-buttons { width: 100%; flex-direction: row; }
-  .upload-panel { align-items: stretch; flex-wrap: wrap; }
-  .upload-copy { min-width: calc(100% - 80px); }
+
+  /* إرفاق بيان الركاب وإرفاق الترانزيت جنبًا إلى جنب حتى على الجوال (بدل تحتها
+     بعض) - كل مربع يتحول لعمود داخلي ضيق (أيقونة أعلى، ثم نص، ثم أزرار) بدل
+     الصف الأفقي الواسع، حتى يتسع نصف عرض الشاشة. */
+  .upload-row { flex-direction: row; gap: 8px; }
+  .upload-panel { align-items: center; flex-wrap: nowrap; flex-direction: column; text-align: center; padding: 10px 8px; gap: 6px; }
+  .upload-copy { min-width: 0; width: 100%; }
+  .upload-copy h2 { font-size: 11.5px; margin-bottom: 2px; }
+  .upload-copy p { font-size: 9.5px; }
   .primary-button { width: 100%; }
-  .upload-actions { width: 100%; flex-wrap: wrap; }
+  .upload-actions { width: 100%; flex-direction: column; flex-wrap: nowrap; gap: 5px; }
   .upload-actions .primary-button { width: 100%; flex: 1 1 100%; }
   .upload-actions .secondary-button,
-  .upload-actions .server-button { flex: 1; width: auto; }
+  .upload-actions .server-button { flex: 1 1 100%; width: 100%; }
+  .upload-actions button { font-size: 10px; padding: 7px 5px; }
   .image-import-body { align-items: stretch; flex-direction: column; }
   .image-drop-button, .system-image-preview { width: 100%; }
   .system-image-preview { height: 150px; }
+
+  /* لوحة تنبيهات المنفست: بلا أي تنبيهات تصبح صغيرة جدًا (سطر واحد مضغوط) بدل
+     الصندوق الكبير الاحتفالي، حتى لا تأخذ مساحة على الجوال بلا داعٍ. */
+  .alerts-panel.is-compact { padding: 8px 12px; margin-top: 10px; }
+  .alerts-panel.is-compact .alert-symbol { width: 24px; height: 24px; font-size: 12px; border-radius: 7px; }
+  .alerts-panel.is-compact .alerts-heading h2 { font-size: 12px; margin: 0; }
+  .alerts-panel.is-compact .alerts-count { font-size: 9px; padding: 4px 8px; }
+  .alerts-panel.is-compact .report-alerts { margin-top: 0; }
+  .alerts-panel.is-compact .alerts-empty { flex-direction: row; padding: 2px 0; gap: 6px; }
+  .alerts-panel.is-compact .alerts-empty > span { width: 18px; height: 18px; margin-bottom: 0; font-size: 10px; }
+  .alerts-panel.is-compact .alerts-empty strong { font-size: 11px; }
+  .alerts-panel.is-compact .alerts-empty p { display: none; }
   .flight-calc-panel { padding: 8px 10px; }
   .flight-calc-heading h2 { font-size: 12px; }
   .flight-calc-table { min-width: 440px; font-size: 10px; }
@@ -1525,9 +1569,11 @@ main {
   .flight-calc-row-remove { width: 18px; height: 18px; font-size: 11px; }
   .flight-calc-copy-btn { width: 18px; height: 18px; font-size: 10px; }
   .flight-calc-flight-cell { gap: 2px; }
-  .summary-bar { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .summary-label { font-size: 9.5px; }
-  .summary-cell strong { font-size: 17px; }
+  .summary-bar { grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 6px; }
+  .summary-cell { padding: 5px 3px; }
+  .summary-label { font-size: 8px; }
+  .summary-cell strong { font-size: 13px; }
+  .summary-cell--editable input { font-size: 12px; max-width: 38px; }
   .panel-heading { align-items: flex-start; flex-direction: column; }
   .heading-actions { flex-wrap: wrap; }
   .bulk-match-footer { flex-direction: column; align-items: stretch; }
