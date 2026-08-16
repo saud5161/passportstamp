@@ -128,6 +128,23 @@
         .doc-button i { font-size: 1.2rem; }
         .doc-button.active { background: var(--primary); color: white; box-shadow: 0 8px 18px rgba(0, 105, 92, .18); }
         .l6-duration-box { background: #f8fbfa; border: 1px solid #e2ece8; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+        .l6-scan-btn {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 9px; margin-bottom: 10px; border: 1px dashed var(--gold);
+            border-radius: 20px; background: #fdfaf3; color: var(--primary-dark);
+            font-weight: 800; font-size: 0.82rem; cursor: pointer; transition: .2s;
+        }
+        .l6-scan-btn:hover { background: var(--gold); color: #fff; }
+        .l6-scan-btn:disabled { opacity: .6; cursor: wait; }
+        .l6-scan-hint {
+            display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+            gap: 6px; margin-bottom: 6px; text-align: center;
+            font-size: 0.7rem; font-weight: 700; color: #198754; line-height: 1.4;
+        }
+        .l6-beta-badge {
+            flex-shrink: 0; background: #198754; color: #fff; font-size: 0.6rem; font-weight: 900;
+            padding: 2px 8px; border-radius: 999px; letter-spacing: .3px;
+        }
         .l6-duration-box > label { color: var(--primary-dark); font-weight: 800; }
         .quick-reason-buttons, .quick-airline-buttons { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
         .quick-reason-buttons button, .quick-airline-buttons button { border: 1px solid #d7e8e2; border-radius: 999px; padding: 7px 12px; background: #eef8f5; color: var(--primary-dark); font-weight: 800; cursor: pointer; transition: .2s; }
@@ -1486,6 +1503,9 @@ function calcHijriLess6() {
         const lblExp = l6DocType==='passport'?'تاريخ انتهاء الجواز':'تاريخ انتهاء الهوية';
         for(let i=1;i<=cnt;i++) {
             box.innerHTML += `<div class="passenger-group"><h5>مسافر ${i}</h5>
+            <div class="l6-scan-hint"><span class="l6-beta-badge">تجريبي</span> يرجى أخذ صورة واضحة للوثيقة بشكل صحيح - لن يتم تخزين الصورة نهائيًا</div>
+            <button type="button" class="l6-scan-btn" id="l6_scan_btn_${i}" onclick="triggerPassportScan(${i})"><i class="fas fa-camera"></i> قراءة بيانات الجواز/بطاقة الصعود</button>
+            <input type="file" id="l6_scan_input_${i}" accept="image/*" capture="environment" style="display:none" onchange="handlePassportScan(${i}, this.files[0])">
             <div class="input-group"><label>الاسم</label><input type="text" id="l6_nm_${i}"></div>
             <div class="input-group"><label>${lbl}</label><input type="text" id="l6_num_${i}" class="en-num" style="direction:ltr"></div>
             <div class="input-group"><label>الجنسية</label><input type="text" id="l6_nat_${i}" value="سعودي"></div>
@@ -1508,6 +1528,137 @@ function calcHijriLess6() {
         if(input) {
             input.value = reason;
             input.focus();
+        }
+    }
+
+    // === قراءة بيانات الجواز تلقائيًا عبر Gemini (أقل من 6 أشهر) ===
+    // ⚠️ المفتاح مدمج مباشرة هنا بناءً على طلب صريح - يعني أن أي شخص يفتح مصدر
+    // هذه الصفحة يستطيع رؤيته واستخدامه. لا تنشر هذا الملف علنًا (مثلًا كمستودع
+    // GitHub عام) بدون نقل المفتاح لمكان آمن أولًا.
+    const GEMINI_API_KEY = "AQ.Ab8RN6Kq3LRz0U4B51-iv4JxR3gaq5K_woK3pecppFUoyMi7nw";
+    const GEMINI_MODEL = "gemini-flash-latest";
+
+    const PASSPORT_SCAN_PROMPT = `قد تحتوي هذه الصورة على جواز سفر، أو بطاقة صعود طائرة (Boarding Pass)، أو كليهما معًا بنفس الصورة (مثل جواز موضوع فوق بطاقة الصعود). استخرج كل ما هو موجود وواضح من الحقول التالية:
+
+من جواز السفر (إن وُجد):
+1) full_name: اسم صاحب الجواز بصيغة ثلاثية فقط (الاسم الأول، ثم اسم الأب، ثم اسم العائلة/الأخير) مدمجين بنص واحد، كما هو مكتوب بالضبط بالجواز (لا تترجم). إن كان الاسم رباعيًا (يحتوي اسم الجد بين اسم الأب والعائلة، مثل "احمد بن علي احمد العلي")، احذف اسم الجد (الجزء الثالث) واكتفِ بالاسم الأول واسم الأب واسم العائلة فقط (مثال: تصبح "احمد بن علي العلي").
+2) passport_number: رقم جواز السفر كما هو مطبوع (حروف وأرقام فقط بلا مسافات).
+3) تاريخ انتهاء الجواز (وليس تاريخ الإصدار) كأرقام ميلادية منفصلة: expiry_day، expiry_month، expiry_year. حوّل من الهجري للميلادي إن لزم.
+
+من بطاقة الصعود (إن وُجدت):
+4) وقت إقلاع الرحلة الفعلي (الوقت المكتوب أسفل/بجانب مطار المغادرة، بصيغة 24 ساعة) كرقمين منفصلين: departure_hour، departure_minute.
+5) وقت بداية الصعود/فتح البوابة (BOARDING، بصيغة 24 ساعة) كرقمين منفصلين: boarding_hour، boarding_minute.
+
+إن لم يوجد أحد النوعين (جواز أو بطاقة صعود) بالصورة، أو تعذّرت قراءة حقل بثقة معقولة، اجعل قيمته النصية "" أو 0 للأرقام - لا تخمّن أبدًا.`;
+
+    const PASSPORT_SCAN_SCHEMA = {
+        type: "OBJECT",
+        properties: {
+            full_name: { type: "STRING" },
+            passport_number: { type: "STRING" },
+            expiry_day: { type: "INTEGER" },
+            expiry_month: { type: "INTEGER" },
+            expiry_year: { type: "INTEGER" },
+            departure_hour: { type: "INTEGER" },
+            departure_minute: { type: "INTEGER" },
+            boarding_hour: { type: "INTEGER" },
+            boarding_minute: { type: "INTEGER" }
+        },
+        required: [
+            "full_name", "passport_number", "expiry_day", "expiry_month", "expiry_year",
+            "departure_hour", "departure_minute", "boarding_hour", "boarding_minute"
+        ]
+    };
+
+    function triggerPassportScan(index) {
+        const input = document.getElementById(`l6_scan_input_${index}`);
+        if(input) input.click();
+    }
+
+    function passportFileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.slice(reader.result.indexOf(",") + 1));
+            reader.onerror = () => reject(new Error("تعذر قراءة الصورة."));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function handlePassportScan(index, file) {
+        if(!file) return;
+        const btn = document.getElementById(`l6_scan_btn_${index}`);
+        const originalLabel = btn ? btn.innerHTML : "";
+        if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحليل...'; }
+
+        try {
+            const base64Data = await passportFileToBase64(file);
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: PASSPORT_SCAN_PROMPT },
+                            { inline_data: { mime_type: file.type || "image/jpeg", data: base64Data } }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: PASSPORT_SCAN_SCHEMA,
+                        temperature: 0
+                    }
+                })
+            });
+
+            const result = await response.json();
+            if(!response.ok) throw new Error(result?.error?.message || `خطأ HTTP ${response.status}`);
+
+            const textOutput = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if(!textOutput) throw new Error("لم يُرجع النموذج أي نتيجة.");
+
+            const data = JSON.parse(textOutput);
+
+            if(data.full_name) document.getElementById(`l6_nm_${index}`).value = data.full_name;
+            if(data.passport_number) document.getElementById(`l6_num_${index}`).value = data.passport_number;
+
+            const hasExpiry = data.expiry_day && data.expiry_month && data.expiry_year;
+            if(hasExpiry) {
+                document.getElementById("gDay").value = data.expiry_day;
+                document.getElementById("gMonth").value = data.expiry_month;
+                document.getElementById("gYear").value = data.expiry_year;
+                setL6CalcSource("gregorian");
+                calcLess6();
+            }
+
+            // وقت الإقلاع وموعد فتح البوابة من بطاقة الصعود - حقلان مشتركان لكل
+            // النموذج (رحلة واحدة لكل المسافرين)، وليسا لكل مسافر على حدة.
+            const hasDeparture = Number.isFinite(data.departure_hour) && Number.isFinite(data.departure_minute)
+                && !(data.departure_hour === 0 && data.departure_minute === 0);
+            if(hasDeparture) {
+                document.getElementById("l6_h").value = data.departure_hour;
+                document.getElementById("l6_m").value = data.departure_minute;
+            }
+
+            const hasBoarding = Number.isFinite(data.boarding_hour) && Number.isFinite(data.boarding_minute)
+                && !(data.boarding_hour === 0 && data.boarding_minute === 0);
+            if(hasBoarding) {
+                document.getElementById("l6_gh").value = data.boarding_hour;
+                document.getElementById("l6_gm").value = data.boarding_minute;
+            }
+
+            if(!hasExpiry && !hasDeparture && !hasBoarding) {
+                alert("تعذّرت قراءة أي بيانات واضحة من الصورة - أدخلها يدويًا.");
+            } else if(!hasExpiry) {
+                alert("تعذّرت قراءة تاريخ انتهاء الجواز بوضوح - أدخله يدويًا بالحاسبة أعلى الصفحة إن كان مطلوبًا.");
+            }
+        } catch(error) {
+            console.error("Passport scan error:", error);
+            alert(`تعذر تحليل صورة الجواز: ${error.message || "خطأ غير معروف"}`);
+        } finally {
+            if(btn) { btn.disabled = false; btn.innerHTML = originalLabel; }
+            const input = document.getElementById(`l6_scan_input_${index}`);
+            if(input) input.value = "";
         }
     }
 
