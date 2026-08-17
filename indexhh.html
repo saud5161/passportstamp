@@ -1541,18 +1541,23 @@ function calcHijriLess6() {
     const SUPABASE_KEY = "sb_publishable_ts5SGrWhODsG6EH5dUt9Wg_KUvsf-CF";
     const GEMINI_MODEL = "gemini-flash-latest";
 
-    let cachedGeminiApiKey = null;
-    async function getGeminiApiKey() {
-        if(cachedGeminiApiKey) return cachedGeminiApiKey;
+    // نجلب مفتاحًا أساسيًا واحتياطيًا (gemini_api_key و gemini_api_key_2) دفعة
+    // واحدة - إن كان الخادم مضغوطًا على المفتاح الأول (429/تجاوز حصة) نجرّب
+    // المفتاح الثاني تلقائيًا بدل توقف التحليل بالكامل.
+    let cachedGeminiApiKeys = null;
+    async function getGeminiApiKeys() {
+        if(cachedGeminiApiKeys) return cachedGeminiApiKeys;
         const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/app_secrets?key_name=eq.gemini_api_key&select=key_value`,
+            `${SUPABASE_URL}/rest/v1/app_secrets?key_name=in.(gemini_api_key,gemini_api_key_2)&select=key_name,key_value`,
             { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
         );
         if(!res.ok) throw new Error("تعذر الاتصال بقاعدة البيانات لجلب مفتاح الخدمة.");
         const rows = await res.json();
-        if(!rows.length || !rows[0].key_value) throw new Error("لم يُعثر على مفتاح Gemini بقاعدة البيانات (تحقق من جدول app_secrets).");
-        cachedGeminiApiKey = rows[0].key_value;
-        return cachedGeminiApiKey;
+        const byName = Object.fromEntries(rows.map(r => [r.key_name, r.key_value]));
+        const keys = [byName.gemini_api_key, byName.gemini_api_key_2].filter(Boolean);
+        if(!keys.length) throw new Error("لم يُعثر على أي مفتاح Gemini بقاعدة البيانات (تحقق من جدول app_secrets).");
+        cachedGeminiApiKeys = keys;
+        return cachedGeminiApiKeys;
     }
 
     const PASSPORT_SCAN_PROMPT = `قد تحتوي هذه الصورة على جواز سفر، أو بطاقة صعود طائرة (Boarding Pass)، أو كليهما معًا بنفس الصورة (مثل جواز موضوع فوق بطاقة الصعود). استخرج كل ما هو موجود وواضح من الحقول التالية:
@@ -1601,6 +1606,49 @@ function calcHijriLess6() {
         });
     }
 
+    // يجرّب المفتاح الأساسي أولًا، وإن فشل (لأي سبب - ضغط/تجاوز حصة/غير صالح) يجرّب
+    // المفتاح الاحتياطي مباشرة بلا توقف، بدل إظهار خطأ فوري عند أول عائق.
+    async function callGeminiForPassportScan(base64Data, mimeType) {
+        const keys = await getGeminiApiKeys();
+        let lastError = null;
+
+        for(const apiKey of keys) {
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: PASSPORT_SCAN_PROMPT },
+                                { inline_data: { mime_type: mimeType, data: base64Data } }
+                            ]
+                        }],
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: PASSPORT_SCAN_SCHEMA,
+                            temperature: 0
+                        }
+                    })
+                });
+
+                const result = await response.json();
+                if(!response.ok) throw new Error(result?.error?.message || `خطأ HTTP ${response.status}`);
+
+                const textOutput = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if(!textOutput) throw new Error("لم يُرجع النموذج أي نتيجة.");
+
+                return JSON.parse(textOutput);
+            } catch(err) {
+                console.warn("فشل أحد مفاتيح Gemini، جارٍ تجربة التالي إن وُجد:", err.message);
+                lastError = err;
+            }
+        }
+
+        throw lastError || new Error("تعذر الاتصال بأي من مفاتيح Gemini المتاحة.");
+    }
+
     async function handlePassportScan(index, file) {
         if(!file) return;
         const btn = document.getElementById(`l6_scan_btn_${index}`);
@@ -1608,34 +1656,8 @@ function calcHijriLess6() {
         if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحليل...'; }
 
         try {
-            const apiKey = await getGeminiApiKey();
             const base64Data = await passportFileToBase64(file);
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: PASSPORT_SCAN_PROMPT },
-                            { inline_data: { mime_type: file.type || "image/jpeg", data: base64Data } }
-                        ]
-                    }],
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: PASSPORT_SCAN_SCHEMA,
-                        temperature: 0
-                    }
-                })
-            });
-
-            const result = await response.json();
-            if(!response.ok) throw new Error(result?.error?.message || `خطأ HTTP ${response.status}`);
-
-            const textOutput = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if(!textOutput) throw new Error("لم يُرجع النموذج أي نتيجة.");
-
-            const data = JSON.parse(textOutput);
+            const data = await callGeminiForPassportScan(base64Data, file.type || "image/jpeg");
 
             if(data.full_name) document.getElementById(`l6_nm_${index}`).value = data.full_name;
             if(data.passport_number) document.getElementById(`l6_num_${index}`).value = data.passport_number;
