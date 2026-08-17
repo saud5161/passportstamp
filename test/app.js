@@ -1,4 +1,4 @@
-/* global pdfjsLib, Tesseract */
+/* global pdfjsLib, supabase */
 "use strict";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "vendor/pdf.worker.min.js";
@@ -792,6 +792,91 @@ function setSystemImage(file) {
   scheduleAutoOcr();
 }
 
+/* ========== استخراج أرقام الجوازات من صورة عبر Gemini (بدل Tesseract) ==========
+   نفس منطق المطابقة الحالي (matchPassengersFromBulkText) لم يتغيّر إطلاقًا - فقط
+   طريقة استخراج النص المصدر تغيّرت: بدل قراءة الصورة كنص حر بمحرك OCR محلي، نطلب
+   من Gemini استخراج عمود أرقام الوثائق/الجوازات تحديدًا فقط، ثم نمرّره لنفس دالة
+   المطابقة كما كانت. المفتاح يُجلب من جدول app_secrets بنفس مشروع Supabase
+   المستخدم أصلًا بهذا الملف (قفل الصفحة)، مع مفتاح احتياطي عند ضغط الخادم. */
+const GEMINI_MODEL = "gemini-flash-latest";
+let cachedGeminiApiKeys = null;
+
+async function getGeminiApiKeys() {
+  if (cachedGeminiApiKeys) return cachedGeminiApiKeys;
+  const { data, error } = await supabaseClient
+    .from("app_secrets")
+    .select("key_name, key_value")
+    .in("key_name", ["gemini_api_key", "gemini_api_key_2"]);
+  if (error) throw new Error("تعذر الاتصال بقاعدة البيانات لجلب مفتاح خدمة التحليل.");
+  const byName = Object.fromEntries((data || []).map(row => [row.key_name, row.key_value]));
+  const keys = [byName.gemini_api_key, byName.gemini_api_key_2].filter(Boolean);
+  if (!keys.length) throw new Error("لم يُعثر على أي مفتاح Gemini بقاعدة البيانات (جدول app_secrets).");
+  cachedGeminiApiKeys = keys;
+  return cachedGeminiApiKeys;
+}
+
+function systemImageFileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.slice(reader.result.indexOf(",") + 1));
+    reader.onerror = () => reject(new Error("تعذر قراءة الصورة."));
+    reader.readAsDataURL(file);
+  });
+}
+
+const DOCUMENT_NUMBERS_PROMPT = `استخرج فقط أرقام الوثائق/الجوازات الظاهرة بهذه الصورة (عادة عمود تحت عنوان مثل "رقم الوثيقة" أو "Document No")، كل رقم كما هو مطبوع بالضبط بالصورة (احتفظ بأي بادئة مثل "P/" إن وجدت). لا تُضف أسماء ولا أي نص آخر، ولا تخمّن رقمًا غير واضح - تجاهله إن لم تكن واثقًا منه. أرجعها كمصفوفة numbers، رقم واحد لكل عنصر، بنفس ترتيب ظهورها بالصورة من الأعلى للأسفل.`;
+
+const DOCUMENT_NUMBERS_SCHEMA = {
+  type: "OBJECT",
+  properties: { numbers: { type: "ARRAY", items: { type: "STRING" } } },
+  required: ["numbers"]
+};
+
+// يجرّب المفتاح الأساسي، وإن فشل لأي سبب (ضغط/تجاوز حصة/غير صالح) يجرّب الاحتياطي
+// مباشرة بلا توقف - بنفس أسلوب صفحة قراءة الجواز بالضبط.
+async function extractDocumentNumbersViaGemini(file) {
+  const keys = await getGeminiApiKeys();
+  const base64Data = await systemImageFileToBase64(file);
+  let lastError = null;
+
+  for (const apiKey of keys) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: DOCUMENT_NUMBERS_PROMPT },
+              { inline_data: { mime_type: file.type || "image/jpeg", data: base64Data } }
+            ]
+          }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: DOCUMENT_NUMBERS_SCHEMA,
+            temperature: 0
+          }
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error?.message || `خطأ HTTP ${response.status}`);
+
+      const textOutput = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!textOutput) throw new Error("لم يُرجع النموذج أي نتيجة.");
+
+      const parsed = JSON.parse(textOutput);
+      return Array.isArray(parsed.numbers) ? parsed.numbers : [];
+    } catch (err) {
+      console.warn("فشل أحد مفاتيح Gemini، جارٍ تجربة التالي إن وُجد:", err.message);
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error("تعذر الاتصال بأي من مفاتيح Gemini المتاحة.");
+}
+
 async function analyzeSystemImage(options = {}) {
   if (!systemImageFile || !state.passengers.length) {
     showToast("أرفق بيان PDF وصورة النظام أولًا.");
@@ -802,56 +887,17 @@ async function analyzeSystemImage(options = {}) {
   ocrIsAnalyzing = true;
   elements.analyzeSystemImage.disabled = true;
   elements.chooseSystemImage.disabled = true;
-  elements.ocrProgress.style.width = "2%";
+  elements.ocrProgress.style.width = "15%";
   elements.ocrStatus.textContent = options.automatic
-    ? "تم استلام الصورة، جاري تحليلها تلقائيًا..."
-    : "جاري تجهيز محرك قراءة الصورة...";
+    ? "تم استلام الصورة، جاري تحليلها تلقائيًا بالذكاء الاصطناعي..."
+    : "جاري تحليل الصورة بالذكاء الاصطناعي...";
 
-  let worker;
   try {
-    let enhancedImage = null;
-    const getEnhancedImage = async () => enhancedImage || (enhancedImage = await enhanceFullImage(systemImageFile));
+    const numbers = await extractDocumentNumbersViaGemini(systemImageFile);
+    elements.ocrProgress.style.width = "80%";
 
-    const ocrPasses = [
-      { label: "قراءة الصورة الأصلية", rotateAuto: true, getSource: async () => systemImageFile },
-      { label: "تحسين التباين وإزالة خطوط الجدول", getSource: getEnhancedImage },
-      { label: "معالجة متقدمة للصورة الملتقطة", getSource: async () => createAdaptiveThresholdCanvas(await getEnhancedImage()) }
-    ];
-    let currentPass = 0;
-
-    worker = await Tesseract.createWorker("eng", 1, {
-      workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js",
-      langPath: "https://tessdata.projectnaptha.com/4.0.0_fast",
-      corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5",
-      logger: message => {
-        const sourceProgress = message.progress || 0;
-        const overallProgress = Math.round(((currentPass + sourceProgress) / ocrPasses.length) * 100);
-        elements.ocrProgress.style.width = `${Math.max(2, overallProgress)}%`;
-        if (message.status === "recognizing text") {
-          elements.ocrStatus.textContent =
-            `${ocrPasses[currentPass]?.label || "تحليل الصورة"}... ${overallProgress}%`;
-        }
-      }
-    });
-
-    // مسافة وفاصلة مطلوبتان لقراءة الأسماء (وليس أرقام الجوازات فقط)، والمطابقة تتجاهل علامات الترقيم أصلاً.
-    await worker.setParameters({
-      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/,.:- ",
-      preserve_interword_spaces: "1",
-      user_defined_dpi: "300"
-    });
-
-    let matches = [];
-    for (currentPass = 0; currentPass < ocrPasses.length; currentPass += 1) {
-      const source = await ocrPasses[currentPass].getSource();
-      const words = await ocrWordsFromSource(worker, source, {
-        rotateAuto: !!ocrPasses[currentPass].rotateAuto
-      });
-      const rowTexts = groupWordsIntoRows(words);
-      // البحث عن رقم الجواز أولًا، ثم عن الاسم لأي راكب لم يُطابق برقم الجواز.
-      matches = matchPassengersFromBulkText(rowTexts.join("\n"));
-      if (matches.length) break;
-    }
+    // نفس دالة المطابقة الحالية بالضبط، بلا أي تغيير - فقط مصدر النص تغيّر.
+    const matches = matchPassengersFromBulkText(numbers.join("\n"));
 
     let added = 0;
     matches.forEach(passenger => {
@@ -874,7 +920,6 @@ async function analyzeSystemImage(options = {}) {
     elements.ocrStatus.textContent = "تعذر تحليل الصورة. تحقق من الاتصال ووضوح الصورة ثم حاول مجددًا.";
     showToast("حدث خطأ أثناء تحليل الصورة.");
   } finally {
-    if (worker) await worker.terminate();
     ocrIsAnalyzing = false;
     elements.chooseSystemImage.disabled = false;
     updateOcrAvailability();
@@ -1150,154 +1195,6 @@ function updateMessageText() {
 
 function completeMessageText() {
   return `الرحلة مكتملة (${state.flightNumber}) في نظام الجوازات\nجميع الركاب مختمين`;
-}
-
-async function ocrWordsFromSource(worker, source, options = {}) {
-  await worker.setParameters({ tessedit_pageseg_mode: options.pageMode || "11" });
-  const result = await worker.recognize(source, { rotateAuto: !!options.rotateAuto });
-  return (result.data.words || [])
-    .filter(word => word.text && word.text.trim() && (word.confidence === undefined || word.confidence > 35))
-    .map(word => ({
-      text: word.text.trim(),
-      x: (word.bbox.x0 + word.bbox.x1) / 2,
-      y: (word.bbox.y0 + word.bbox.y1) / 2,
-      height: Math.max(1, word.bbox.y1 - word.bbox.y0)
-    }));
-}
-
-// يجمع كلمات OCR في صفوف حسب إحداثي y بدل الاعتماد على ترتيب القراءة التلقائي،
-// كي تُقرأ جداول الأنظمة (اسم + جواز + جنسية...) بشكل صحيح بغض النظر عن ترتيب الأعمدة.
-function groupWordsIntoRows(words) {
-  if (!words.length) return [];
-  const sorted = [...words].sort((a, b) => a.y - b.y);
-  const heights = sorted.map(word => word.height).sort((a, b) => a - b);
-  const medianHeight = heights[Math.floor(heights.length / 2)] || 20;
-  const rowThreshold = Math.max(9, medianHeight * 0.65);
-
-  const rows = [];
-  sorted.forEach(word => {
-    const row = rows.find(candidate => Math.abs(candidate.y - word.y) <= rowThreshold);
-    if (row) {
-      row.words.push(word);
-      row.y = row.words.reduce((sum, item) => sum + item.y, 0) / row.words.length;
-    } else {
-      rows.push({ y: word.y, words: [word] });
-    }
-  });
-
-  return rows.map(row => row.words.sort((a, b) => a.x - b.x).map(word => word.text).join(" "));
-}
-
-function loadImage(file) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    const url = URL.createObjectURL(file);
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(image);
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("تعذر فتح الصورة."));
-    };
-    image.src = url;
-  });
-}
-
-function removeLongTableLines(canvas, pixels) {
-  const { width, height } = canvas;
-  const dark = index => pixels[index] < 105;
-  const horizontalLines = [];
-  const verticalLines = [];
-
-  for (let y = 0; y < height; y += 1) {
-    let darkPixels = 0;
-    for (let x = 0; x < width; x += 3) {
-      if (dark((y * width + x) * 4)) darkPixels += 1;
-    }
-    if (darkPixels > (width / 3) * 0.56) horizontalLines.push(y);
-  }
-
-  for (let x = 0; x < width; x += 1) {
-    let darkPixels = 0;
-    for (let y = 0; y < height; y += 4) {
-      if (dark((y * width + x) * 4)) darkPixels += 1;
-    }
-    if (darkPixels > (height / 4) * 0.62) verticalLines.push(x);
-  }
-
-  horizontalLines.forEach(y => {
-    for (let offset = -2; offset <= 2; offset += 1) {
-      const yy = y + offset;
-      if (yy < 0 || yy >= height) continue;
-      for (let x = 0; x < width; x += 1) {
-        const index = (yy * width + x) * 4;
-        pixels[index] = pixels[index + 1] = pixels[index + 2] = 255;
-      }
-    }
-  });
-
-  verticalLines.forEach(x => {
-    for (let offset = -2; offset <= 2; offset += 1) {
-      const xx = x + offset;
-      if (xx < 0 || xx >= width) continue;
-      for (let y = 0; y < height; y += 1) {
-        const index = (y * width + xx) * 4;
-        pixels[index] = pixels[index + 1] = pixels[index + 2] = 255;
-      }
-    }
-  });
-}
-
-async function enhanceFullImage(file) {
-  const image = await loadImage(file);
-  const scale = Math.max(1, Math.min(2.4, 1900 / Math.max(1, image.naturalWidth)));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(image.naturalWidth * scale);
-  canvas.height = Math.round(image.naturalHeight * scale);
-
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  context.drawImage(image, 0, 0, canvas.width, canvas.height);
-
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  const pixels = imageData.data;
-
-  for (let index = 0; index < pixels.length; index += 4) {
-    const gray = pixels[index] * 0.299 + pixels[index + 1] * 0.587 + pixels[index + 2] * 0.114;
-    const contrasted = Math.max(0, Math.min(255, (gray - 128) * 1.6 + 148));
-    pixels[index] = pixels[index + 1] = pixels[index + 2] = contrasted;
-  }
-
-  removeLongTableLines(canvas, pixels);
-  context.putImageData(imageData, 0, 0);
-  return canvas;
-}
-
-function createAdaptiveThresholdCanvas(sourceCanvas) {
-  const blurredCanvas = document.createElement("canvas");
-  blurredCanvas.width = sourceCanvas.width;
-  blurredCanvas.height = sourceCanvas.height;
-  const blurredContext = blurredCanvas.getContext("2d", { willReadFrequently: true });
-  blurredContext.filter = "blur(18px)";
-  blurredContext.drawImage(sourceCanvas, 0, 0);
-
-  const outputCanvas = document.createElement("canvas");
-  outputCanvas.width = sourceCanvas.width;
-  outputCanvas.height = sourceCanvas.height;
-  const outputContext = outputCanvas.getContext("2d", { willReadFrequently: true });
-  outputContext.drawImage(sourceCanvas, 0, 0);
-
-  const sourceData = outputContext.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
-  const blurredData = blurredContext.getImageData(0, 0, blurredCanvas.width, blurredCanvas.height);
-
-  for (let index = 0; index < sourceData.data.length; index += 4) {
-    const value = sourceData.data[index] < blurredData.data[index] - 16 ? 0 : 255;
-    sourceData.data[index] = sourceData.data[index + 1] = sourceData.data[index + 2] = value;
-    sourceData.data[index + 3] = 255;
-  }
-
-  outputContext.putImageData(sourceData, 0, 0);
-  return outputCanvas;
 }
 
 function renderMessage() {
