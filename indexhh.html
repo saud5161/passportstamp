@@ -1606,18 +1606,47 @@ function calcHijriLess6() {
         });
     }
 
-    // يجرّب المفتاح الأساسي أولًا، وإن فشل (لأي سبب - ضغط/تجاوز حصة/غير صالح) يجرّب
-    // المفتاح الاحتياطي مباشرة بلا توقف، بدل إظهار خطأ فوري عند أول عائق.
+    // نُصغّر الصورة ونضغطها قبل الإرسال - صور كاميرا الجوال غالبًا عدة ميغابايت
+    // بأبعاد ضخمة (4000+ بكسل)، وهذا الحجم يبطئ الرفع كثيرًا خصوصًا على شبكة جوال
+    // بطيئة، وقد يسبب فشل/انقطاع الطلب. الدقة المصغّرة (1600px كحد أقصى) كافية
+    // تمامًا لقراءة نص مطبوع بجواز أو بطاقة صعود.
+    function compressImageForGemini(file, maxDimension = 1600, quality = 0.82) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                const scale = Math.min(1, maxDimension / Math.max(img.naturalWidth, img.naturalHeight));
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.round(img.naturalWidth * scale) || img.naturalWidth;
+                canvas.height = Math.round(img.naturalHeight * scale) || img.naturalHeight;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(blob => {
+                    if(!blob) { reject(new Error("تعذر ضغط الصورة.")); return; }
+                    resolve(blob);
+                }, "image/jpeg", quality);
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("تعذر فتح الصورة.")); };
+            img.src = url;
+        });
+    }
+
+    // يجرّب المفتاح الأساسي أولًا، وإن فشل أو تجاوز مهلة زمنية معقولة (ضغط/تجاوز
+    // حصة/بطء شبكة/غير صالح) يجرّب المفتاح الاحتياطي مباشرة بلا توقف.
     async function callGeminiForPassportScan(base64Data, mimeType) {
         const keys = await getGeminiApiKeys();
         let lastError = null;
 
         for(const apiKey of keys) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
                 const response = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    signal: controller.signal,
                     body: JSON.stringify({
                         contents: [{
                             parts: [
@@ -1628,10 +1657,16 @@ function calcHijriLess6() {
                         generationConfig: {
                             responseMimeType: "application/json",
                             responseSchema: PASSPORT_SCAN_SCHEMA,
-                            temperature: 0
+                            temperature: 0,
+                            // تعطيل وضع "التفكير الممتد" (thinking) - غير مطلوب إطلاقًا
+                            // لمهمة استخراج مباشرة كهذه، ومفعّل افتراضيًا بنماذج Gemini
+                            // الحديثة (يُنتج عشرات رموز "تفكير" داخلية قبل الإجابة)، وهذا
+                            // كان السبب الرئيسي لبطء الاستجابة الملحوظ.
+                            thinkingConfig: { thinkingBudget: 0 }
                         }
                     })
                 });
+                clearTimeout(timeoutId);
 
                 const result = await response.json();
                 if(!response.ok) throw new Error(result?.error?.message || `خطأ HTTP ${response.status}`);
@@ -1641,8 +1676,10 @@ function calcHijriLess6() {
 
                 return JSON.parse(textOutput);
             } catch(err) {
-                console.warn("فشل أحد مفاتيح Gemini، جارٍ تجربة التالي إن وُجد:", err.message);
-                lastError = err;
+                clearTimeout(timeoutId);
+                const message = err.name === "AbortError" ? "انتهت مهلة الاتصال (بطء بالشبكة)." : err.message;
+                console.warn("فشل أحد مفاتيح Gemini، جارٍ تجربة التالي إن وُجد:", message);
+                lastError = new Error(message);
             }
         }
 
@@ -1653,11 +1690,21 @@ function calcHijriLess6() {
         if(!file) return;
         const btn = document.getElementById(`l6_scan_btn_${index}`);
         const originalLabel = btn ? btn.innerHTML : "";
-        if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحليل...'; }
+        if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تجهيز الصورة...'; }
 
         try {
-            const base64Data = await passportFileToBase64(file);
-            const data = await callGeminiForPassportScan(base64Data, file.type || "image/jpeg");
+            let compressedBlob;
+            let mimeType = "image/jpeg";
+            try {
+                compressedBlob = await compressImageForGemini(file);
+            } catch(compressError) {
+                console.warn("تعذر ضغط الصورة، سيُرسل الملف الأصلي:", compressError.message);
+                compressedBlob = file;
+                mimeType = file.type || "image/jpeg";
+            }
+            if(btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحليل...';
+            const base64Data = await passportFileToBase64(compressedBlob);
+            const data = await callGeminiForPassportScan(base64Data, mimeType);
 
             if(data.full_name) document.getElementById(`l6_nm_${index}`).value = data.full_name;
             if(data.passport_number) document.getElementById(`l6_num_${index}`).value = data.passport_number;
