@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <style>
     :root {
@@ -189,43 +190,65 @@
 
     .passengers-list { display: flex; flex-direction: column; gap: 8px; }
     .passenger-row {
-        display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        display: flex; flex-direction: column; gap: 6px;
         background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 10px 12px;
         font-size: 0.88rem; animation: fadeIn 0.25s ease;
     }
+    .passenger-row .p-top-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .passenger-row .p-name-status { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .passenger-row .p-name { font-weight: 800; color: var(--primary-dark); }
     .passenger-row .p-hall { background: #f1f3f5; border-radius: 8px; padding: 3px 10px; font-weight: 800; font-size: 0.78rem; color: #666; white-space: nowrap; }
     .passengers-count { text-align: center; font-size: 0.78rem; color: #999; font-weight: 700; margin-bottom: 8px; }
 
-    /* نافذة رمز المرور */
-    .pin-modal-overlay {
-        display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9999;
+    /* حالة المستلم (اختيارية، محفوظة بقاعدة البيانات) - عبارة "متوقع" نص أزرق
+       ثابت بلا تلوين خلفية، تليها كبسولة صغيرة ملوّنة (اسم الحالة فقط)، والنقر
+       عليها يفتح نافذة اختيار مركزية واحدة (وليس قائمة منسدلة لكل سطر) - هذا
+       يتفادى مشكلة اختفاء القائمة خلف عناصر الصفحة (parent بها overflow:hidden
+       لأجل حركة الطي/الفتح)، ويعطي شكلًا أنظف واحترافيًا أكثر. */
+    .p-status-label { color: #2563eb; font-weight: 800; font-size: 0.76rem; }
+    .p-status-pill {
+        border: none; border-radius: 999px; padding: 3px 10px; font-size: 0.74rem; font-weight: 800;
+        cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;
+        font-family: inherit; transition: transform .12s ease;
+    }
+    .p-status-pill:active { transform: scale(0.94); }
+    .p-status-pill .chevron { font-size: 0.55rem; opacity: .75; }
+
+    /* نافذة اختيار الحالة (مشتركة لكل الصفوف - عنصر واحد بالصفحة) */
+    .status-picker-overlay {
+        display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999;
         align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px);
     }
-    .pin-modal-overlay.show { display: flex; animation: fadeIn 0.2s ease; }
-    .pin-modal-box {
-        background: #fff; border-radius: 16px; padding: 26px 22px; max-width: 340px; width: 100%;
-        text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border-top: 5px solid var(--gold);
+    .status-picker-overlay.show { display: flex; animation: fadeIn 0.2s ease; }
+    .status-picker-box {
+        background: #fff; border-radius: 16px; padding: 16px; max-width: 300px; width: 100%;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3); border-top: 4px solid var(--gold);
     }
-    .pin-modal-icon { font-size: 2rem; color: var(--gold); margin-bottom: 10px; }
-    .pin-modal-title { font-weight: 800; color: var(--primary-dark); font-size: 0.92rem; margin-bottom: 16px; line-height: 1.5; }
-    .pin-modal-input {
-        width: 100%; text-align: center; letter-spacing: 6px; font-size: 1.2rem; padding: 12px;
-        border: 2px solid #e0e0e0; border-radius: 10px; margin-bottom: 8px; font-family: inherit;
+    .status-picker-name { text-align: center; font-weight: 800; color: var(--primary-dark); font-size: 0.85rem; margin-bottom: 12px; }
+    .status-picker-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .status-picker-options button {
+        border: none; border-radius: 10px; padding: 9px 6px; font-size: 0.78rem; font-weight: 800;
+        cursor: pointer; text-align: center; font-family: inherit; transition: transform .12s ease;
     }
-    .pin-modal-input:focus { outline: none; border-color: var(--gold); }
-    .pin-modal-error { display: none; color: #d32f2f; font-size: 0.78rem; font-weight: 700; margin-bottom: 8px; }
-    .pin-modal-error.show { display: block; }
-    .pin-modal-buttons { display: flex; gap: 10px; margin-top: 12px; }
-    .pin-modal-confirm, .pin-modal-cancel {
-        flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 0.9rem;
+    .status-picker-options button:active { transform: scale(0.95); }
+    .status-picker-options button.other-option {
+        grid-column: 1 / -1; background: #fff; border: 1px dashed var(--gold); color: var(--gold);
     }
-    .pin-modal-confirm { background: var(--primary); color: white; }
-    .pin-modal-confirm:hover { background: var(--primary-dark); }
-    .pin-modal-cancel { background: #f1f3f5; color: #555; }
-    .pin-modal-cancel:hover { background: #e6e6e6; }
-    @keyframes shake { 10%,90% { transform: translateX(-2px); } 20%,80% { transform: translateX(3px); } 30%,50%,70% { transform: translateX(-5px); } 40%,60% { transform: translateX(5px); } }
-    .pin-modal-box.shake { animation: shake 0.5s; }
+    .status-picker-custom-row { display: none; margin-top: 10px; gap: 8px; }
+    .status-picker-custom-row.show { display: flex; }
+    .status-picker-custom-input {
+        flex: 1; min-width: 0; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--gold);
+        border-radius: 8px; font-size: 0.82rem; font-family: inherit;
+    }
+    .status-picker-custom-input:focus { outline: none; }
+    .status-picker-custom-confirm {
+        flex: 0 0 auto; border: none; border-radius: 8px; padding: 8px 14px; background: var(--primary);
+        color: #fff; font-weight: 800; font-size: 0.8rem; cursor: pointer;
+    }
+    .status-picker-cancel {
+        width: 100%; margin-top: 12px; border: none; border-radius: 8px; padding: 9px; background: #f1f3f5;
+        color: #666; font-weight: 800; font-size: 0.8rem; cursor: pointer;
+    }
 
     .live-badge {
         display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.25);
@@ -341,16 +364,21 @@
 
 </div>
 
-<div class="pin-modal-overlay" id="pinModalOverlay">
-    <div class="pin-modal-box">
-        <i class="fas fa-lock pin-modal-icon"></i>
-        <div class="pin-modal-title">يرجى ادخال رمز المرور لعرض القائمة ( اول مره فقط )</div>
-        <input type="password" id="pinModalInput" class="pin-modal-input" inputmode="numeric" maxlength="10" placeholder="••••••">
-        <div class="pin-modal-error" id="pinModalError">رمز غير صحيح، حاول مرة أخرى</div>
-        <div class="pin-modal-buttons">
-            <button class="pin-modal-confirm" onclick="checkPassengersPin()">دخول</button>
-            <button class="pin-modal-cancel" onclick="closePinModal()">إلغاء</button>
+<div class="status-picker-overlay" id="statusPickerOverlay" onclick="if(event.target===this) closeStatusPicker()">
+    <div class="status-picker-box">
+        <div class="status-picker-name" id="statusPickerName"></div>
+        <div class="status-picker-options">
+            <button style="background:#f5c518;color:#4a3a00;" onclick="pickStatus('ظهر')">ظهر</button>
+            <button style="background:#2b2b2b;color:#fff;" onclick="pickStatus('ليل')">ليل</button>
+            <button style="background:#8a94a3;color:#fff;" onclick="pickStatus('اجازة')">اجازة</button>
+            <button style="background:#f1f3f5;color:#666;" onclick="pickStatus('')">غير معروف</button>
+            <button class="other-option" onclick="pickStatus('__other__')">غير ذلك...</button>
         </div>
+        <div class="status-picker-custom-row" id="statusPickerCustomRow">
+            <input type="text" class="status-picker-custom-input" id="statusPickerCustomInput" placeholder="اكتب الحالة">
+            <button class="status-picker-custom-confirm" onclick="confirmCustomStatus()">تم</button>
+        </div>
+        <button class="status-picker-cancel" onclick="closeStatusPicker()">إغلاق</button>
     </div>
 </div>
 
@@ -641,9 +669,7 @@ let passengersPanelOpen = false;
 let currentPassengerType = null;
 let currentHall = null;
 
-const PASSENGERS_PIN = '123123';
-const PASSENGERS_AUTH_KEY = 'passengersAuthVerified';
-
+// أُزيل قفل رمز المرور عن عرض المستلمين - يفتح مباشرة الآن.
 function togglePassengersPanel() {
     if (passengersPanelOpen) {
         passengersPanelOpen = false;
@@ -651,12 +677,7 @@ function togglePassengersPanel() {
         document.getElementById('passengersChevron').classList.remove('rotate');
         return;
     }
-
-    if (localStorage.getItem(PASSENGERS_AUTH_KEY) === 'true') {
-        openPassengersPanel();
-    } else {
-        openPinModal();
-    }
+    openPassengersPanel();
 }
 
 function openPassengersPanel() {
@@ -664,43 +685,6 @@ function openPassengersPanel() {
     document.getElementById('passengersPanel').classList.add('open');
     document.getElementById('passengersChevron').classList.add('rotate');
 }
-
-function openPinModal() {
-    const overlay = document.getElementById('pinModalOverlay');
-    const input = document.getElementById('pinModalInput');
-    document.getElementById('pinModalError').classList.remove('show');
-    input.value = '';
-    overlay.classList.add('show');
-    setTimeout(() => input.focus(), 100);
-}
-
-function closePinModal() {
-    document.getElementById('pinModalOverlay').classList.remove('show');
-}
-
-function checkPassengersPin() {
-    const input = document.getElementById('pinModalInput');
-    const box = document.querySelector('.pin-modal-box');
-    const errorMsg = document.getElementById('pinModalError');
-
-    if (input.value === PASSENGERS_PIN) {
-        localStorage.setItem(PASSENGERS_AUTH_KEY, 'true');
-        closePinModal();
-        openPassengersPanel();
-    } else {
-        errorMsg.classList.add('show');
-        box.classList.add('shake');
-        setTimeout(() => box.classList.remove('shake'), 500);
-        input.value = '';
-        input.focus();
-    }
-}
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && document.getElementById('pinModalOverlay').classList.contains('show')) {
-        checkPassengersPin();
-    }
-});
 
 function selectPassengerType(type) {
     currentPassengerType = type;
@@ -725,7 +709,126 @@ function selectHall(hall) {
     renderPassengersList();
 }
 
-function renderPassengersList() {
+/* ================== حالة المستلم (اختيارية، محفوظة بـ Supabase) ==================
+   "غير معروف" تعني عمليًا "بلا حالة" - لا تُحفظ بالقاعدة، وإن كانت محفوظة سابقًا
+   (بعد اختيار حالة ثم الرجوع لـ"غير معروف") تُحذف سجلّتها بالكامل. باقي الحالات
+   (ظهر/ليل/اجازة/النص الحر) تُحفظ فورًا عند اختيارها، وتُعرض دائمًا بعبارة "متوقع"
+   على شكل عبارة قابلة للنقر بجانب الاسم مباشرة، بنفس ألوان المناوبات بالصفحة. */
+const SUPABASE_URL = "https://dkrtiuelioyshbjoocqm.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ts5SGrWhODsG6EH5dUt9Wg_KUvsf-CF";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let recipientStatusCache = null; // Map: person_key -> نص الحالة
+
+// نفس ألوان المناوبات المستخدمة أصلًا بالصفحة (STATUS_META): ظهر أصفر، ليل رصاصي
+// غامق، والإجازة بنفس لون "أوف" (استراحة). "غير معروف" محايد، والنص الحر بلون
+// الصباح الذهبي الفاتح لتمييزه كحالة مخصصة.
+function statusColorFor(statusText) {
+    if (statusText === 'ظهر') return { bg: '#f5c518', text: '#4a3a00' };
+    if (statusText === 'ليل') return { bg: '#2b2b2b', text: '#ffffff' };
+    if (statusText === 'اجازة') return { bg: '#8a94a3', text: '#ffffff' };
+    if (!statusText) return { bg: '#f1f3f5', text: '#777777' };
+    return { bg: '#fdf8e9', text: '#8a6d1f' }; // نص حر (غير ذلك)
+}
+
+function personKey(type, p) {
+    return `${type}|${p.firstName}|${p.lastName}|${p.hall}|${p.shift || ''}`;
+}
+
+function escapeHtmlAttr(text) {
+    return String(text ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+async function loadRecipientStatuses() {
+    if (recipientStatusCache) return recipientStatusCache;
+    recipientStatusCache = new Map();
+    try {
+        const { data, error } = await supabaseClient.from('recipient_statuses').select('person_key, status');
+        if (error) throw error;
+        (data || []).forEach(row => recipientStatusCache.set(row.person_key, row.status));
+    } catch (err) {
+        console.warn('تعذر تحميل حالات المستلمين:', err.message);
+    }
+    return recipientStatusCache;
+}
+
+async function saveRecipientStatus(key, statusText) {
+    try {
+        if (!statusText) {
+            const { error } = await supabaseClient.from('recipient_statuses').delete().eq('person_key', key);
+            if (error) throw error;
+            recipientStatusCache.delete(key);
+        } else {
+            const { error } = await supabaseClient.from('recipient_statuses')
+                .upsert({ person_key: key, status: statusText }, { onConflict: 'person_key' });
+            if (error) throw error;
+            recipientStatusCache.set(key, statusText);
+        }
+    } catch (err) {
+        console.warn('تعذر حفظ حالة المستلم:', err.message);
+        alert('تعذر حفظ الحالة، تحقق من الاتصال وحاول مجددًا.');
+    }
+}
+
+function applyStatusPill(pillEl, statusText) {
+    const colors = statusColorFor(statusText);
+    pillEl.style.background = colors.bg;
+    pillEl.style.color = colors.text;
+    pillEl.innerHTML = `${escapeHtmlAttr(statusText || 'غير معروف')} <span class="chevron">▾</span>`;
+}
+
+// نافذة اختيار واحدة مشتركة لكل الصفوف (بدل قائمة منسدلة داخل كل صف) - position:fixed
+// بالنسبة للشاشة كاملة، فلا تتأثر بأي عنصر أب لديه overflow:hidden (مثل حركة طي/فتح
+// لوحة المستلمين)، ولا يمكن أن تختفي خلف أي عنصر آخر بالصفحة.
+let activeStatusRow = null;
+
+function openStatusPicker(pillEl) {
+    activeStatusRow = pillEl.closest('.passenger-row');
+    document.getElementById('statusPickerName').textContent = activeStatusRow.dataset.personName || '';
+    document.getElementById('statusPickerCustomRow').classList.remove('show');
+    document.getElementById('statusPickerCustomInput').value = '';
+    document.getElementById('statusPickerOverlay').classList.add('show');
+}
+
+function closeStatusPicker() {
+    document.getElementById('statusPickerOverlay').classList.remove('show');
+    activeStatusRow = null;
+}
+
+function applyPickedStatus(row, statusText) {
+    const key = row.dataset.personKey;
+    const pill = row.querySelector('.p-status-pill');
+    applyStatusPill(pill, statusText);
+    saveRecipientStatus(key, statusText);
+}
+
+function pickStatus(value) {
+    if (!activeStatusRow) return;
+
+    if (value === '__other__') {
+        document.getElementById('statusPickerCustomRow').classList.add('show');
+        const input = document.getElementById('statusPickerCustomInput');
+        input.focus();
+        return;
+    }
+
+    applyPickedStatus(activeStatusRow, value);
+    closeStatusPicker();
+}
+
+function confirmCustomStatus() {
+    if (!activeStatusRow) return;
+    const statusText = document.getElementById('statusPickerCustomInput').value.trim();
+    if (!statusText) return; // لن نحفظ حالة فارغة - المستخدم يضغط "إغلاق" إن أراد التراجع
+    applyPickedStatus(activeStatusRow, statusText);
+    closeStatusPicker();
+}
+
+document.getElementById('statusPickerCustomInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); confirmCustomStatus(); }
+});
+
+async function renderPassengersList() {
     const type = currentPassengerType;
     if (!type || !currentHall) return;
 
@@ -759,11 +862,40 @@ function renderPassengersList() {
         return;
     }
 
+    const loadingHint = document.createElement('div');
+    loadingHint.className = 'hint';
+    loadingHint.style.padding = '6px';
+    loadingHint.textContent = '⏳ جاري تحميل الحالات...';
+    listBox.appendChild(loadingHint);
+
+    const statuses = await loadRecipientStatuses();
+    // إن تغيّر الاختيار أثناء التحميل (شخص نقر بسرعة)، لا نرسم نتيجة قديمة فوق اختيار جديد.
+    if (currentPassengerType !== type || currentHall === null) return;
+    loadingHint.remove();
+
     const typeLabel = type === 'incoming' ? 'قدوم' : 'مغادرة';
     list.forEach(p => {
+        const key = personKey(type, p);
+        const savedStatus = statuses.get(key) || '';
+        const pillColors = statusColorFor(savedStatus);
+        const personDisplayName = `${p.firstName} ${p.lastName}`;
+
         const row = document.createElement('div');
         row.className = 'passenger-row';
-        row.innerHTML = `<span class="p-name">${p.firstName} ${p.lastName} — ${typeLabel} صالة ${p.hall}</span><span class="p-hall">صالة ${p.hall}</span>`;
+        row.dataset.personKey = key;
+        row.dataset.personName = personDisplayName;
+        row.innerHTML = `
+            <div class="p-top-line">
+                <div class="p-name-status">
+                    <span class="p-name">${personDisplayName} — ${typeLabel} صالة ${p.hall}</span>
+                    <span class="p-status-label">متوقع</span>
+                    <button type="button" class="p-status-pill" onclick="openStatusPicker(this)"
+                            style="background:${pillColors.bg}; color:${pillColors.text};">
+                        ${escapeHtmlAttr(savedStatus || 'غير معروف')} <span class="chevron">▾</span>
+                    </button>
+                </div>
+                <span class="p-hall">صالة ${p.hall}</span>
+            </div>`;
         listBox.appendChild(row);
     });
 }
