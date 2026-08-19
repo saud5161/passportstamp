@@ -145,6 +145,61 @@
             flex-shrink: 0; background: #198754; color: #fff; font-size: 0.6rem; font-weight: 900;
             padding: 2px 8px; border-radius: 999px; letter-spacing: .3px;
         }
+        .capture-guide-wrap { margin: 14px 0; }
+        .capture-guide-toggle {
+            width: 100%; display: flex; align-items: center; gap: 8px;
+            background: #f8fbfa; border: 1px solid #dbe9e3; border-radius: 12px; padding: 11px 14px;
+            font-weight: 800; font-size: 0.82rem; color: var(--primary-dark); cursor: pointer; font-family: inherit;
+        }
+        .capture-guide-toggle i.fa-chevron-down { margin-right: auto; transition: transform .3s ease; }
+        .capture-guide-toggle.open i.fa-chevron-down { transform: rotate(180deg); }
+        .capture-guide-body { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+        .capture-guide-body.open { max-height: 700px; margin-top: 12px; }
+        .capture-guide-tip { text-align: center; font-size: 0.78rem; color: #666; margin-top: 10px; line-height: 1.6; }
+
+        /* كاميرا مخصّصة بإطار توجيه شفاف (تُستخدم عند توفّر getUserMedia؛ وإلا
+           يُستخدم التقاط الجهاز الافتراضي عبر l6_scan_input كخطة بديلة) */
+        .camera-modal { position: fixed; inset: 0; z-index: 10000; background: #000; }
+        .camera-modal:not([hidden]) { display: block; }
+        .camera-modal video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
+        .camera-guide-layer {
+            position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center;
+            padding: 76px 22px 130px; box-sizing: border-box; pointer-events: none;
+        }
+        .camera-guide-frame {
+            position: relative; width: 100%; max-width: 380px; aspect-ratio: 3 / 4;
+            display: flex; flex-direction: column; border-radius: 14px;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+        }
+        .camera-guide-zone {
+            margin: 6px; border: 2px dashed rgba(255,255,255,0.6); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 800; font-size: 0.82rem; text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+        }
+        .camera-guide-zone-passport { flex: 1.3; border-color: #4ade80; }
+        .camera-guide-zone-boarding { flex: 1; border-color: var(--gold); }
+        .camera-guide-divider { height: 0; margin: 0 16px; border-top: 1px dashed rgba(255,255,255,0.5); }
+        .camera-guide-corner { position: absolute; width: 24px; height: 24px; }
+        .camera-guide-corner.tl { top: -3px; left: -3px; border-top: 4px solid var(--gold); border-left: 4px solid var(--gold); border-radius: 10px 0 0 0; }
+        .camera-guide-corner.tr { top: -3px; right: -3px; border-top: 4px solid var(--gold); border-right: 4px solid var(--gold); border-radius: 0 10px 0 0; }
+        .camera-guide-corner.bl { bottom: -3px; left: -3px; border-bottom: 4px solid var(--gold); border-left: 4px solid var(--gold); border-radius: 0 0 0 10px; }
+        .camera-guide-corner.br { bottom: -3px; right: -3px; border-bottom: 4px solid var(--gold); border-right: 4px solid var(--gold); border-radius: 0 0 10px 0; }
+        .camera-modal-top {
+            position: absolute; top: 0; left: 0; right: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; padding: 16px; background: linear-gradient(to bottom, rgba(0,0,0,0.65), transparent);
+        }
+        .camera-modal-title { color: #fff; font-weight: 800; font-size: 0.85rem; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+        .camera-close-btn {
+            width: 38px; height: 38px; border-radius: 50%; border: none; background: rgba(255,255,255,0.18); color: #fff;
+            font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .camera-close-btn:hover { background: rgba(255,255,255,0.3); }
+        .camera-modal-bottom {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 2; display: flex; align-items: center; justify-content: center;
+            padding: 24px 16px; background: linear-gradient(to top, rgba(0,0,0,0.65), transparent);
+        }
+        .camera-capture-btn { width: 68px; height: 68px; border-radius: 50%; background: #fff; border: 4px solid rgba(255,255,255,0.4); cursor: pointer; padding: 0; }
+        .camera-capture-btn:active { transform: scale(0.92); }
         .l6-duration-box > label { color: var(--primary-dark); font-weight: 800; }
         .quick-reason-buttons, .quick-airline-buttons { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
         .quick-reason-buttons button, .quick-airline-buttons button { border: 1px solid #d7e8e2; border-radius: 999px; padding: 7px 12px; background: #eef8f5; color: var(--primary-dark); font-weight: 800; cursor: pointer; transition: .2s; }
@@ -544,6 +599,39 @@
         <div class="doc-buttons-container">
             <button type="button" id="passportButton" class="doc-button active" onclick="setDocType('passport')"><i class="fas fa-passport"></i><span>جواز سفر</span></button>
             <button type="button" id="idButton" class="doc-button" onclick="setDocType('id')"><i class="fas fa-id-card"></i><span>هوية</span></button>
+        </div>
+
+        <div class="capture-guide-wrap">
+            <button type="button" class="capture-guide-toggle" id="captureGuideToggle" onclick="toggleCaptureGuide()">
+                <i class="fas fa-circle-info"></i> مثال: الطريقة الصحيحة لالتقاط الصورة
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="capture-guide-body" id="captureGuideBody">
+                <svg viewBox="0 0 380 460" xmlns="http://www.w3.org/2000/svg" role="img" style="width:100%;max-width:300px;display:block;margin:0 auto;">
+                    <title>الطريقة الصحيحة لتصوير الجواز مع بطاقة الصعود</title>
+                    <rect x="40" y="40" width="300" height="330" rx="16" fill="none" stroke="#cfd6d3" stroke-width="1" stroke-dasharray="4 4"/>
+                    <rect x="65" y="75" width="250" height="145" rx="10" fill="#eefaf3" stroke="var(--primary)" stroke-width="1"/>
+                    <rect x="80" y="90" width="48" height="58" rx="4" fill="#ffffff" stroke="#ddd" stroke-width="1"/>
+                    <circle cx="104" cy="108" r="11" fill="#aab0ac"/>
+                    <ellipse cx="104" cy="134" rx="17" ry="12" fill="#aab0ac"/>
+                    <rect x="138" y="90" width="140" height="6" rx="3" fill="#c7cdc9"/>
+                    <rect x="138" y="103" width="115" height="6" rx="3" fill="#c7cdc9"/>
+                    <rect x="138" y="116" width="130" height="6" rx="3" fill="#c7cdc9"/>
+                    <rect x="138" y="129" width="95" height="6" rx="3" fill="#c7cdc9"/>
+                    <line x1="80" y1="195" x2="300" y2="195" stroke="#9aa19c" stroke-width="4" stroke-dasharray="3 2"/>
+                    <line x1="80" y1="207" x2="300" y2="207" stroke="#9aa19c" stroke-width="4" stroke-dasharray="3 2"/>
+                    <rect x="65" y="245" width="250" height="105" rx="10" fill="#fdfaf3" stroke="var(--gold)" stroke-width="1"/>
+                    <rect x="80" y="262" width="160" height="7" rx="3" fill="#d9cba3"/>
+                    <rect x="80" y="282" width="90" height="6" rx="3" fill="#d9cba3"/>
+                    <rect x="190" y="282" width="90" height="6" rx="3" fill="#d9cba3"/>
+                    <circle cx="315" cy="55" r="14" fill="none" stroke="var(--primary)" stroke-width="2"/>
+                    <path d="M308 56 L313 61 L323 47" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <text x="190" y="395" text-anchor="middle" font-size="13" font-weight="700" fill="#555">الجواز مفتوح وواضح بالكامل</text>
+                    <text x="190" y="415" text-anchor="middle" font-size="13" font-weight="700" fill="#555">بطاقة الصعود ظاهرة بالكامل تحته</text>
+                    <text x="190" y="435" text-anchor="middle" font-size="13" font-weight="700" fill="#555">إضاءة جيدة وكاميرا مباشرة من الأعلى</text>
+                </svg>
+                <p class="capture-guide-tip">افردهما على سطح مستوٍ، بلا طي يغطي أي جزء، بلا انعكاس ضوء، والكاميرا مباشرة من الأعلى وليست بزاوية.</p>
+            </div>
         </div>
 
         <div class="input-group"><label>عدد المسافرين</label><select id="l6_count" onchange="renderL6()"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
@@ -1141,6 +1229,7 @@ document.addEventListener('input', function(e) {
     }
 
     function closeForm() {
+        stopActiveCameraStream();
         document.getElementById('mainMenu').style.display = 'grid';
         document.getElementById('fab-actions').style.display = 'none';
         document.querySelectorAll('.form-section').forEach(el => el.style.display = 'none');
@@ -1570,6 +1659,7 @@ function calcHijriLess6() {
 من بطاقة الصعود (إن وُجدت):
 4) وقت إقلاع الرحلة الفعلي (الوقت المكتوب أسفل/بجانب مطار المغادرة، بصيغة 24 ساعة) كرقمين منفصلين: departure_hour، departure_minute.
 5) وقت بداية الصعود/فتح البوابة (BOARDING، بصيغة 24 ساعة) كرقمين منفصلين: boarding_hour، boarding_minute.
+6) destination_city: مدينة الوصول (الوجهة). بطاقة الصعود تعرض عادة مطارين برمز ثلاثي مفصولين بسهم أو خط (مثل RUH → DXB) - المطار الأول هو المغادرة وتتجاهله، والمطار الثاني (الأخير) هو الوجهة. اكتب اسم مدينة ذلك المطار الثاني بالعربية فقط (مثال: DXB تصبح "دبي"، JFK تصبح "نيويورك"، CAI تصبح "القاهرة"). لا تكتب رمز المطار نفسه.
 
 إن لم يوجد أحد النوعين (جواز أو بطاقة صعود) بالصورة، أو تعذّرت قراءة حقل بثقة معقولة، اجعل قيمته النصية "" أو 0 للأرقام - لا تخمّن أبدًا.`;
 
@@ -1584,17 +1674,98 @@ function calcHijriLess6() {
             departure_hour: { type: "INTEGER" },
             departure_minute: { type: "INTEGER" },
             boarding_hour: { type: "INTEGER" },
-            boarding_minute: { type: "INTEGER" }
+            boarding_minute: { type: "INTEGER" },
+            destination_city: { type: "STRING" }
         },
         required: [
             "full_name", "passport_number", "expiry_day", "expiry_month", "expiry_year",
-            "departure_hour", "departure_minute", "boarding_hour", "boarding_minute"
+            "departure_hour", "departure_minute", "boarding_hour", "boarding_minute", "destination_city"
         ]
     };
 
-    function triggerPassportScan(index) {
+    let activeCameraStream = null;
+    let activeCameraIndex = null;
+
+    function isCameraStreamLive(stream) {
+        return !!stream && stream.getVideoTracks().some(track => track.readyState === "live");
+    }
+
+    // نحاول فتح كاميرا مخصّصة بإطار توجيه شفاف (مثل كاميرا أبشر)؛ إن تعذّر ذلك
+    // (لا يوجد getUserMedia، الصفحة غير مفتوحة عبر HTTPS، أو رفض المستخدم الإذن)
+    // نرجع لطريقة التقاط الجهاز الافتراضية دون أي تعطّل بالوظيفة.
+    //
+    // نُبقي البث نفسه (activeCameraStream) شغّالًا بين عمليات المسح المتتالية بدل
+    // إيقافه بعد كل مسافر - في Safari/WebKit (كل متصفحات الآيفون تعتمد عليه، حتى
+    // كروم) يُعيد النظام طلب إذن الكاميرا في كل مرة يُستدعى getUserMedia بعد إيقاف
+    // كامل للبث السابق، فإبقاؤه حيًا يمنع تكرار طلب الإذن أثناء نفس الجلسة.
+    async function triggerPassportScan(index) {
+        activeCameraIndex = index;
+        if(isCameraStreamLive(activeCameraStream)) {
+            document.getElementById("cameraVideo").srcObject = activeCameraStream;
+            document.getElementById("cameraModal").hidden = false;
+            document.body.style.overflow = "hidden";
+            return;
+        }
+        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            openPassportScanFallback(index);
+            return;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+                audio: false
+            });
+            activeCameraStream = stream;
+            const video = document.getElementById("cameraVideo");
+            video.srcObject = stream;
+            document.getElementById("cameraModal").hidden = false;
+            document.body.style.overflow = "hidden";
+        } catch(err) {
+            console.warn("تعذر فتح الكاميرا المخصصة، سيُستخدم التقاط الجهاز الافتراضي:", err.message);
+            openPassportScanFallback(index);
+        }
+    }
+
+    function openPassportScanFallback(index) {
         const input = document.getElementById(`l6_scan_input_${index}`);
         if(input) input.click();
+    }
+
+    function stopActiveCameraStream() {
+        if(activeCameraStream) {
+            activeCameraStream.getTracks().forEach(track => track.stop());
+            activeCameraStream = null;
+        }
+    }
+    window.addEventListener("pagehide", stopActiveCameraStream);
+    window.addEventListener("beforeunload", stopActiveCameraStream);
+
+    // إغلاق نافذة الكاميرا فقط (بدون إيقاف البث) - انظر التعليق أعلى
+    // triggerPassportScan لسبب إبقاء البث حيًا بين المسحات.
+    function closeCameraCapture() {
+        document.getElementById("cameraModal").hidden = true;
+        document.body.style.overflow = "";
+        activeCameraIndex = null;
+    }
+
+    function capturePassportPhoto() {
+        const video = document.getElementById("cameraVideo");
+        const canvas = document.getElementById("cameraCaptureCanvas");
+        if(!video.videoWidth) return;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => {
+            if(!blob) { alert("تعذر التقاط الصورة."); return; }
+            const index = activeCameraIndex;
+            closeCameraCapture();
+            handlePassportScan(index, blob);
+        }, "image/jpeg", 0.92);
+    }
+
+    function toggleCaptureGuide() {
+        document.getElementById('captureGuideBody').classList.toggle('open');
+        document.getElementById('captureGuideToggle').classList.toggle('open');
     }
 
     function passportFileToBase64(file) {
@@ -1734,7 +1905,13 @@ function calcHijriLess6() {
                 document.getElementById("l6_gm").value = data.boarding_minute;
             }
 
-            if(!hasExpiry && !hasDeparture && !hasBoarding) {
+            // وجهة الرحلة من بطاقة الصعود - حقل مشترك أيضًا مثل وقت الإقلاع والبوابة.
+            const hasDestination = !!data.destination_city;
+            if(hasDestination) {
+                document.getElementById("l6_dest").value = data.destination_city;
+            }
+
+            if(!hasExpiry && !hasDeparture && !hasBoarding && !hasDestination) {
                 alert("تعذّرت قراءة أي بيانات واضحة من الصورة - أدخلها يدويًا.");
             } else if(!hasExpiry) {
                 alert("تعذّرت قراءة تاريخ انتهاء الجواز بوضوح - أدخله يدويًا بالحاسبة أعلى الصفحة إن كان مطلوبًا.");
@@ -2533,5 +2710,28 @@ window.location.href = `https://wa.me/?text=${encodeURIComponent(txt.join('\n'))
     // === نهاية السكربت ===
 </script>
 <script src="aqtrah.js"></script>
+
+<div class="camera-modal" id="cameraModal" hidden>
+    <video id="cameraVideo" autoplay playsinline muted></video>
+    <div class="camera-guide-layer">
+        <div class="camera-guide-frame">
+            <span class="camera-guide-corner tl"></span>
+            <span class="camera-guide-corner tr"></span>
+            <span class="camera-guide-corner bl"></span>
+            <span class="camera-guide-corner br"></span>
+            <div class="camera-guide-zone camera-guide-zone-passport">الجواز</div>
+            <div class="camera-guide-divider"></div>
+            <div class="camera-guide-zone camera-guide-zone-boarding">بطاقة الصعود</div>
+        </div>
+    </div>
+    <div class="camera-modal-top">
+        <span class="camera-modal-title">ضع الجواز وبطاقة الصعود داخل الإطار</span>
+        <button type="button" class="camera-close-btn" onclick="closeCameraCapture()" aria-label="إغلاق"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="camera-modal-bottom">
+        <button type="button" class="camera-capture-btn" id="cameraCaptureBtn" onclick="capturePassportPhoto()" aria-label="التقاط الصورة"></button>
+    </div>
+    <canvas id="cameraCaptureCanvas" style="display:none"></canvas>
+</div>
 </body>
 </html>
