@@ -1686,26 +1686,11 @@ function calcHijriLess6() {
     let activeCameraStream = null;
     let activeCameraIndex = null;
 
-    function isCameraStreamLive(stream) {
-        return !!stream && stream.getVideoTracks().some(track => track.readyState === "live");
-    }
-
     // نحاول فتح كاميرا مخصّصة بإطار توجيه شفاف (مثل كاميرا أبشر)؛ إن تعذّر ذلك
     // (لا يوجد getUserMedia، الصفحة غير مفتوحة عبر HTTPS، أو رفض المستخدم الإذن)
     // نرجع لطريقة التقاط الجهاز الافتراضية دون أي تعطّل بالوظيفة.
-    //
-    // نُبقي البث نفسه (activeCameraStream) شغّالًا بين عمليات المسح المتتالية بدل
-    // إيقافه بعد كل مسافر - في Safari/WebKit (كل متصفحات الآيفون تعتمد عليه، حتى
-    // كروم) يُعيد النظام طلب إذن الكاميرا في كل مرة يُستدعى getUserMedia بعد إيقاف
-    // كامل للبث السابق، فإبقاؤه حيًا يمنع تكرار طلب الإذن أثناء نفس الجلسة.
     async function triggerPassportScan(index) {
         activeCameraIndex = index;
-        if(isCameraStreamLive(activeCameraStream)) {
-            document.getElementById("cameraVideo").srcObject = activeCameraStream;
-            document.getElementById("cameraModal").hidden = false;
-            document.body.style.overflow = "hidden";
-            return;
-        }
         if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             openPassportScanFallback(index);
             return;
@@ -1731,6 +1716,8 @@ function calcHijriLess6() {
         if(input) input.click();
     }
 
+    // نوقف الكاميرا فعليًا (تحرير الجهاز، وإطفاء مؤشر التسجيل) بمجرد إغلاق النافذة
+    // أو الالتقاط - لا نُبقيها تعمل بالخلفية.
     function stopActiveCameraStream() {
         if(activeCameraStream) {
             activeCameraStream.getTracks().forEach(track => track.stop());
@@ -1740,9 +1727,8 @@ function calcHijriLess6() {
     window.addEventListener("pagehide", stopActiveCameraStream);
     window.addEventListener("beforeunload", stopActiveCameraStream);
 
-    // إغلاق نافذة الكاميرا فقط (بدون إيقاف البث) - انظر التعليق أعلى
-    // triggerPassportScan لسبب إبقاء البث حيًا بين المسحات.
     function closeCameraCapture() {
+        stopActiveCameraStream();
         document.getElementById("cameraModal").hidden = true;
         document.body.style.overflow = "";
         activeCameraIndex = null;
@@ -1792,6 +1778,10 @@ function calcHijriLess6() {
                 canvas.width = Math.round(img.naturalWidth * scale) || img.naturalWidth;
                 canvas.height = Math.round(img.naturalHeight * scale) || img.naturalHeight;
                 const ctx = canvas.getContext("2d");
+                // تحسين سريع للوضوح (تباين + سطوع خفيف) أثناء نفس عملية الرسم -
+                // لا يضيف أي وقت إضافي ملحوظ، ويساعد Gemini على قراءة النص المطبوع
+                // بجواز/بطاقة صعود بصورة أوضح خصوصًا عند إضاءة ضعيفة أو صورة باهتة.
+                ctx.filter = "contrast(1.18) brightness(1.06) saturate(1.05)";
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 canvas.toBlob(blob => {
                     if(!blob) { reject(new Error("تعذر ضغط الصورة.")); return; }
@@ -1811,7 +1801,7 @@ function calcHijriLess6() {
 
         for(const apiKey of keys) {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 25000);
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
                 const response = await fetch(url, {
