@@ -200,6 +200,20 @@
         }
         .camera-capture-btn { width: 68px; height: 68px; border-radius: 50%; background: #fff; border: 4px solid rgba(255,255,255,0.4); cursor: pointer; padding: 0; }
         .camera-capture-btn:active { transform: scale(0.92); }
+
+        /* تنبيه علوي أنيق بدل alert() الافتراضي بالمتصفح - يظهر برسائل عربية عامة */
+        .app-toast {
+            position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-16px);
+            width: 92%; max-width: 420px; z-index: 20000;
+            background: #2b2b2b; color: #fff; padding: 14px 18px; border-radius: 12px;
+            font-weight: 700; font-size: 0.85rem; text-align: center; line-height: 1.7;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3);
+            border-right: 5px solid var(--gold);
+            opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease;
+        }
+        .app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .app-toast.app-toast-error { border-right-color: #e05252; }
+        .app-toast.app-toast-warning { border-right-color: var(--gold); }
         .l6-duration-box > label { color: var(--primary-dark); font-weight: 800; }
         .quick-reason-buttons, .quick-airline-buttons { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
         .quick-reason-buttons button, .quick-airline-buttons button { border: 1px solid #d7e8e2; border-radius: 999px; padding: 7px 12px; background: #eef8f5; color: var(--primary-dark); font-weight: 800; cursor: pointer; transition: .2s; }
@@ -1742,7 +1756,7 @@ function calcHijriLess6() {
         canvas.height = video.videoHeight;
         canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
         canvas.toBlob(blob => {
-            if(!blob) { alert("تعذر التقاط الصورة."); return; }
+            if(!blob) { showAppToast("تعذّر التقاط الصورة - يرجى المحاولة مرة أخرى.", "error"); return; }
             const index = activeCameraIndex;
             closeCameraCapture();
             handlePassportScan(index, blob);
@@ -1847,6 +1861,36 @@ function calcHijriLess6() {
         throw lastError || new Error("تعذر الاتصال بأي من مفاتيح Gemini المتاحة.");
     }
 
+    let appToastTimer = null;
+    function showAppToast(message, type = "error") {
+        const el = document.getElementById("appToast");
+        if(!el) { alert(message); return; }
+        el.textContent = message;
+        el.className = "app-toast show app-toast-" + type;
+        clearTimeout(appToastTimer);
+        appToastTimer = setTimeout(() => el.classList.remove("show"), 4500);
+    }
+
+    // نحوّل أي خطأ تقني (حصة الخدمة، رمز دخول، انقطاع شبكة...) إلى عبارة عربية
+    // عامة ورسمية بدون ذكر اسم أي جهة خارجية أو تفاصيل تقنية - التفاصيل الحقيقية
+    // تبقى في console.error فقط لأغراض التتبع.
+    function friendlyScanErrorMessage(error) {
+        const raw = (error && error.message) || "";
+        if(/AbortError|انتهت مهلة الاتصال/i.test(raw)) {
+            return "تعذّر الاتصال بخدمة التحليل - يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.";
+        }
+        if(/RESOURCE_EXHAUSTED|quota|rate.?limit/i.test(raw)) {
+            return "الخدمة مشغولة حاليًا بسبب كثرة الطلبات - يرجى المحاولة مرة أخرى خلال دقيقة.";
+        }
+        if(/UNAUTHENTICATED|PERMISSION_DENIED|invalid.*credential|API key|ACCESS_TOKEN/i.test(raw)) {
+            return "تعذّر الاتصال بخدمة التحليل حاليًا - يرجى المحاولة لاحقًا أو التواصل مع الدعم الفني.";
+        }
+        if(/تعذر الاتصال بقاعدة البيانات|لم يُعثر على أي مفتاح/i.test(raw)) {
+            return "تعذّر الاتصال بخدمة التحليل حاليًا - يرجى المحاولة لاحقًا.";
+        }
+        return "تعذّر تحليل الصورة - يرجى المحاولة مرة أخرى بصورة أوضح.";
+    }
+
     async function handlePassportScan(index, file) {
         if(!file) return;
         const btn = document.getElementById(`l6_scan_btn_${index}`);
@@ -1902,13 +1946,13 @@ function calcHijriLess6() {
             }
 
             if(!hasExpiry && !hasDeparture && !hasBoarding && !hasDestination) {
-                alert("تعذّرت قراءة أي بيانات واضحة من الصورة - أدخلها يدويًا.");
+                showAppToast("تعذّرت قراءة أي بيانات واضحة من الصورة - يرجى إدخالها يدويًا.", "warning");
             } else if(!hasExpiry) {
-                alert("تعذّرت قراءة تاريخ انتهاء الجواز بوضوح - أدخله يدويًا بالحاسبة أعلى الصفحة إن كان مطلوبًا.");
+                showAppToast("تعذّرت قراءة تاريخ انتهاء الجواز بوضوح - يرجى إدخاله يدويًا بالحاسبة أعلى الصفحة إن كان مطلوبًا.", "warning");
             }
         } catch(error) {
             console.error("Passport scan error:", error);
-            alert(`تعذر تحليل صورة الجواز: ${error.message || "خطأ غير معروف"}`);
+            showAppToast(friendlyScanErrorMessage(error), "error");
         } finally {
             if(btn) { btn.disabled = false; btn.innerHTML = originalLabel; }
             const input = document.getElementById(`l6_scan_input_${index}`);
@@ -2723,5 +2767,6 @@ window.location.href = `https://wa.me/?text=${encodeURIComponent(txt.join('\n'))
     </div>
     <canvas id="cameraCaptureCanvas" style="display:none"></canvas>
 </div>
+<div class="app-toast" id="appToast"></div>
 </body>
 </html>
