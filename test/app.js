@@ -815,13 +815,42 @@ async function getGeminiApiKeys() {
   return cachedGeminiApiKeys;
 }
 
-function systemImageFileToBase64(file) {
+// نُصغّر الصورة قبل إرسالها لـ Gemini: صور الكاميرا غالبًا تكون عدة ميجابايت، وهذا
+// الحجم الكبير هو أكبر سبب لبطء التحليل (وقت الرفع + وقت معالجة النموذج) بلا أي
+// فائدة لدقة القراءة - 1600px كافية جدًا لقراءة نص مطبوع بوضوح.
+const MAX_SYSTEM_IMAGE_DIMENSION = 1600;
+const SYSTEM_IMAGE_JPEG_QUALITY = 0.85;
+
+function loadImageFromFile(file) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.slice(reader.result.indexOf(",") + 1));
-    reader.onerror = () => reject(new Error("تعذر قراءة الصورة."));
-    reader.readAsDataURL(file);
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("تعذر قراءة الصورة.")); };
+    img.src = url;
   });
+}
+
+async function systemImageFileToBase64(file) {
+  let img;
+  try {
+    img = await loadImageFromFile(file);
+  } catch (err) {
+    throw err;
+  }
+
+  const scale = Math.min(1, MAX_SYSTEM_IMAGE_DIMENSION / Math.max(img.naturalWidth, img.naturalHeight));
+  const width = Math.round(img.naturalWidth * scale);
+  const height = Math.round(img.naturalHeight * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, width, height);
+
+  const dataUrl = canvas.toDataURL("image/jpeg", SYSTEM_IMAGE_JPEG_QUALITY);
+  return dataUrl.slice(dataUrl.indexOf(",") + 1);
 }
 
 const DOCUMENT_NUMBERS_PROMPT = `استخرج فقط أرقام الوثائق/الجوازات الظاهرة بهذه الصورة (عادة عمود تحت عنوان مثل "رقم الوثيقة" أو "Document No")، كل رقم كما هو مطبوع بالضبط بالصورة (احتفظ بأي بادئة مثل "P/" إن وجدت). لا تُضف أسماء ولا أي نص آخر، ولا تخمّن رقمًا غير واضح - تجاهله إن لم تكن واثقًا منه. أرجعها كمصفوفة numbers، رقم واحد لكل عنصر، بنفس ترتيب ظهورها بالصورة من الأعلى للأسفل.`;
@@ -849,7 +878,7 @@ async function extractDocumentNumbersViaGemini(file) {
           contents: [{
             parts: [
               { text: DOCUMENT_NUMBERS_PROMPT },
-              { inline_data: { mime_type: file.type || "image/jpeg", data: base64Data } }
+              { inline_data: { mime_type: "image/jpeg", data: base64Data } }
             ]
           }],
           generationConfig: {
