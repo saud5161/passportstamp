@@ -29,7 +29,6 @@
         <span>متابعة الرحلات</span>
       </button>
     </div>
-    <button id="reset-db-btn" class="reset-db-button" type="button">🗑️ إعادة تعيين جميع الرحلات</button>
   </nav>
 
   <main>
@@ -67,7 +66,7 @@
           </div>
           <div class="add-tool-box">
             <h3>إضافة من نص</h3>
-            <textarea id="text-bulk-input" class="bulk-match-textarea" rows="3" placeholder="SV708 - RUH -> KHI&#10;6:45am (يوليو-16) - الرحلات المجدولة"></textarea>
+            <textarea id="text-bulk-input" class="bulk-match-textarea" rows="3" placeholder="مرن: SV708 - RUH -> KHI ثم 6:45am (يوليو-16)&#10;أو بصيغة واحدة: SV708 KHI 18:30&#10;أو صف من تقرير الرحلات: 18 SV708 TO*KHI 0645"></textarea>
             <div class="bulk-match-footer">
               <button id="text-bulk-parse" class="primary-button" type="button">استخراج الرحلات</button>
               <span id="text-bulk-result" class="bulk-match-result"></span>
@@ -77,9 +76,12 @@
       </section>
 
       <section class="summary-bar" aria-live="polite" id="report-summary" hidden>
-        <div><strong id="flights-count">0</strong><span>إجمالي الرحلات</span></div>
-        <div><strong id="report-origin">-</strong><span>المطار</span></div>
-        <div><strong id="report-date">-</strong><span>تاريخ التقرير</span></div>
+        <div class="summary-cell"><span class="summary-label">إجمالي الرحلات</span><strong id="flights-count">0</strong></div>
+        <div class="summary-cell"><span class="summary-label">المطار</span><strong id="report-origin">-</strong></div>
+        <div class="summary-cell summary-cell--editable">
+          <span class="summary-label">تاريخ التقرير (قابل للتعديل)</span>
+          <input id="report-date" type="date" title="تعديل تاريخ التقرير - سيُطبَّق الفارق على كل الرحلات">
+        </div>
       </section>
 
       <section class="list-panel flights-panel">
@@ -88,7 +90,10 @@
             <span class="step-number">1</span>
             <h2>قائمة الرحلات المستخرجة</h2>
           </div>
-          <span class="hint">القائمة محفوظة تلقائيًا ولن تضيع عند إغلاق الصفحة</span>
+          <div class="heading-actions">
+            <span class="hint">القائمة محفوظة تلقائيًا ولن تضيع عند إغلاق الصفحة</span>
+            <button id="reset-db-btn" class="small-button danger" type="button">🗑️ إعادة تعيين جميع الرحلات</button>
+          </div>
         </div>
 
         <div id="flights-list" class="flights-list">

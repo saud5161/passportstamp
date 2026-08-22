@@ -115,7 +115,7 @@
   margin-bottom: 8px;
   padding: 13px 14px;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto auto;
+  grid-template-columns: 36px minmax(0, 1fr) auto auto auto;
   align-items: center;
   gap: 12px;
   border: 1px solid #e2ece7;
@@ -152,6 +152,26 @@
 }
 .time-scheduled { color: #6a540e; background: #fff3c6; }
 .time-actual { color: #0f5c38; background: #d7f3e3; }
+
+.flight-date-edit { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.flight-date-weekday { font-size: 10px; font-weight: 800; color: var(--muted); }
+.flight-date-input {
+  width: 128px;
+  padding: 5px 6px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 700;
+  background: #fff;
+}
+.flight-date-input:focus { outline: 0; border-color: var(--green-700); box-shadow: 0 0 0 3px rgba(47, 123, 97, .18); }
+
+#report-date {
+  width: 100%;
+  max-width: 148px !important;
+  font-size: 13px !important;
+}
 
 /* ========== إعداد النموذج ========== */
 .setup-panel { margin-top: 18px; }

@@ -315,22 +315,93 @@ function buildIsoFromParts(year, monthIndex, day, hour, minute) {
   return new Date(year, monthIndex, day, hour, minute, 0, 0).toISOString();
 }
 
-function scheduledIsoFromPdfDate(dateStr, hhmm) {
-  const now = new Date();
-  const hour = parseInt(hhmm.slice(0, 2), 10);
-  const minute = parseInt(hhmm.slice(2), 10);
+function parsePdfDateStr(dateStr) {
   const match = /^([0-3]\d)([A-Z]{3})(\d{2})$/i.exec(dateStr || "");
-  if (!match) return buildIsoFromParts(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute);
-  const day = parseInt(match[1], 10);
+  if (!match) return null;
   const monthIndex = MONTHS_EN[match[2].toUpperCase()];
-  const year = 2000 + parseInt(match[3], 10);
-  return buildIsoFromParts(year, monthIndex, day, hour, minute);
+  if (monthIndex === undefined) return null;
+  return { year: 2000 + parseInt(match[3], 10), monthIndex, day: parseInt(match[1], 10) };
 }
 
-function scheduledIsoFromTodayTime(hhmmColon) {
-  const [hour, minute] = hhmmColon.split(":").map(Number);
+function resolveBaseDateParts(base) {
+  if (base instanceof Date) return { year: base.getFullYear(), monthIndex: base.getMonth(), day: base.getDate() };
+  if (typeof base === "string") return parsePdfDateStr(base) || resolveBaseDateParts(null);
+  if (base && typeof base === "object") return base;
   const now = new Date();
-  return buildIsoFromParts(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute);
+  return { year: now.getFullYear(), monthIndex: now.getMonth(), day: now.getDate() };
+}
+
+/* رحلات التقرير مرتّبة زمنيًا بالتتابع لكن أوقاتها بصيغة 24 ساعة فقط بلا تاريخ:
+   تقرير المغادرات يغطي فترة تمتد من مساء يوم إلى صباح اليوم التالي (مثال:
+   21AUG/2200-22AUG/0700)، فالرحلات بعد منتصف الليل (00:xx وما بعدها) تخص
+   اليوم التالي فعليًا رغم أن التقرير لا يكرر التاريخ أمام كل رحلة. نكتشف
+   عبور منتصف الليل هنا: كل مرة يكون وقت الرحلة الحالية أصغر من سابقتها
+   (بترتيب ظهورها في التقرير) نزيد يوم واحد. */
+function assignFlightDates(flights, base) {
+  const baseParts = resolveBaseDateParts(base);
+  let dayOffset = 0;
+  let prevMinutes = -1;
+  return flights.map(flight => {
+    const hour = parseInt(flight.scheduledTime.slice(0, 2), 10);
+    const minute = parseInt(flight.scheduledTime.slice(2), 10);
+    const minutesOfDay = hour * 60 + minute;
+    if (prevMinutes !== -1 && minutesOfDay < prevMinutes) dayOffset += 1;
+    prevMinutes = minutesOfDay;
+    const scheduledAt = buildIsoFromParts(baseParts.year, baseParts.monthIndex, baseParts.day + dayOffset, hour, minute);
+    return { ...flight, scheduledAt, dayOffset };
+  });
+}
+
+function computeReportBaseDate() {
+  if (!state.flights.length) return null;
+  return new Date(state.flights[0].scheduledAt);
+}
+
+function isoDateFromDate(d) {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function scheduledIsoForTime(hhmmColon) {
+  const [hour, minute] = hhmmColon.split(":").map(Number);
+  const base = computeReportBaseDate() || new Date();
+  return buildIsoFromParts(base.getFullYear(), base.getMonth(), base.getDate(), hour, minute);
+}
+
+async function shiftAllFlightDates(deltaDays) {
+  if (!deltaDays || !state.flights.length) return;
+  try {
+    const results = await Promise.all(state.flights.map(flight => {
+      const d = new Date(flight.scheduledAt);
+      d.setDate(d.getDate() + deltaDays);
+      return supabaseClient.from("flights").update({ scheduled_at: d.toISOString() }).eq("id", flight.id);
+    }));
+    const failed = results.find(result => result.error);
+    if (failed) throw failed.error;
+    showToast("تم تعديل تاريخ التقرير لجميع الرحلات.");
+    await loadAddViewFlightsFromDb();
+    if (trackState.isActive) loadTrackFlights();
+  } catch (error) {
+    console.error(error);
+    showToast("تعذر تعديل تاريخ التقرير.");
+  }
+}
+
+async function updateSingleFlightDate(flightId, isoDateValue) {
+  const flight = state.flights.find(item => item.id === flightId);
+  if (!flight || !isoDateValue) return;
+  const [year, month, day] = isoDateValue.split("-").map(Number);
+  const old = new Date(flight.scheduledAt);
+  const updated = new Date(year, month - 1, day, old.getHours(), old.getMinutes(), 0, 0);
+  try {
+    const { error } = await supabaseClient.from("flights").update({ scheduled_at: updated.toISOString() }).eq("id", flightId);
+    if (error) throw error;
+    showToast(`تم تعديل تاريخ الرحلة ${flight.flightNumber}.`);
+    await loadAddViewFlightsFromDb();
+    if (trackState.isActive) loadTrackFlights();
+  } catch (error) {
+    console.error(error);
+    showToast("تعذر تعديل تاريخ الرحلة.");
+  }
 }
 
 function isoToHHMM(iso) {
@@ -422,49 +493,118 @@ async function extractFlights(file) {
   return { flights: parseFlights(allLines), header: parseReportHeader(allLines) };
 }
 
+function parseTimeToken(rawToken) {
+  const token = rawToken.replace(/\s+/g, "");
+  let m = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(token);
+  if (m) return { hour: parseInt(m[1], 10), minute: parseInt(m[2], 10) };
+
+  m = /^(\d{1,2}):(\d{2})(am|pm)$/i.exec(token);
+  if (m) {
+    let hour = parseInt(m[1], 10);
+    const minute = parseInt(m[2], 10);
+    const ampm = m[3].toLowerCase();
+    if (ampm === "pm" && hour !== 12) hour += 12;
+    if (ampm === "am" && hour === 12) hour = 0;
+    return { hour, minute };
+  }
+
+  m = /^([01]\d|2[0-3])([0-5]\d)$/.exec(token);
+  if (m) return { hour: parseInt(m[1], 10), minute: parseInt(m[2], 10) };
+
+  return null;
+}
+
+function findTimeInLine(line) {
+  const m = line.match(/\b(\d{1,2}:\d{2}\s*(?:am|pm)?|(?:[01]\d|2[0-3])[0-5]\d)\b/i);
+  return m ? parseTimeToken(m[1]) : null;
+}
+
+function findDateInLine(line, baseParts) {
+  let m = /([؀-ۿ]{3,})\s*-?\s*(\d{1,2})\b/.exec(line);
+  if (m && MONTHS_AR[m[1]] !== undefined) {
+    return { year: baseParts.year, monthIndex: MONTHS_AR[m[1]], day: parseInt(m[2], 10) };
+  }
+  m = /\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?\b/.exec(line);
+  if (m) {
+    const year = m[3] ? (m[3].length === 2 ? 2000 + parseInt(m[3], 10) : parseInt(m[3], 10)) : baseParts.year;
+    return { year, monthIndex: parseInt(m[2], 10) - 1, day: parseInt(m[1], 10) };
+  }
+  return null;
+}
+
+/* محلّل مرن يقبل عدة صيغ للصق الرحلات:
+   1) أسطر التقرير الأصلية المنسوخة مباشرة (مثل "18 SV708 TO*KHI 0645") -
+      تُعالج بنفس منطق ترتيب التواريخ المستخدم لملف الـPDF (assignFlightDates).
+   2) سطر واحد يجمع رقم الرحلة والوجهة والوقت (رمز أو اسم مدينة، 24 أو 12 ساعة).
+   3) سطر لرقم الرحلة والوجهة، يتبعه سطر للوقت (وبه تاريخ اختياري) - الصيغة القديمة. */
 function parseBulkText(text) {
-  const lines = text.split("\n").map(line => line.trim());
-  const flightLineRe = /^([A-Z]{1,3}\d{1,4})\s*-\s*([A-Z]{3})\s*->\s*([A-Z]{3})$/i;
-  const timeLineRe = /^(\d{1,2}):(\d{2})\s*(am|pm)?\s*\(([^\-()]+)-(\d{1,2})\)/i;
+  const baseDate = computeReportBaseDate() || new Date();
+  const baseParts = resolveBaseDateParts(baseDate);
+  const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
+  const seen = new Set();
   const results = [];
+
+  const pushResult = (flightNumber, originCode, destinationCode, scheduledIso) => {
+    const key = `${flightNumber}-${scheduledIso}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    results.push({
+      id: `text-${flightNumber}-${results.length}-${Date.now()}`,
+      flightNumber,
+      originCode,
+      destinationCode,
+      scheduledIso
+    });
+  };
+
+  const reportPattern = /([A-Z]{1,3}\d{1,4})\s+(?:TO|FROM)\*([A-Z]{3})\s+(\d{4})/i;
+  const reportRows = [];
+  lines.forEach(line => {
+    const m = line.replace(/\s+/g, " ").match(reportPattern);
+    if (m) reportRows.push({ flightNumber: m[1].toUpperCase(), destinationCode: m[2].toUpperCase(), scheduledTime: m[3] });
+  });
+  if (reportRows.length) {
+    assignFlightDates(reportRows, baseParts).forEach(flight => {
+      pushResult(flight.flightNumber, state.origin || "RUH", flight.destinationCode, flight.scheduledAt);
+    });
+    return results;
+  }
+
+  const singleLineRe = /^([A-Z]{1,3}\d{1,4})\s*[-:]?\s*(?:([A-Z]{3})\s*(?:->|→|-|to|الى|إلى)\s*)?([A-Za-z؀-ۿ]{3,})\s*[-,]?\s*(.+)$/i;
   let pending = null;
 
   lines.forEach(line => {
-    if (!line) return;
-
-    const flightMatch = line.match(flightLineRe);
-    if (flightMatch) {
-      pending = {
-        flightNumber: flightMatch[1].toUpperCase(),
-        originCode: flightMatch[2].toUpperCase(),
-        destinationCode: flightMatch[3].toUpperCase()
-      };
-      return;
+    const singleMatch = line.match(singleLineRe);
+    const inlineTime = singleMatch ? findTimeInLine(singleMatch[4]) : null;
+    if (singleMatch && inlineTime) {
+      const destinationCode = resolveDestinationCode(singleMatch[3]);
+      if (destinationCode) {
+        const dateInfo = findDateInLine(line, baseParts) || baseParts;
+        const scheduledIso = buildIsoFromParts(dateInfo.year, dateInfo.monthIndex, dateInfo.day, inlineTime.hour, inlineTime.minute);
+        pushResult(singleMatch[1].toUpperCase(), (singleMatch[2] || state.origin || "RUH").toUpperCase(), destinationCode, scheduledIso);
+        pending = null;
+        return;
+      }
     }
 
-    const timeMatch = line.match(timeLineRe);
-    if (timeMatch && pending) {
-      let hour = parseInt(timeMatch[1], 10);
-      const minute = parseInt(timeMatch[2], 10);
-      const ampm = (timeMatch[3] || "").toLowerCase();
-      if (ampm === "pm" && hour !== 12) hour += 12;
-      if (ampm === "am" && hour === 12) hour = 0;
+    const flightOnlyMatch = line.match(/^([A-Z]{1,3}\d{1,4})\s*-?\s*(?:([A-Z]{3})\s*(?:->|→|-)\s*)?(.+)$/i);
+    const flightTime = findTimeInLine(line);
+    if (flightOnlyMatch && !flightTime) {
+      const destinationCode = resolveDestinationCode(flightOnlyMatch[3]);
+      if (destinationCode) {
+        pending = {
+          flightNumber: flightOnlyMatch[1].toUpperCase(),
+          originCode: (flightOnlyMatch[2] || state.origin || "RUH").toUpperCase(),
+          destinationCode
+        };
+        return;
+      }
+    }
 
-      const monthName = timeMatch[4].trim();
-      const day = parseInt(timeMatch[5], 10);
-      const monthIndex = MONTHS_AR[monthName];
-      const now = new Date();
-      const scheduledIso = monthIndex !== undefined
-        ? buildIsoFromParts(now.getFullYear(), monthIndex, day, hour, minute)
-        : buildIsoFromParts(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute);
-
-      results.push({
-        id: `text-${pending.flightNumber}-${results.length}-${Date.now()}`,
-        flightNumber: pending.flightNumber,
-        originCode: pending.originCode,
-        destinationCode: pending.destinationCode,
-        scheduledIso
-      });
+    if (flightTime && pending) {
+      const dateInfo = findDateInLine(line, baseParts) || baseParts;
+      const scheduledIso = buildIsoFromParts(dateInfo.year, dateInfo.monthIndex, dateInfo.day, flightTime.hour, flightTime.minute);
+      pushResult(pending.flightNumber, pending.originCode, pending.destinationCode, scheduledIso);
       pending = null;
     }
   });
@@ -483,7 +623,7 @@ async function addManualFlight() {
   if (!destinationCode) { showToast("وجهة غير معروفة، اكتب الرمز مثل KHI أو اسم المدينة مثل كراتشي."); return; }
   if (!TIME_24H_RE.test(timeValue)) { showToast("صيغة الوقت غير صحيحة، استخدم نظام 24 ساعة مثل 18:30."); return; }
 
-  const scheduledIso = scheduledIsoFromTodayTime(timeValue);
+  const scheduledIso = scheduledIsoForTime(timeValue);
 
   elements.manualAddBtn.disabled = true;
   const ok = await saveFlightsToDb([{
@@ -534,7 +674,8 @@ async function parseTextBulk() {
 function renderFlights() {
   elements.flightsCount.textContent = state.flights.length;
   elements.reportOrigin.textContent = state.origin ? destinationName(state.origin) : "-";
-  elements.reportDate.textContent = state.reportDate || "-";
+  const baseDate = computeReportBaseDate();
+  elements.reportDate.value = baseDate ? isoDateFromDate(baseDate) : "";
   elements.summary.hidden = !state.flights.length;
   elements.setupPanel.hidden = !state.flights.length;
 
@@ -548,7 +689,10 @@ function renderFlights() {
     return;
   }
 
-  elements.flightsList.innerHTML = state.flights.map((flight, index) => `
+  elements.flightsList.innerHTML = state.flights.map((flight, index) => {
+    const flightDate = new Date(flight.scheduledAt);
+    const weekdayShort = new Intl.DateTimeFormat("ar-SA", { weekday: "short" }).format(flightDate);
+    return `
     <div class="flight-row">
       <span class="flight-index">${index + 1}</span>
       <div class="flight-main">
@@ -559,8 +703,13 @@ function renderFlights() {
         <span class="time-scheduled">مجدول ${escapeHtml(formatTime(flight.scheduledTime))}</span>
         ${flight.actualTime ? `<span class="time-actual">فعلي ${escapeHtml(formatTime(flight.actualTime))}</span>` : ""}
       </div>
+      <div class="flight-date-edit">
+        <span class="flight-date-weekday">${escapeHtml(weekdayShort)}</span>
+        <input type="date" class="flight-date-input" data-flight-id="${escapeHtml(flight.id)}" value="${isoDateFromDate(flightDate)}" title="تعديل تاريخ هذه الرحلة فقط">
+      </div>
       <button class="flight-remove" type="button" data-remove-flight="${escapeHtml(flight.id)}" title="حذف الرحلة">×</button>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
 
 async function removeFlight(id) {
@@ -878,11 +1027,12 @@ async function handleFile(file) {
     state.reportDate = header.date;
     elements.fileStatus.textContent = `${file.name} - تم استخراج ${flights.length} رحلة بنجاح`;
 
-    const ok = await saveFlightsToDb(flights.map(flight => ({
+    const datedFlights = assignFlightDates(flights, header.date);
+    const ok = await saveFlightsToDb(datedFlights.map(flight => ({
       flight_number: flight.flightNumber,
       origin_code: header.origin || "RUH",
       destination_code: flight.destinationCode,
-      scheduled_at: scheduledIsoFromPdfDate(header.date, flight.scheduledTime),
+      scheduled_at: flight.scheduledAt,
       source: "pdf"
     })));
 
@@ -1137,6 +1287,25 @@ elements.dropZone.addEventListener("drop", event => handleFile(event.dataTransfe
 elements.flightsList.addEventListener("click", event => {
   const removeButton = event.target.closest("[data-remove-flight]");
   if (removeButton) removeFlight(removeButton.dataset.removeFlight);
+});
+
+elements.flightsList.addEventListener("change", event => {
+  const dateInput = event.target.closest(".flight-date-input");
+  if (!dateInput) return;
+  dateInput.disabled = true;
+  updateSingleFlightDate(dateInput.dataset.flightId, dateInput.value).finally(() => {
+    dateInput.disabled = false;
+  });
+});
+
+elements.reportDate.addEventListener("change", () => {
+  const baseDate = computeReportBaseDate();
+  if (!baseDate || !elements.reportDate.value) return;
+  const [year, month, day] = elements.reportDate.value.split("-").map(Number);
+  const newBase = new Date(year, month - 1, day);
+  const oldBase = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+  const deltaDays = Math.round((newBase - oldBase) / 86400000);
+  shiftAllFlightDates(deltaDays);
 });
 
 elements.clearCarrierSignature.addEventListener("click", () => carrierSignaturePad.clear());
