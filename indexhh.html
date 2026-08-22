@@ -1748,13 +1748,49 @@ function calcHijriLess6() {
         activeCameraIndex = null;
     }
 
+    // نحسب موضع إطار التوجيه الشفاف (الذي يظهر على الشاشة فوق الفيديو) بمقاييس
+    // بكسلات الفيديو الفعلية، لنقصّ الصورة تلقائيًا على منطقة الجواز/بطاقة الصعود
+    // فقط بدل التقاط الشاشة كاملة - الفيديو يُعرض بخاصية object-fit:cover فيُحسب
+    // معامل التكبير وإزاحة القص الناتجة عنها أولًا.
+    function computeGuideFrameCropRect(video) {
+        const frameEl = document.querySelector(".camera-guide-frame");
+        if(!frameEl || !video.videoWidth || !video.videoHeight) return null;
+        const videoRect = video.getBoundingClientRect();
+        const frameRect = frameEl.getBoundingClientRect();
+        if(!videoRect.width || !videoRect.height || !frameRect.width || !frameRect.height) return null;
+
+        const scale = Math.max(videoRect.width / video.videoWidth, videoRect.height / video.videoHeight);
+        const offsetX = (video.videoWidth * scale - videoRect.width) / 2;
+        const offsetY = (video.videoHeight * scale - videoRect.height) / 2;
+
+        let sx = (frameRect.left - videoRect.left + offsetX) / scale;
+        let sy = (frameRect.top - videoRect.top + offsetY) / scale;
+        let sw = frameRect.width / scale;
+        let sh = frameRect.height / scale;
+
+        sx = Math.max(0, sx);
+        sy = Math.max(0, sy);
+        sw = Math.min(sw, video.videoWidth - sx);
+        sh = Math.min(sh, video.videoHeight - sy);
+        if(sw <= 0 || sh <= 0) return null;
+        return { sx, sy, sw, sh };
+    }
+
     function capturePassportPhoto() {
         const video = document.getElementById("cameraVideo");
         const canvas = document.getElementById("cameraCaptureCanvas");
         if(!video.videoWidth) return;
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+        const ctx = canvas.getContext("2d");
+        const crop = computeGuideFrameCropRect(video);
+        if(crop) {
+            canvas.width = crop.sw;
+            canvas.height = crop.sh;
+            ctx.drawImage(video, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, crop.sw, crop.sh);
+        } else {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        }
         canvas.toBlob(blob => {
             if(!blob) { showAppToast("تعذّر التقاط الصورة - يرجى المحاولة مرة أخرى.", "error"); return; }
             const index = activeCameraIndex;
@@ -1792,10 +1828,6 @@ function calcHijriLess6() {
                 canvas.width = Math.round(img.naturalWidth * scale) || img.naturalWidth;
                 canvas.height = Math.round(img.naturalHeight * scale) || img.naturalHeight;
                 const ctx = canvas.getContext("2d");
-                // تحسين سريع للوضوح (تباين + سطوع خفيف) أثناء نفس عملية الرسم -
-                // لا يضيف أي وقت إضافي ملحوظ، ويساعد Gemini على قراءة النص المطبوع
-                // بجواز/بطاقة صعود بصورة أوضح خصوصًا عند إضاءة ضعيفة أو صورة باهتة.
-                ctx.filter = "contrast(1.18) brightness(1.06) saturate(1.05)";
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 canvas.toBlob(blob => {
                     if(!blob) { reject(new Error("تعذر ضغط الصورة.")); return; }
