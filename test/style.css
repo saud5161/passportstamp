@@ -1579,7 +1579,8 @@ main {
   .bulk-match-footer { flex-direction: column; align-items: stretch; }
   .bulk-match-buttons .primary-button { flex: 1; }
   .edit-fields { grid-template-columns: 1fr 82px; }
-  .edit-fields input:first-child { grid-column: 1 / -1; }
+  .edit-fields input:first-child,
+  .edit-fields input[data-field="passport"] { grid-column: 1 / -1; }
 
   .alert-row { padding: 12px; gap: 9px; }
   .alert-row-icon { width: 30px; height: 30px; font-size: 14px; }
