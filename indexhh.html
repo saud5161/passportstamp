@@ -214,6 +214,7 @@
         .app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .app-toast.app-toast-error { border-right-color: #e05252; }
         .app-toast.app-toast-warning { border-right-color: var(--gold); }
+        .app-toast.app-toast-success { border-right-color: var(--primary); }
         .l6-duration-box > label { color: var(--primary-dark); font-weight: 800; }
         .quick-reason-buttons, .quick-airline-buttons { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
         .quick-reason-buttons button, .quick-airline-buttons button { border: 1px solid #d7e8e2; border-radius: 999px; padding: 7px 12px; background: #eef8f5; color: var(--primary-dark); font-weight: 800; cursor: pointer; transition: .2s; }
@@ -1977,10 +1978,20 @@ function calcHijriLess6() {
                 document.getElementById("l6_dest").value = data.destination_city;
             }
 
-            if(!hasExpiry && !hasDeparture && !hasBoarding && !hasDestination) {
+            // نفصل بين "لم تُقرأ بيانات الجواز" و"لم تكن هناك صورة جواز أصلًا" - إن
+            // كانت الصورة بطاقة صعود فقط بدون جواز، فنجاح قراءة بيانات البطاقة
+            // يُعتبر نجاحًا كاملًا وليس فشلًا بغياب تاريخ انتهاء الجواز.
+            const hasPassportData = !!data.full_name || !!data.passport_number || hasExpiry;
+            const hasBoardingPassData = hasDeparture || hasBoarding || hasDestination;
+
+            if(!hasPassportData && !hasBoardingPassData) {
                 showAppToast("تعذّرت قراءة أي بيانات واضحة من الصورة - يرجى إدخالها يدويًا.", "warning");
-            } else if(!hasExpiry) {
+            } else if(!hasPassportData && hasBoardingPassData) {
+                showAppToast("تم استخراج بيانات بطاقة الصعود بنجاح.", "success");
+            } else if(hasPassportData && !hasExpiry) {
                 showAppToast("تعذّرت قراءة تاريخ انتهاء الجواز بوضوح - يرجى إدخاله يدويًا بالحاسبة أعلى الصفحة إن كان مطلوبًا.", "warning");
+            } else {
+                showAppToast("تم تحليل الصورة بنجاح.", "success");
             }
         } catch(error) {
             console.error("Passport scan error:", error);
