@@ -437,13 +437,16 @@
         <div class="grid-menu">
             <div class="card" onclick="openForm('updut')"><i class="fas fa-sync-alt"></i><span>نقل معلومات</span></div>
             <div class="card" onclick="openForm('diffNat')"><i class="fas fa-globe"></i><span>اختلاف جنسية</span></div>
+            <div class="card" onclick="openForm('passErrorRes')">
+                <div style="position:relative; display:inline-block;"><i class="fas fa-passport"></i><i class="fas fa-exclamation-circle" style="position:absolute; bottom:-5px; right:-5px; color:#dc3545; background:white; border-radius:50%; font-size:1rem;"></i></div>
+                <span>خطأ رقم جواز</span>
+            </div>
         </div>
 
         <div class="section-title"><i class="fas fa-globe"></i> المواطنين</div>
         <div class="grid-menu">
             <div class="card" onclick="openForm('less6')"><i class="fas fa-passport"></i><span>أقل من 6 أشهر</span></div>
             <div class="card" onclick="openForm('askeryafter')"><i class="fas fa-user-clock"></i><span>إجازة عسكري</span></div>
-            <div class="card" onclick="openForm('askrycontery')"><i class="fas fa-plane-slash"></i><span>دولة ممنوعة</span></div>
             <div class="card" onclick="openForm('askryd')"><i class="fas fa-map-marked-alt"></i><span>عسكري اختلاف</span></div>
             <div class="card" onclick="openForm('defname')"><i class="fas fa-id-card-alt"></i><span>اختلاف اسم</span></div>
             <div class="card" onclick="openForm('diplomaticVisaExpired')"><i class="fas fa-id-badge"></i><span>جواز دبلوماسي تأشيرة منتهية</span></div>
@@ -853,6 +856,20 @@
         <div class="input-group"><label>الملاحظة</label><textarea id="perr_note" rows="5">وعند الشروع في انهاء اجراءت مغادرته تبين وجود خطا في رقم الجواز المسجل في نظام المسافرين علما بان منفذ الدخول ( ... ) ولايوجد لديه تأشيرة مسجلة على رقم الجواز الصحيح</textarea></div>
     </div>
 
+    <div id="form-passErrorRes" class="form-section">
+        <div class="form-title">خطأ في رقم الجواز</div>
+        <div class="input-group"><label>رقم الاقامة</label><input type="text" id="perres_res" class="en-num" style="direction:ltr"></div>
+        <div class="input-group"><label>اسم المسافر</label><input type="text" id="perres_name" style="direction:ltr;text-align:right;"></div>
+        <div class="input-group"><label>رقم الجواز الصحيح</label><input type="text" id="perres_corr" class="en-num" style="direction:ltr"></div>
+        <div class="input-group"><label>رقم الجواز المسجل خطأ</label><input type="text" id="perres_wrong" class="en-num" style="direction:ltr"></div>
+        <div class="input-group"><label>نوع التأشيرة</label><input type="text" id="perres_visa"></div>
+        <div class="input-group"><label>الجنسية</label><input type="text" id="perres_nat"></div>
+        <div class="input-group"><label>الخطوط</label><input type="text" id="perres_air"></div>
+        <div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="perres_h" placeholder="ساعة" class="en-num"><input type="number" id="perres_m" placeholder="دقيقة" class="en-num"></div></div>
+        <div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="perres_gh" placeholder="ساعة" class="en-num"><input type="number" id="perres_gm" placeholder="دقيقة" class="en-num"></div></div>
+        <div class="input-group"><label>الملاحظة</label><textarea id="perres_note" rows="5">عند البدء في انهاء اجراءات مغادرته تبين بان رقم الجواز المسجل في نظام المسافرين لا يتطابق مع جواز الراكب الصحيح</textarea></div>
+    </div>
+
     <div id="form-custom" class="form-section">
         <div class="form-title">نموذج جاهز (مخصص)</div>
         <div class="custom-options">
@@ -1070,7 +1087,7 @@
     let l6DocType = 'passport';
     let l6CalcSource = 'hijri';
     let flightsDatabase = []; // لتخزين بيانات ملف fly.json
-    const airlineInputIds = ['fn_airline', 've_air', 'pd_airline', 'perr_air', 'aa_line', 'ad_line', 'fc_air', 'nf_air'];
+    const airlineInputIds = ['fn_airline', 've_air', 'pd_airline', 'perr_air', 'perres_air', 'aa_line', 'ad_line', 'fc_air', 'nf_air'];
     const airlineChoices = ['السعودية', 'ناس', 'اديل', 'الرياض'];
 
     function syncTextareaDefaults(root = document) {
@@ -2295,6 +2312,20 @@ function calcPresence() {
             txt.push(`*الخطوط:* ${val('perr_air')}`);
             txt.push(`\n*الملاحظة:*`);
             txt.push(val('perr_note'));
+            txt.push(`\n*بأمل اطلاع سعادتكم والتوجيه*`);
+        }
+        else if(currentForm === 'passErrorRes') {
+            txt.push(`*اسم المسافر:* ${val('perres_name')}`);
+            txt.push(`*رقم الاقامة:* ${val('perres_res')}`);
+            txt.push(`*رقم الجواز الصحيح*: ${val('perres_corr')}`);
+            txt.push(`*رقم الجواز المسجل خطاء*: ${val('perres_wrong')}`);
+            txt.push(`*نوع التاشيره* ${val('perres_visa')}`);
+            txt.push(`*الجنسية:* ${val('perres_nat')}`);
+            if(val('perres_h') || val('perres_m')) txt.push(`*وقت الإقلاع:* ${pad(val('perres_h'))}:${pad(val('perres_m'))}`);
+            if(val('perres_gh') || val('perres_gm')) txt.push(`*موعد فتح البوابة:* ${pad(val('perres_gh'))}:${pad(val('perres_gm'))}`);
+            txt.push(`*الخطوط:* ${val('perres_air')}`);
+            txt.push(`\n*الملاحظة:*`);
+            txt.push(val('perres_note'));
             txt.push(`\n*بأمل اطلاع سعادتكم والتوجيه*`);
         }
         else if(currentForm === 'arrestBan') {

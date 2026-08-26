@@ -1,5 +1,4 @@
-const SUPABASE_URL = "https://dkrtiuelioyshbjoocqm.supabase.co";
-const SUPABASE_KEY = "sb_publishable_ts5SGrWhODsG6EH5dUt9Wg_KUvsf-CF";
+// SUPABASE_URL / SUPABASE_KEY معرّفة مسبقًا في indexhh.html
 
 // ======================= إرسال الاقتراح =======================
 async function sendFeedbackToSupabase() {
