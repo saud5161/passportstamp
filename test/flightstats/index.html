@@ -102,14 +102,30 @@
         </select>
       </div>
 
-      <div class="field">
-        <label for="timeFrom">🕐 من الساعة</label>
-        <input type="time" id="timeFrom">
-      </div>
-
-      <div class="field">
-        <label for="timeTo">🕐 إلى الساعة</label>
-        <input type="time" id="timeTo">
+      <div class="field field-grow">
+        <label>🕐 نطاق الوقت</label>
+        <div class="time-range" id="timeRange">
+          <div class="time-range-labels">
+            <span class="time-range-badge" id="trLabelFrom">--:--</span>
+            <span class="time-range-wrap-hint" id="trWrapHint" hidden>🌙 يمتد لليوم التالي</span>
+            <span class="time-range-badge" id="trLabelTo">--:--</span>
+          </div>
+          <div class="time-range-track" id="trTrack">
+            <div class="time-range-fill" id="trFill"></div>
+            <div class="time-range-fill time-range-fill-wrap" id="trFillWrapStart" hidden></div>
+            <div class="time-range-tooltip" id="trTooltipFrom">--:--</div>
+            <div class="time-range-tooltip" id="trTooltipTo">--:--</div>
+            <div class="time-range-handle" id="trHandleFrom" tabindex="0" role="slider" aria-label="من الساعة" aria-valuemin="0" aria-valuemax="1439"></div>
+            <div class="time-range-handle" id="trHandleTo" tabindex="0" role="slider" aria-label="إلى الساعة" aria-valuemin="0" aria-valuemax="1439"></div>
+          </div>
+          <div class="time-range-ticks">
+            <span class="time-range-tick">00:00</span>
+            <span class="time-range-tick">06:00</span>
+            <span class="time-range-tick">12:00</span>
+            <span class="time-range-tick">18:00</span>
+            <span class="time-range-tick">24:00</span>
+          </div>
+        </div>
       </div>
 
       <div class="field">

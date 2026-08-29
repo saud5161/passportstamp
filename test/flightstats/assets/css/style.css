@@ -117,6 +117,74 @@ body{
 .toggle-check:has(input:checked){border-color:var(--accent);color:var(--text);background:rgba(46,124,246,.1)}
 .toggle-check input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
 
+/* ===== شريط نطاق الوقت (مقبضان قابلان للسحب، يدعم الامتداد لليوم التالي) ===== */
+.time-range{width:100%;padding-top:4px}
+.time-range-labels{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-bottom:12px;direction:ltr;
+}
+.time-range-badge{
+  background:var(--bg-soft);border:1px solid var(--border);color:var(--text);
+  font-weight:800;font-size:13px;padding:5px 11px;border-radius:8px;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.time-range-wrap-hint{font-size:11px;color:var(--gold);font-weight:800;white-space:nowrap}
+.time-range-track{
+  position:relative;direction:ltr;height:6px;background:var(--bg-soft);
+  border:1px solid var(--border);border-radius:5px;margin:38px 14px 0;
+}
+.time-range-fill{
+  position:absolute;top:-1px;bottom:-1px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:5px;
+}
+.time-range-fill-wrap{background:linear-gradient(90deg,var(--gold),var(--accent));opacity:.9}
+.time-range-handle{
+  position:absolute;top:50%;width:22px;height:22px;margin-top:-12px;margin-left:-11px;
+  background:#fff;border:3px solid var(--accent);border-radius:50%;
+  cursor:grab;box-shadow:0 2px 8px rgba(0,0,0,.45);touch-action:none;z-index:3;
+  transition:transform .1s ease;
+}
+.time-range-handle::before{
+  /* منطقة لمس أوسع من الشكل المرئي - مريحة على الجوال دون تكبير المقبض بصرياً */
+  content:"";position:absolute;inset:-14px;
+}
+.time-range-handle:hover{transform:scale(1.1)}
+.time-range-handle:active,.time-range-handle.dragging{cursor:grabbing;transform:scale(1.25)}
+.time-range-handle:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* فقاعة الوقت العائمة فوق كل مقبض - تتبع موضعه دائماً */
+.time-range-tooltip{
+  position:absolute;bottom:calc(100% + 10px);transform:translateX(-50%);
+  background:var(--accent);color:#fff;font-size:12px;font-weight:800;
+  padding:4px 9px;border-radius:7px;white-space:nowrap;z-index:4;
+  font-variant-numeric:tabular-nums;box-shadow:0 3px 10px rgba(0,0,0,.35);
+  transition:transform .1s ease, background-color .15s ease;
+  pointer-events:none;
+}
+.time-range-tooltip::after{
+  content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--accent);
+}
+.time-range-tooltip.dragging{background:var(--gold);transform:translateX(-50%) scale(1.08)}
+.time-range-tooltip.dragging::after{border-top-color:var(--gold)}
+.time-range-handle.dragging{transform:scale(1.35)}
+
+/* ترميز الوقت (00:00 → 24:00) أسفل الشريط لتوضيح أن الشريط يمثل يوماً كاملاً */
+.time-range-ticks{
+  display:flex;justify-content:space-between;margin:8px 14px 0;
+  direction:ltr;font-size:10.5px;color:var(--text-dim);font-weight:700;
+  font-variant-numeric:tabular-nums;
+}
+
+@media (max-width:720px){
+  .time-range-track{margin-top:42px}
+  .time-range-track{margin-inline:16px}
+  .time-range-handle{width:26px;height:26px;margin-top:-14px;margin-left:-13px}
+  .time-range-badge{font-size:14px;padding:6px 12px}
+  .time-range-tooltip{font-size:13px;padding:5px 11px;bottom:calc(100% + 12px)}
+  .time-range-ticks{margin-inline:16px;font-size:11px}
+}
+
 .btn-link{
   background:none;border:none;color:var(--accent-2);font-size:12.5px;font-weight:700;
   cursor:pointer;padding:0;text-decoration:underline;font-family:inherit;

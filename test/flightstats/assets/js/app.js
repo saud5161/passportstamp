@@ -2,14 +2,13 @@
 
 /* ======================================================================
    لوحة رحلات مطار الملك خالد الدولي
-   - يحاول جلب بيانات حية من AeroDataBox (عبر RapidAPI) إن توفر مفتاح صالح
-   - في حال عدم توفر مفتاح، أو فشل الاتصال (CORS / حد الطلبات...) تُعرض
-     بيانات تجريبية واقعية حتى تبقى الصفحة قابلة للاستخدام والعرض فوراً
+   - تتصل مباشرة بموقع مطار الملك خالد الرسمي (kkia.sa) - مجاني بالكامل
+     ولا يحتاج أي مفتاح أو بنية خارجية (لا Supabase ولا AeroDataBox).
+   - عند تعذّر الاتصال، تُعرض بيانات تجريبية واقعية حتى تبقى الصفحة قابلة
+     للاستخدام والعرض فوراً.
    ====================================================================== */
 
 const CFG = window.APP_CONFIG || {};
-const KEY_PLACEHOLDER = "ضع_مفتاح_RapidAPI_هنا";
-const HAS_KEY = !!(CFG.RAPIDAPI_KEY && CFG.RAPIDAPI_KEY !== KEY_PLACEHOLDER);
 
 const AIRLINES = [
   { code: "SV", name: "الخطوط السعودية" },
@@ -36,6 +35,7 @@ const TERMINALS = ["الصالة 1", "الصالة 2", "الصالة 5"];
 
 const STATUS_MAP = {
   "scheduled": { label: "مجدولة", cls: "scheduled" },
+  "unknown": { label: "غير معروف", cls: "scheduled" },
   "boarding": { label: "صعود الركاب", cls: "boarding" },
   "on-time": { label: "في الوقت المحدد", cls: "on-time" },
   "delayed": { label: "متأخرة", cls: "delayed" },
@@ -44,10 +44,12 @@ const STATUS_MAP = {
   "cancelled": { label: "ملغاة", cls: "cancelled" },
 };
 
-// تصحيحات يدوية لأسماء شركات طيران تظهر بشكل خاطئ في قاعدة بيانات موقع kkia.sa نفسه
-// (مثال: رمز "RA" مسجّل خطأً باسم "ليف أفياشن" بدل "طيران الرياض")
+// موقع مطار الملك خالد يسجّل رحلات طيران الرياض داخلياً تحت الرمز القديم "RA"
+// (وهو رسمياً رمز الخطوط الجوية النيبالية) بدل الرمز الصحيح "RX". نصحّح رمز
+// الرحلة المعروض بالكامل (RA401 → RX401) وليس اسم شركة الطيران فقط.
+const FLIGHT_CODE_OVERRIDES = { RA: "RX" };
+
 const AIRLINE_NAME_OVERRIDES = {
-  RA: "طيران الرياض",
   RX: "طيران الرياض",
 };
 
@@ -60,7 +62,6 @@ const COLUMNS = [
   { key: "terminal", label: "الصالة" },
   { key: "gate", label: "البوابة" },
   { key: "scheduled", label: "الوقت المجدول" },
-  { key: "actual", label: "الوقت الفعلي/المتوقع" },
   { key: "status", label: "الحالة" },
   { key: "pax", label: "عدد الركاب" },
 ];
@@ -142,7 +143,7 @@ let state = {
     airline: "all",
     date: todayStr(),
     timeFrom: nowTimeStr(),
-    timeTo: "",
+    timeTo: "23:59",
     upcomingOnly: false,
     q: "",
   },
@@ -167,6 +168,13 @@ function pad(n) { return String(n).padStart(2, "0"); }
 function nowTimeStr() {
   const d = new Date();
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function addDaysToDateStr(dateStr, days) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + days);
+  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
 }
 
 function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
@@ -273,6 +281,7 @@ const CITY_NAME_AR_FALLBACK = {
   "YEREVAN": "يريفان", "ALMATY": "ألماتي", "TASHKENT": "طشقند",
   "SYDNEY": "سيدني", "MELBOURNE": "ملبورن", "AUCKLAND": "أوكلاند",
   "ANTALYA": "أنطاليا", "ADANA": "أضنة", "GAZIANTEP": "غازي عنتاب",
+  "ABU-DABI": "أبوظبي", "ABU DHABI": "أبوظبي", "MYKONOS ISLAND": "ميكونوس", "MYKONOS": "ميكونوس",
 };
 
 function normalizeCityName(rawName) {
@@ -337,10 +346,11 @@ function deriveOfficialStatus(f, now) {
     if (isConfirmedPastEvent(ext.actualBoarding, scheduled, now) || isConfirmedPastEvent(ext.actualGoToGateCall, scheduled, now)) return "boarding";
   }
 
-  if (scheduled && estimated) {
-    const diffMin = Math.round((estimated.getTime() - scheduled.getTime()) / 60000);
-    if (diffMin >= 15) return "delayed";
-    return "on-time";
+  // لا نستنتج "متأخرة"/"في الوقت المحدد" من مجرد فارق بين الوقت المجدول والمقدَّر - هذا
+  // الفارق غالباً بيانات غير موثوقة من المصدر. إن لم تكن هناك حالة مؤكدة (هبطت/أقلعت/صعود
+  // ركاب) نعرض "غير معروف" بدل تخمين تأخير قد يكون غير صحيح.
+  if (scheduled && estimated && estimated.getTime() !== scheduled.getTime()) {
+    return "unknown";
   }
   return "scheduled";
 }
@@ -356,23 +366,27 @@ function normalizeOfficialFlight(f, now) {
   const scheduled = f.scheduled ? new Date(f.scheduled) : null;
   const estimated = f.estimated ? new Date(f.estimated) : null;
 
-  const airlineCode = (f.airline?.code || "").toUpperCase();
+  const rawAirlineCode = (f.airline?.code || "").toUpperCase();
+  // موقع المطار يسجّل رحلات طيران الرياض داخلياً تحت الرمز القديم RA بدل الرمز
+  // الصحيح RX - نصحّح رمز الرحلة نفسه (وليس اسم شركة الطيران فقط) ليظهر RX بدل RA
+  const airlineCode = FLIGHT_CODE_OVERRIDES[rawAirlineCode] || rawAirlineCode;
   const otherAirportCode = (otherAirport?.code || "").toUpperCase();
 
   return {
     id: `KKIA-${f.id}`,
     type: isArrival ? "arrival" : "departure",
-    flightNo: `${f.airline?.code || ""} ${f.number || ""}`.trim() || "—",
+    flightNo: `${airlineCode} ${f.number || ""}`.trim() || "—",
     airline: AIRLINE_NAME_OVERRIDES[airlineCode] || AIRLINE_NAME_AR.get(airlineCode) || toTitleCase(f.airline?.description) || "غير معروف",
-    airlineCode: f.airline?.code || "",
+    airlineCode,
     city: CITY_NAME_AR.get(otherAirportCode)
       || normalizeCityName(otherAirport?.city?.name || otherAirport?.name)
       || toTitleCase(otherAirport?.city?.name || otherAirport?.name)
       || "—",
     terminal: terminalNum ? `الصالة ${terminalNum}` : "—",
     gate,
-    scheduled,
-    actual: estimated && scheduled && estimated.getTime() !== scheduled.getTime() ? estimated : null,
+    // بدل عرض عمود منفصل "الوقت الفعلي"، نعرض الوقت المقدَّر (إن وُجد) مباشرة في عمود
+    // "الوقت المجدول" نفسه - فلا يوجد عمود ثانٍ ولا استنتاج تأخير من الفارق بينهما.
+    scheduled: estimated || scheduled,
     status: deriveOfficialStatus(f, now),
   };
 }
@@ -511,7 +525,10 @@ function normalizeApiFlight(f, direction) {
     id: f.number + "-" + direction + "-" + (scheduled ? scheduled.getTime() : Math.random()),
     type: direction,
     flightNo: f.number || "—",
-    airline: f.airline?.name || "غير معروف",
+    airline: AIRLINE_NAME_OVERRIDES[(f.airline?.iata || "").toUpperCase()]
+      || AIRLINE_NAME_AR.get((f.airline?.iata || "").toUpperCase())
+      || toTitleCase(f.airline?.name)
+      || "غير معروف",
     airlineCode: f.airline?.iata || "",
     city: (move?.airport?.iata && CITY_NAME_AR.get(move.airport.iata.toUpperCase()))
       || normalizeCityName(move?.airport?.municipalityName || move?.airport?.name)
@@ -547,43 +564,10 @@ async function fetchLiveFlights(dateStr) {
   return onlyAllowedTerminals;
 }
 
-// نجلب قائمة الرحلات الأساسية من AeroDataBox، ثم نجلب موقع المطار الرسمي بأفضل جهد
-// (best-effort) لنستبدل حقول الحالة/الوقت الفعلي/البوابة/الصالة بقيمه الأدق كلما وُجدت
-// رحلة مطابقة (نفس النوع ورقم الرحلة). إن تعذّر الوصول لموقع المطار نُبقي بيانات AeroDataBox كما هي.
-async function fetchHybridFlights(dateStr) {
-  // نضمن تحميل قاموس ترجمة المدن/شركات الطيران العربي أولاً حتى تستفيد منه بيانات AeroDataBox أيضاً
-  await loadReferenceData();
-  const aeroFlights = await fetchLiveFlights(dateStr);
-
-  let officialByKey = new Map();
-  let officialOk = false;
-  try {
-    const officialFlights = await fetchOfficialFlights(dateStr);
-    officialFlights.forEach((f) => officialByKey.set(`${f.type}-${f.flightNo}`, f));
-    officialOk = true;
-  } catch (err) {
-    console.error("تعذّر جلب تحديثات موقع المطار الرسمي، سيتم عرض حالة AeroDataBox كما هي:", err);
-  }
-
-  let matchedCount = 0;
-  const enriched = aeroFlights.map((f) => {
-    const match = officialByKey.get(`${f.type}-${f.flightNo}`);
-    if (!match) return f;
-    matchedCount++;
-    return {
-      ...f,
-      status: match.status,
-      actual: match.actual,
-      gate: match.gate && match.gate !== "—" ? match.gate : f.gate,
-      terminal: match.terminal && match.terminal !== "—" ? match.terminal : f.terminal,
-    };
-  });
-
-  return { flights: enriched, officialOk, matchedCount, total: aeroFlights.length };
-}
-
 /* ---------------------------- Data loading orchestration ---------------------------- */
 
+// رجوع للاعتماد المباشر على موقع مطار الملك خالد الرسمي (kkia.sa) - مجاني بالكامل،
+// بدون مفتاح، وبدون أي بنية خارجية (لا Supabase ولا AeroDataBox ولا مهام مجدولة).
 async function loadFlights() {
   state.loading = true;
   state.error = null;
@@ -591,45 +575,29 @@ async function loadFlights() {
 
   const dateStr = state.filters.date || todayStr();
 
-  if (HAS_KEY) {
-    // 1) الوضع الهجين: قائمة الرحلات من AeroDataBox + تحديثات الحالة من موقع المطار الرسمي
-    try {
-      const result = await fetchHybridFlights(dateStr);
-      state.flights = result.flights;
-      state.usingMock = false;
-      state.dataSource = result.officialOk ? "hybrid" : "aerodatabox";
-      state.hybridMeta = { matchedCount: result.matchedCount, total: result.total };
-      state.error = result.officialOk ? null : "تعذّر جلب تحديثات موقع المطار الرسمي - تُعرض حالة AeroDataBox كما هي.";
-    } catch (aeroErr) {
-      console.error("AeroDataBox (المصدر الأساسي للقائمة) فشل:", aeroErr);
-      // 2) احتياط: نجرّب موقع المطار الرسمي وحده كقائمة كاملة
+  try {
+    let flights = await fetchOfficialFlights(dateStr);
+    // نطاق الوقت الممتد لليوم التالي (مثلاً من 22:00 إلى 06:00): نجلب رحلات اليوم التالي
+    // أيضاً وندمجها، لأن الفلترة تعتمد على التاريخ/الوقت الفعلي لكل رحلة على أي حال
+    if (isTimeRangeWrapped()) {
       try {
-        state.flights = await fetchOfficialFlights(dateStr);
-        state.usingMock = false;
-        state.dataSource = "official";
-        state.error = "تعذّر الاتصال بـ AeroDataBox (" + aeroErr.message + "). يتم الآن عرض بيانات موقع المطار الرسمي فقط.";
-      } catch (officialErr) {
-        console.error("موقع المطار الرسمي فشل أيضاً:", officialErr);
-        state.flights = generateMockFlights(dateStr);
-        state.usingMock = true;
-        state.dataSource = "mock";
-        state.error = "تعذّر الاتصال بكل مصادر البيانات الحية. يتم الآن عرض بيانات تجريبية.";
+        const nextDateStr = addDaysToDateStr(dateStr, 1);
+        const nextFlights = await fetchOfficialFlights(nextDateStr);
+        flights = flights.concat(nextFlights);
+      } catch (nextErr) {
+        console.error("تعذّر جلب رحلات اليوم التالي لنطاق الوقت الممتد:", nextErr);
       }
     }
-  } else {
-    // بدون مفتاح AeroDataBox لا يمكن استخدامه كقائمة أساسية - نعتمد موقع المطار الرسمي فقط
-    try {
-      state.flights = await fetchOfficialFlights(dateStr);
-      state.usingMock = false;
-      state.dataSource = "official";
-      state.error = null;
-    } catch (officialErr) {
-      console.error("official source failed:", officialErr);
-      state.flights = generateMockFlights(dateStr);
-      state.usingMock = true;
-      state.dataSource = "mock";
-      state.error = "تعذّر الاتصال بموقع المطار الرسمي (" + officialErr.message + "). يتم الآن عرض بيانات تجريبية.";
-    }
+    state.flights = flights;
+    state.usingMock = false;
+    state.dataSource = "official";
+    state.error = null;
+  } catch (officialErr) {
+    console.error("official source failed:", officialErr);
+    state.flights = generateMockFlights(dateStr);
+    state.usingMock = true;
+    state.dataSource = "mock";
+    state.error = "تعذّر الاتصال بموقع المطار الرسمي (" + officialErr.message + "). يتم الآن عرض بيانات تجريبية.";
   }
 
   populateTerminalFilter();
@@ -660,11 +628,39 @@ function populateAirlineFilter() {
 
 /* ---------------------------- Filtering ---------------------------- */
 
+function hmToMinutes(hm) {
+  const [h, m] = hm.split(":").map(Number);
+  return h * 60 + m;
+}
+
+// نطاق الوقت يدعم الامتداد لليوم التالي: إن كان "إلى" أصغر من "من" (مثلاً من 22:00 إلى 06:00)
+// فهذا يعني أن النطاق يمتد عبر منتصف الليل.
+function isTimeRangeWrapped() {
+  const { timeFrom, timeTo } = state.filters;
+  if (!timeFrom || !timeTo) return false;
+  return hmToMinutes(timeTo) < hmToMinutes(timeFrom);
+}
+
+function getTimeRangeBounds() {
+  const { timeFrom, timeTo, date } = state.filters;
+  if (!timeFrom || !timeTo) return null;
+  const baseDate = date || todayStr();
+  const [fh, fm] = timeFrom.split(":").map(Number);
+  const [th, tm] = timeTo.split(":").map(Number);
+  const start = new Date(`${baseDate}T00:00:00`);
+  start.setHours(fh, fm, 0, 0);
+  const end = new Date(`${baseDate}T00:00:00`);
+  end.setHours(th, tm, 0, 0);
+  if (end < start) end.setDate(end.getDate() + 1); // امتداد لليوم التالي
+  return { start, end };
+}
+
 function getFilteredFlights() {
-  const { type, terminal, status, airline, q, timeFrom, timeTo, upcomingOnly, date } = state.filters;
+  const { type, terminal, status, airline, q, upcomingOnly, date } = state.filters;
   const query = q.trim().toLowerCase();
   const now = new Date();
   const isToday = date === todayStr();
+  const timeBounds = getTimeRangeBounds();
 
   return state.flights.filter((f) => {
     if (type !== "all" && f.type !== type) return false;
@@ -675,14 +671,169 @@ function getFilteredFlights() {
       const hay = `${f.flightNo} ${f.airline} ${f.city}`.toLowerCase();
       if (!hay.includes(query)) return false;
     }
-    if (f.scheduled) {
-      const hm = fmtTime(f.scheduled);
-      if (timeFrom && hm < timeFrom) return false;
-      if (timeTo && hm > timeTo) return false;
+    if (timeBounds && f.scheduled) {
+      if (f.scheduled < timeBounds.start || f.scheduled > timeBounds.end) return false;
     }
     if (upcomingOnly && isToday && f.scheduled && f.scheduled < now) return false;
     return true;
   });
+}
+
+/* ---------------------------- شريط نطاق الوقت (مقبضان قابلان للسحب) ---------------------------- */
+
+function minutesToHM(min) {
+  const m = ((min % 1440) + 1440) % 1440;
+  return `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+}
+
+const TIME_RANGE_STEP = 5; // دقة السحب: أقرب 5 دقائق
+
+function snapMinutes(min) {
+  return Math.round(min / TIME_RANGE_STEP) * TIME_RANGE_STEP;
+}
+
+function minutesFromClientX(trackEl, clientX) {
+  const rect = trackEl.getBoundingClientRect();
+  const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  return Math.max(0, Math.min(1439, snapMinutes(ratio * 1439)));
+}
+
+// يحدّث حالة الفلتر فقط (بدون إعادة جلب) - يُستخدم أثناء السحب المباشر لسلاسة الحركة
+function setTimeRangeLive(fromMin, toMin) {
+  if (fromMin !== null) state.filters.timeFrom = minutesToHM(fromMin);
+  if (toMin !== null) state.filters.timeTo = minutesToHM(toMin);
+  renderTimeRangeSlider();
+}
+
+function renderTimeRangeSlider() {
+  const track = document.getElementById("trTrack");
+  const handleFrom = document.getElementById("trHandleFrom");
+  const handleTo = document.getElementById("trHandleTo");
+  const fill = document.getElementById("trFill");
+  const fillWrapStart = document.getElementById("trFillWrapStart");
+  const labelFrom = document.getElementById("trLabelFrom");
+  const labelTo = document.getElementById("trLabelTo");
+  const wrapHint = document.getElementById("trWrapHint");
+  const tooltipFrom = document.getElementById("trTooltipFrom");
+  const tooltipTo = document.getElementById("trTooltipTo");
+  if (!track) return;
+
+  const fromMin = hmToMinutes(state.filters.timeFrom || "00:00");
+  const toMin = hmToMinutes(state.filters.timeTo || "23:59");
+  const width = track.clientWidth;
+  const wrapped = toMin < fromMin;
+
+  const pxFrom = (fromMin / 1439) * width;
+  const pxTo = (toMin / 1439) * width;
+
+  handleFrom.style.left = `${pxFrom}px`;
+  handleTo.style.left = `${pxTo}px`;
+  handleFrom.setAttribute("aria-valuenow", fromMin);
+  handleTo.setAttribute("aria-valuenow", toMin);
+  handleFrom.setAttribute("aria-valuetext", minutesToHM(fromMin));
+  handleTo.setAttribute("aria-valuetext", minutesToHM(toMin));
+
+  // فقاعة الوقت العائمة تتبع كل مقبض بنفس موضعه أفقياً
+  tooltipFrom.style.left = `${pxFrom}px`;
+  tooltipTo.style.left = `${pxTo}px`;
+  tooltipFrom.textContent = minutesToHM(fromMin);
+  tooltipTo.textContent = minutesToHM(toMin);
+
+  if (wrapped) {
+    fill.style.left = `${pxFrom}px`;
+    fill.style.width = `${Math.max(0, width - pxFrom)}px`;
+    fillWrapStart.hidden = false;
+    fillWrapStart.style.left = "0px";
+    fillWrapStart.style.width = `${pxTo}px`;
+  } else {
+    fill.style.left = `${pxFrom}px`;
+    fill.style.width = `${Math.max(0, pxTo - pxFrom)}px`;
+    fillWrapStart.hidden = true;
+  }
+
+  labelFrom.textContent = minutesToHM(fromMin);
+  labelTo.textContent = minutesToHM(toMin);
+  wrapHint.hidden = !wrapped;
+}
+
+function initTimeRangeSlider() {
+  const track = document.getElementById("trTrack");
+  const handleFrom = document.getElementById("trHandleFrom");
+  const handleTo = document.getElementById("trHandleTo");
+  const tooltipFrom = document.getElementById("trTooltipFrom");
+  const tooltipTo = document.getElementById("trTooltipTo");
+  let dragging = null; // "from" | "to" | null
+
+  function startDrag(handle, tooltip, which) {
+    return (e) => {
+      dragging = which;
+      handle.classList.add("dragging");
+      tooltip.classList.add("dragging");
+      handle.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    };
+  }
+
+  function onMove(which) {
+    return (e) => {
+      if (dragging !== which) return;
+      const min = minutesFromClientX(track, e.clientX);
+      if (which === "from") setTimeRangeLive(min, null);
+      else setTimeRangeLive(null, min);
+    };
+  }
+
+  function onUp(handle, tooltip, which) {
+    return () => {
+      if (dragging !== which) return;
+      dragging = null;
+      handle.classList.remove("dragging");
+      tooltip.classList.remove("dragging");
+      loadFlights();
+    };
+  }
+
+  handleFrom.addEventListener("pointerdown", startDrag(handleFrom, tooltipFrom, "from"));
+  handleFrom.addEventListener("pointermove", onMove("from"));
+  handleFrom.addEventListener("pointerup", onUp(handleFrom, tooltipFrom, "from"));
+  handleFrom.addEventListener("pointercancel", onUp(handleFrom, tooltipFrom, "from"));
+
+  handleTo.addEventListener("pointerdown", startDrag(handleTo, tooltipTo, "to"));
+  handleTo.addEventListener("pointermove", onMove("to"));
+  handleTo.addEventListener("pointerup", onUp(handleTo, tooltipTo, "to"));
+  handleTo.addEventListener("pointercancel", onUp(handleTo, tooltipTo, "to"));
+
+  // النقر على الشريط مباشرة (خارج المقبضين) ينقل أقرب مقبض لموضع النقر
+  track.addEventListener("pointerdown", (e) => {
+    if (e.target === handleFrom || e.target === handleTo) return;
+    const min = minutesFromClientX(track, e.clientX);
+    const fromMin = hmToMinutes(state.filters.timeFrom || "00:00");
+    const toMin = hmToMinutes(state.filters.timeTo || "23:59");
+    if (Math.abs(min - fromMin) <= Math.abs(min - toMin)) setTimeRangeLive(min, null);
+    else setTimeRangeLive(null, min);
+    loadFlights();
+  });
+
+  // دعم لوحة المفاتيح (أسهم اليسار/اليمين) لكل مقبض لتحسين إمكانية الوصول
+  function onKey(which, handle) {
+    return (e) => {
+      const stepMap = { ArrowLeft: -TIME_RANGE_STEP, ArrowRight: TIME_RANGE_STEP, ArrowDown: -TIME_RANGE_STEP, ArrowUp: TIME_RANGE_STEP };
+      const delta = stepMap[e.key];
+      if (delta === undefined) return;
+      e.preventDefault();
+      const cur = hmToMinutes(which === "from" ? state.filters.timeFrom : state.filters.timeTo);
+      const next = Math.max(0, Math.min(1439, cur + delta));
+      if (which === "from") setTimeRangeLive(next, null);
+      else setTimeRangeLive(null, next);
+      loadFlights();
+    };
+  }
+  handleFrom.addEventListener("keydown", onKey("from", handleFrom));
+  handleTo.addEventListener("keydown", onKey("to", handleTo));
+
+  window.addEventListener("resize", renderTimeRangeSlider);
+
+  renderTimeRangeSlider();
 }
 
 /* ---------------------------- Rendering ---------------------------- */
@@ -710,7 +861,10 @@ function renderChips() {
     const opt = [...document.getElementById("airlineFilter").options].find((o) => o.value === airline);
     chips.push({ key: "airline", label: opt ? opt.textContent : airline });
   }
-  if (timeFrom || timeTo) chips.push({ key: "timeRange", label: `🕐 الوقت: ${timeFrom || "00:00"} - ${timeTo || "23:59"}` });
+  if ((timeFrom && timeFrom !== "00:00") || (timeTo && timeTo !== "23:59")) {
+    const wrapSuffix = isTimeRangeWrapped() ? " 🌙 +غداً" : "";
+    chips.push({ key: "timeRange", label: `🕐 الوقت: ${timeFrom || "00:00"} - ${timeTo || "23:59"}${wrapSuffix}` });
+  }
   if (upcomingOnly) chips.push({ key: "upcoming", label: "القادمة حالياً فقط" });
   if (q) chips.push({ key: "q", label: `بحث: ${q}` });
 
@@ -728,7 +882,7 @@ function renderChips() {
       if (key === "terminal") { state.filters.terminal = "all"; saveTerminalFilter("all"); document.getElementById("terminalFilter").value = "all"; }
       if (key === "status") { state.filters.status = "all"; document.getElementById("statusFilter").value = "all"; }
       if (key === "airline") { state.filters.airline = "all"; document.getElementById("airlineFilter").value = "all"; }
-      if (key === "timeRange") { state.filters.timeFrom = ""; state.filters.timeTo = ""; document.getElementById("timeFrom").value = ""; document.getElementById("timeTo").value = ""; }
+      if (key === "timeRange") { setTimeRangeLive(0, 1439); loadFlights(); return; }
       if (key === "upcoming") { state.filters.upcomingOnly = false; document.getElementById("upcomingOnly").checked = false; }
       if (key === "q") { state.filters.q = ""; document.getElementById("searchBox").value = ""; }
       renderAll();
@@ -807,8 +961,6 @@ function buildCellContent(col, f) {
       return { html: `<span class="cell-value">${escapeHtml(f.gate)}</span>` };
     case "scheduled":
       return { html: `<span class="cell-value">${f.scheduled ? fmtTime(f.scheduled) : "—"}</span>`, extraClass: "time-cell" };
-    case "actual":
-      return { html: `<span class="cell-value">${f.actual ? fmtTime(f.actual) : "—"}</span>`, extraClass: "time-cell" };
     case "status": {
       const st = STATUS_MAP[f.status] || STATUS_MAP.scheduled;
       return { html: `<span class="status-text ${st.cls}">${st.label}</span>` };
@@ -893,22 +1045,11 @@ function renderMeta(filtered) {
     badge.style.borderColor = "rgba(245,158,11,.35)";
     badge.style.color = "#fbbf24";
     badgeText.textContent = "بيانات تجريبية (تعذّر الاتصال بكل المصادر)";
-  } else if (state.dataSource === "official") {
-    badge.style.background = "rgba(34,197,94,.12)";
-    badge.style.borderColor = "rgba(34,197,94,.35)";
-    badge.style.color = "#22c55e";
-    badgeText.textContent = "بيانات مباشرة وفق المصادر الرسمية لمطار الملك خالد الدولي";
-  } else if (state.dataSource === "hybrid") {
-    badge.style.background = "rgba(34,197,94,.12)";
-    badge.style.borderColor = "rgba(34,197,94,.35)";
-    badge.style.color = "#22c55e";
-    const m = state.hybridMeta || {};
-    badgeText.textContent = `بيانات مباشرة — الرحلات من AeroDataBox، والتحديثات من مطار الملك خالد (${m.matchedCount || 0}/${m.total || 0} رحلة محدَّثة)`;
   } else {
     badge.style.background = "rgba(34,197,94,.12)";
     badge.style.borderColor = "rgba(34,197,94,.35)";
     badge.style.color = "#22c55e";
-    badgeText.textContent = "بيانات مباشرة (AeroDataBox)";
+    badgeText.textContent = "بيانات مباشرة وفق المصادر الرسمية لمطار الملك خالد الدولي";
   }
 }
 
@@ -919,6 +1060,7 @@ function renderAll() {
   renderTableHead();
   renderTable(filtered);
   renderMeta(filtered);
+  renderTimeRangeSlider();
 }
 
 /* ---------------------------- Wiring UI ---------------------------- */
@@ -958,8 +1100,8 @@ function initUI() {
   document.getElementById("airportName").textContent = CFG.AIRPORT_NAME_AR || "مطار الملك خالد الدولي";
   document.getElementById("dateFilter").value = state.filters.date;
   document.getElementById("terminalFilter").value = state.filters.terminal;
-  document.getElementById("timeFrom").value = state.filters.timeFrom;
   setActiveSeg(state.filters.type);
+  initTimeRangeSlider();
 
   renderColumnsPanel();
 
@@ -1061,27 +1203,7 @@ function initUI() {
     renderAll();
   });
 
-  document.getElementById("timeFrom").addEventListener("change", (e) => {
-    const val = e.target.value;
-    if (val && state.filters.timeTo && val > state.filters.timeTo) {
-      alert("لا يمكن اختيار وقت \"من الساعة\" لاحقاً لوقت \"إلى الساعة\" المحدد بالفعل (" + state.filters.timeTo + "). يرجى اختيار وقت أبكر أو تعديل \"إلى الساعة\" أولاً.");
-      e.target.value = state.filters.timeFrom;
-      return;
-    }
-    state.filters.timeFrom = val;
-    renderAll();
-  });
-
-  document.getElementById("timeTo").addEventListener("change", (e) => {
-    const val = e.target.value;
-    if (val && state.filters.timeFrom && val < state.filters.timeFrom) {
-      alert("لا يمكن اختيار وقت سابق لوقت \"من الساعة\" (" + state.filters.timeFrom + "). يرجى اختيار وقت لاحق له.");
-      e.target.value = state.filters.timeTo;
-      return;
-    }
-    state.filters.timeTo = val;
-    renderAll();
-  });
+  // شريط نطاق الوقت (المقبضان) يُوصَّل عبر wireTimeRangeSlider() - راجعها أدناه
 
   document.getElementById("upcomingOnly").addEventListener("change", (e) => {
     state.filters.upcomingOnly = e.target.checked;
@@ -1114,7 +1236,7 @@ function initUI() {
   document.getElementById("resetBtn").addEventListener("click", () => {
     state.filters = {
       type: "all", terminal: "all", status: "all", airline: "all",
-      date: todayStr(), timeFrom: nowTimeStr(), timeTo: "", upcomingOnly: false, q: "",
+      date: todayStr(), timeFrom: nowTimeStr(), timeTo: "23:59", upcomingOnly: false, q: "",
     };
     saveTypeFilter("all");
     saveTerminalFilter("all");
@@ -1122,8 +1244,7 @@ function initUI() {
     document.getElementById("terminalFilter").value = "all";
     document.getElementById("statusFilter").value = "all";
     document.getElementById("airlineFilter").value = "all";
-    document.getElementById("timeFrom").value = state.filters.timeFrom;
-    document.getElementById("timeTo").value = "";
+    renderTimeRangeSlider();
     document.getElementById("upcomingOnly").checked = false;
     document.getElementById("dateFilter").value = state.filters.date;
     document.getElementById("searchBox").value = "";
@@ -1147,7 +1268,6 @@ function getCellPlainValue(col, f) {
     case "terminal": return f.terminal;
     case "gate": return f.gate;
     case "scheduled": return f.scheduled ? fmtTime(f.scheduled) : "—";
-    case "actual": return f.actual ? fmtTime(f.actual) : "—";
     case "status": return (STATUS_MAP[f.status] || STATUS_MAP.scheduled).label;
     case "pax": {
       const raw = state.paxCounts[f.id];
@@ -1551,9 +1671,8 @@ function boot() {
   renderClock();
   setInterval(renderClock, 1000);
   loadFlights();
-
-  const refreshMs = (CFG.AUTO_REFRESH_SECONDS || 180) * 1000;
-  setInterval(loadFlights, refreshMs);
+  // لا يوجد تحديث تلقائي للبيانات بالنية - التحديث يتم فقط عند ضغط المستخدم لزر "تحديث"،
+  // للحفاظ على حصة الطلبات الشهرية المجانية لمزوّد البيانات.
 }
 
 document.addEventListener("DOMContentLoaded", boot);
