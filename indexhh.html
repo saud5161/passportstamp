@@ -436,6 +436,7 @@
        <div class="section-title"><i class="fas fa-id-card"></i> المسافرين المقيمين</div>
         <div class="grid-menu">
             <div class="card" onclick="openForm('updut')"><i class="fas fa-sync-alt"></i><span>نقل معلومات</span></div>
+            <div class="card" onclick="openForm('updinf')"><i class="fas fa-rotate"></i><span>تحديث معلومات</span></div>
             <div class="card" onclick="openForm('diffNat')"><i class="fas fa-globe"></i><span>اختلاف جنسية</span></div>
             <div class="card" onclick="openForm('passErrorRes')">
                 <div style="position:relative; display:inline-block;"><i class="fas fa-passport"></i><i class="fas fa-exclamation-circle" style="position:absolute; bottom:-5px; right:-5px; color:#dc3545; background:white; border-radius:50%; font-size:1rem;"></i></div>
@@ -447,6 +448,7 @@
         <div class="grid-menu">
             <div class="card" onclick="openForm('less6')"><i class="fas fa-passport"></i><span>أقل من 6 أشهر</span></div>
             <div class="card" onclick="openForm('askeryafter')"><i class="fas fa-user-clock"></i><span>إجازة عسكري</span></div>
+            <div class="card" onclick="openForm('askrycontery')"><i class="fas fa-plane-slash"></i><span>دولة ممنوعة</span></div>
             <div class="card" onclick="openForm('askryd')"><i class="fas fa-map-marked-alt"></i><span>عسكري اختلاف</span></div>
             <div class="card" onclick="openForm('defname')"><i class="fas fa-id-card-alt"></i><span>اختلاف اسم</span></div>
             <div class="card" onclick="openForm('diplomaticVisaExpired')"><i class="fas fa-id-badge"></i><span>جواز دبلوماسي تأشيرة منتهية</span></div>
@@ -953,6 +955,7 @@
     <div id="form-fingercon" class="form-section"><div class="form-title">ارتباط بصمة</div><div class="input-group"><label>الاسم</label><input type="text" id="fc_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="fc_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="fc_pass" class="en-num"></div><div class="input-group"><label>نوع التأشيرة</label><input type="text" id="fc_visa"></div><div class="input-group"><label>رقم الإقامة/الحدود</label><input type="text" id="fc_res" class="en-num"></div><div class="input-group"><label>الخطوط</label><input type="text" id="fc_air"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="fc_flight" class="en-num"></div><div class="input-group"><label>والمتجهة</label><input type="text" id="fc_dest"></div><div class="input-group"><label>جنسية الوافد الآخر</label><input type="text" id="fc_other" oninput="fillFCNote()"></div><div class="input-group"><label>النتيجة</label><select id="fc_res_type" onchange="fillFCNote()"><option value="موجود">موجود</option><option value="غير موجود">غير موجود</option></select></div><div class="input-group"><label>الملاحظة</label><textarea id="fc_note" rows="6"></textarea></div></div>
     <div id="form-noacspt" class="form-section"><div class="form-title">عدم قبول بصمة راكب</div><div class="input-group"><label>عدد المسافرين</label><select id="nf_count" onchange="renderNF()"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div id="nf_passengers"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="nf_h" placeholder="ساعة" class="en-num"><input type="number" id="nf_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="nf_gh" placeholder="ساعة" class="en-num"><input type="number" id="nf_gm" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الخطوط</label><input type="text" id="nf_air"></div><div class="input-group"><label>الملاحظة</label><textarea id="nf_note">عند الشروع في انهاء إجراءات مغادرته وتحقق من الخصائص الحيوية لم يتم قبول الخصائص الحيوية وحيث تم الاستعلام عن الخصائص الحيوية بالطرق الأربعة والنتيجة ( غير موجود ) والتشييك بنظام الممنوعين والمطلوبين ولم يوجد عليه أي ملاحظات</textarea></div></div>
     <div id="form-updut" class="form-section"><div class="form-title">نقل معلومات</div><div class="input-group"><label>الاسم</label><input type="text" id="up_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="up_nat"></div><div class="input-group"><label>الجواز الجديد</label><input type="text" id="up_new" class="en-num"></div><div class="input-group"><label>الجواز القديم</label><input type="text" id="up_old" class="en-num"></div><div class="input-group"><label>رقم الإقامة</label><input type="text" id="up_res" class="en-num"></div><div class="input-group"><label>المهنة</label><input type="text" id="up_job"></div><div class="input-group"><label>الكفيل</label><input type="text" id="up_sponsor"></div><div class="input-group"><label>الرحلة</label><input type="text" id="up_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="up_h" placeholder="ساعة" class="en-num"><input type="number" id="up_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="up_note">نقل معلومات وتعذر النقل عن طريق ابشر بسبب وجود اكثر من المدة المسموح بها لنقل المعلومات و بحوزته الجواز الجديد والقديم</textarea></div></div>
+    <div id="form-updinf" class="form-section"><div class="form-title">تحديث معلومات</div><div class="input-group"><label>الاسم</label><input type="text" id="up2_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="up2_nat"></div><div class="input-group"><label>الجواز الجديد</label><input type="text" id="up2_new" class="en-num"></div><div class="input-group"><label>الجواز السابق</label><input type="text" id="up2_old" class="en-num"></div><div class="input-group"><label>رقم الإقامة</label><input type="text" id="up2_res" class="en-num"></div><div class="input-group"><label>المهنة</label><input type="text" id="up2_job"></div><div class="input-group"><label>الكفيل</label><input type="text" id="up2_sponsor"></div><div class="input-group"><label>الرحلة</label><input type="text" id="up2_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="up2_h" placeholder="ساعة" class="en-num"><input type="number" id="up2_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="up2_note">تحديث معلومات وتعذر التحديث عن طريق ابشر بسبب وجود اكثر من المدة المسموح بها لتحديث المعلومات و بحوزته الجواز الجديد والسابق</textarea></div></div>
     
     <div id="form-diffNat" class="form-section">
         <div class="form-title">اختلاف جنسية مقيم</div>
@@ -1665,12 +1668,15 @@ function calcHijriLess6() {
     // نجلب مفتاحًا أساسيًا واحتياطيًا (gemini_api_key و gemini_api_key_2) دفعة
     // واحدة - إن كان الخادم مضغوطًا على المفتاح الأول (429/تجاوز حصة) نجرّب
     // المفتاح الثاني تلقائيًا بدل توقف التحليل بالكامل.
+    // ملاحظة: الذاكرة المؤقتة (cachedGeminiApiKeys) موجودة بذاكرة الصفحة فقط
+    // وتُمسح تلقائيًا عند كل إعادة تحميل. ولتفادي أن يُبقي المتصفح/الوسيط نسخة
+    // قديمة من رد قاعدة البيانات نفسه، نُجبر جلبًا طازجًا عبر cache:"no-store".
     let cachedGeminiApiKeys = null;
     async function getGeminiApiKeys() {
         if(cachedGeminiApiKeys) return cachedGeminiApiKeys;
         const res = await fetch(
             `${SUPABASE_URL}/rest/v1/app_secrets?key_name=in.(gemini_api_key,gemini_api_key_2)&select=key_name,key_value`,
-            { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+            { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }, cache: "no-store" }
         );
         if(!res.ok) throw new Error("تعذر الاتصال بقاعدة البيانات لجلب مفتاح الخدمة.");
         const rows = await res.json();
@@ -2623,6 +2629,19 @@ function calcPresence() {
             txt.push(`*رقم الرحلة:* ${val('up_flight')}`);
             if(val('up_h') || val('up_m')) txt.push(`*وقت الإقلاع:* ${pad(val('up_h'))}:${pad(val('up_m'))}`);
             txt.push(`*الملاحظة:* ${val('up_note')}`);
+            txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
+        }
+        else if(currentForm === 'updinf') {
+            txt.push(`*الاسم:* ${val('up2_name')}`);
+            txt.push(`*الجنسية:* ${val('up2_nat')}`);
+            txt.push(`*رقم الجواز الجديد:* ${val('up2_new')}`);
+            txt.push(`*رقم الجواز السابق:* ${val('up2_old')}`);
+            txt.push(`*رقم الإقامة:* ${val('up2_res')}`);
+            txt.push(`*المهنة:* ${val('up2_job')}`);
+            txt.push(`*اسم الكفيل:* ${val('up2_sponsor')}`);
+            txt.push(`*رقم الرحلة:* ${val('up2_flight')}`);
+            if(val('up2_h') || val('up2_m')) txt.push(`*وقت الإقلاع:* ${pad(val('up2_h'))}:${pad(val('up2_m'))}`);
+            txt.push(`*الملاحظة:* ${val('up2_note')}`);
             txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
         }
         else if(currentForm === 'diffNat') {
