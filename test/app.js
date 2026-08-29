@@ -798,7 +798,10 @@ function setSystemImage(file) {
    من Gemini استخراج عمود أرقام الوثائق/الجوازات تحديدًا فقط، ثم نمرّره لنفس دالة
    المطابقة كما كانت. المفتاح يُجلب من جدول app_secrets بنفس مشروع Supabase
    المستخدم أصلًا بهذا الملف (قفل الصفحة)، مع مفتاح احتياطي عند ضغط الخادم. */
-const GEMINI_MODEL = "gemini-flash-latest";
+// لا تستخدم الاسم المتغيّر "gemini-flash-latest" - Google تنقله إلى أحدث نموذج
+// (حاليًا gemini-3.7-flash) وحصته المجانية 20 طلب/يوم فقط فتتوقف الميزة.
+// نثبّت على نموذج مستقر موصى به من Google بحصة يومية أكبر بكثير - نفس صفحة قراءة الجواز.
+const GEMINI_MODEL = "gemini-3.6-flash";
 let cachedGeminiApiKeys = null;
 
 async function getGeminiApiKeys() {
@@ -869,11 +872,14 @@ async function extractDocumentNumbersViaGemini(file) {
   let lastError = null;
 
   for (const apiKey of keys) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           contents: [{
             parts: [
@@ -884,10 +890,15 @@ async function extractDocumentNumbersViaGemini(file) {
           generationConfig: {
             responseMimeType: "application/json",
             responseSchema: DOCUMENT_NUMBERS_SCHEMA,
-            temperature: 0
+            temperature: 0,
+            // أقل مستوى "تفكير" ممكن - مهمة استخراج مباشرة لا تحتاجه، وهو مفعّل
+            // افتراضيًا بنماذج Gemini الحديثة فيبطئ الرد كثيرًا. (Gemini 3.x ترفض
+            // thinkingBudget:0 بخطأ 400، والصيغة الصحيحة لها thinkingLevel:"low".)
+            thinkingConfig: { thinkingLevel: "low" }
           }
         })
       });
+      clearTimeout(timeoutId);
 
       const result = await response.json();
       if (!response.ok) throw new Error(result?.error?.message || `خطأ HTTP ${response.status}`);
@@ -898,8 +909,10 @@ async function extractDocumentNumbersViaGemini(file) {
       const parsed = JSON.parse(textOutput);
       return Array.isArray(parsed.numbers) ? parsed.numbers : [];
     } catch (err) {
-      console.warn("فشل أحد مفاتيح Gemini، جارٍ تجربة التالي إن وُجد:", err.message);
-      lastError = err;
+      clearTimeout(timeoutId);
+      const message = err.name === "AbortError" ? "انتهت مهلة الاتصال (بطء بالشبكة)." : err.message;
+      console.warn("فشل أحد مفاتيح Gemini، جارٍ تجربة التالي إن وُجد:", message);
+      lastError = new Error(message);
     }
   }
 
