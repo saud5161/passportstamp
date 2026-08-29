@@ -42,6 +42,25 @@
 }
 .page-tab-icon { font-size: 18px; }
 
+/* ========== شريط وضع العمل المحلي المؤقت (عند تعذر الاتصال بالقاعدة) ========== */
+.offline-banner {
+  width: min(1440px, calc(100% - 36px));
+  margin: 0 auto 14px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  border: 1px solid #e6c65c;
+  border-radius: 14px;
+  background: #fff8dd;
+  color: #6a540e;
+  font-weight: 800;
+  font-size: 13px;
+}
+.offline-banner .small-button { flex-shrink: 0; }
+
 .reset-db-button {
   padding: 9px 22px;
   border: 1px solid #f1caca;

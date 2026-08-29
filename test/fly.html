@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=1180">
   <title>نظام إدارة ومتابعة رحلات المنفست</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="fly.css?v=20260810f">
+  <link rel="stylesheet" href="fly.css?v=20260811b">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
@@ -30,6 +30,11 @@
       </button>
     </div>
   </nav>
+
+  <div id="offline-banner" class="offline-banner" hidden>
+    <span id="offline-banner-text">🟡 تعمل الآن بوضع محلي مؤقت (لا يوجد اتصال بالقاعدة) — الرحلات محفوظة في هذا المتصفح فقط لأغراض الطباعة.</span>
+    <button id="sync-offline-btn" class="small-button" type="button" hidden>🔄 مزامنة الرحلات المحلية مع القاعدة</button>
+  </div>
 
   <main>
     <section id="view-add">
@@ -206,6 +211,6 @@
   <div id="toast" class="toast" role="status"></div>
 
   <script src="vendor/pdf.min.js"></script>
-  <script src="fly.js?v=20260810g"></script>
+  <script src="fly.js?v=20260811b"></script>
 </body>
 </html>

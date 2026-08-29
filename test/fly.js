@@ -40,8 +40,107 @@ const state = {
   flights: [],
   airline: "",
   origin: "",
-  reportDate: ""
+  reportDate: "",
+  offlineMode: false
 };
+
+/* ========== وضع محلي مؤقت (عند تعذر الاتصال بالقاعدة) ==========
+   الهدف الوحيد منه هو الاستمرار في تجهيز وطباعة النماذج أثناء انقطاع
+   الاتصال بـ Supabase: تُحفظ الرحلات في localStorage بنفس شكل صفوف
+   القاعدة، وتُعرض بدلاً منها حتى تعود القاعدة، ثم يمكن رفعها يدويًا
+   بزر "مزامنة" بدل الاعتماد على مزامنة تلقائية صامتة. */
+const OFFLINE_FLIGHTS_KEY = "fly_offline_flights_v1";
+
+function loadOfflineFlights() {
+  try {
+    const raw = localStorage.getItem(OFFLINE_FLIGHTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (error) { return []; }
+}
+
+function saveOfflineFlightsList(list) {
+  try { localStorage.setItem(OFFLINE_FLIGHTS_KEY, JSON.stringify(list)); } catch (error) { /* */ }
+}
+
+function addOfflineFlights(rows) {
+  const list = loadOfflineFlights();
+  rows.forEach(row => {
+    list.push({
+      id: `offline-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      flight_number: row.flight_number,
+      origin_code: row.origin_code || "RUH",
+      destination_code: row.destination_code,
+      scheduled_at: row.scheduled_at,
+      actual_departure_at: null,
+      delivered_at: null,
+      source: row.source || "offline",
+      created_at: new Date().toISOString()
+    });
+  });
+  saveOfflineFlightsList(list);
+}
+
+function removeOfflineFlight(id) {
+  saveOfflineFlightsList(loadOfflineFlights().filter(item => item.id !== id));
+}
+
+function updateOfflineFlightField(id, field, value) {
+  const list = loadOfflineFlights();
+  const row = list.find(item => item.id === id);
+  if (!row) return;
+  row[field] = value;
+  saveOfflineFlightsList(list);
+}
+
+function clearOfflineFlights() {
+  saveOfflineFlightsList([]);
+}
+
+function offlineRowToFlight(row) {
+  return {
+    id: row.id,
+    flightNumber: row.flight_number,
+    destinationCode: row.destination_code,
+    scheduledAt: row.scheduled_at,
+    scheduledTime: isoToHHMM(row.scheduled_at),
+    actualTime: row.actual_departure_at ? isoToHHMM(row.actual_departure_at) : ""
+  };
+}
+
+function isOfflineId(id) {
+  return typeof id === "string" && id.startsWith("offline-");
+}
+
+function updateOfflineBanner() {
+  const offlineCount = loadOfflineFlights().length;
+  elements.offlineBanner.hidden = !(state.offlineMode || offlineCount);
+  elements.syncOfflineBtn.hidden = !offlineCount;
+  elements.offlineBannerText.textContent = state.offlineMode
+    ? `🟡 تعمل الآن بوضع محلي مؤقت (لا يوجد اتصال بالقاعدة) — ${offlineCount} رحلة محفوظة في هذا المتصفح فقط لأغراض الطباعة.`
+    : `🟡 يوجد ${offlineCount} رحلة محفوظة محليًا لم تُرفع بعد إلى القاعدة.`;
+}
+
+async function syncOfflineFlights() {
+  const offline = loadOfflineFlights();
+  if (!offline.length) return;
+
+  elements.syncOfflineBtn.disabled = true;
+  try {
+    const rows = offline.map(({ id, ...rest }) => rest);
+    const { error } = await supabaseClient.from("manifest_flights").insert(rows);
+    if (error) throw error;
+    clearOfflineFlights();
+    showToast(`تمت مزامنة ${rows.length} رحلة مع القاعدة بنجاح.`);
+    await loadAddViewFlightsFromDb();
+    if (trackState.isActive) loadTrackFlights();
+  } catch (error) {
+    console.error(error);
+    showToast("تعذر رفع الرحلات المحفوظة محليًا الآن، حاول لاحقًا.");
+  } finally {
+    elements.syncOfflineBtn.disabled = false;
+    updateOfflineBanner();
+  }
+}
 
 const trackState = { isActive: false, timer: null, flights: [] };
 
@@ -97,7 +196,11 @@ const elements = {
   trackList: document.getElementById("track-list"),
   trackCompletedList: document.getElementById("track-completed-list"),
   trackClockInput: document.getElementById("track-clock-input"),
-  trackClockReset: document.getElementById("track-clock-reset")
+  trackClockReset: document.getElementById("track-clock-reset"),
+
+  offlineBanner: document.getElementById("offline-banner"),
+  offlineBannerText: document.getElementById("offline-banner-text"),
+  syncOfflineBtn: document.getElementById("sync-offline-btn")
 };
 
 /* ========== لوحات توقيع الموظفين (محفوظة دائمًا في المتصفح) ========== */
@@ -251,12 +354,20 @@ function updateTodayLabel() {
 }
 
 function setConnectionStatus(ok) {
-  elements.connectionBadge.textContent = ok ? "🟢 النظام يعمل حاليًا" : "🔴 النظام غير متصل حاليًا";
+  if (ok) {
+    elements.connectionBadge.textContent = "🟢 النظام يعمل حاليًا";
+  } else {
+    const offlineCount = loadOfflineFlights().length;
+    elements.connectionBadge.textContent = offlineCount
+      ? `🟡 وضع محلي مؤقت — ${offlineCount} رحلة محفوظة في المتصفح`
+      : "🔴 النظام غير متصل حاليًا";
+  }
+  updateOfflineBanner();
 }
 
 async function checkConnection() {
   try {
-    const { error } = await supabaseClient.from("flights").select("id", { count: "exact", head: true });
+    const { error } = await supabaseClient.from("manifest_flights").select("id", { count: "exact", head: true });
     if (error) throw error;
     setConnectionStatus(true);
   } catch (error) {
@@ -290,7 +401,7 @@ function loadEmployeePrefs() {
 async function loadAddViewFlightsFromDb() {
   try {
     const { data, error } = await supabaseClient
-      .from("flights")
+      .from("manifest_flights")
       .select("*")
       .order("scheduled_at", { ascending: true });
     if (error) throw error;
@@ -302,12 +413,16 @@ async function loadAddViewFlightsFromDb() {
       scheduledTime: isoToHHMM(row.scheduled_at),
       actualTime: row.actual_departure_at ? isoToHHMM(row.actual_departure_at) : ""
     }));
+    state.offlineMode = false;
     setConnectionStatus(true);
     renderFlights();
   } catch (error) {
     console.error(error);
+    state.offlineMode = true;
+    state.flights = loadOfflineFlights().map(offlineRowToFlight);
     setConnectionStatus(false);
-    showToast("تعذر تحميل قائمة الرحلات من قاعدة البيانات.");
+    renderFlights();
+    showToast("تعذر الاتصال بالقاعدة — يتم عرض الرحلات المحفوظة محليًا في هذا المتصفح فقط.");
   }
 }
 
@@ -369,11 +484,23 @@ function scheduledIsoForTime(hhmmColon) {
 
 async function shiftAllFlightDates(deltaDays) {
   if (!deltaDays || !state.flights.length) return;
+
+  if (state.offlineMode) {
+    state.flights.forEach(flight => {
+      const d = new Date(flight.scheduledAt);
+      d.setDate(d.getDate() + deltaDays);
+      updateOfflineFlightField(flight.id, "scheduled_at", d.toISOString());
+    });
+    showToast("تم تعديل تاريخ التقرير لجميع الرحلات محليًا.");
+    await loadAddViewFlightsFromDb();
+    return;
+  }
+
   try {
     const results = await Promise.all(state.flights.map(flight => {
       const d = new Date(flight.scheduledAt);
       d.setDate(d.getDate() + deltaDays);
-      return supabaseClient.from("flights").update({ scheduled_at: d.toISOString() }).eq("id", flight.id);
+      return supabaseClient.from("manifest_flights").update({ scheduled_at: d.toISOString() }).eq("id", flight.id);
     }));
     const failed = results.find(result => result.error);
     if (failed) throw failed.error;
@@ -392,8 +519,16 @@ async function updateSingleFlightDate(flightId, isoDateValue) {
   const [year, month, day] = isoDateValue.split("-").map(Number);
   const old = new Date(flight.scheduledAt);
   const updated = new Date(year, month - 1, day, old.getHours(), old.getMinutes(), 0, 0);
+
+  if (isOfflineId(flightId)) {
+    updateOfflineFlightField(flightId, "scheduled_at", updated.toISOString());
+    showToast(`تم تعديل تاريخ الرحلة ${flight.flightNumber} محليًا.`);
+    await loadAddViewFlightsFromDb();
+    return;
+  }
+
   try {
-    const { error } = await supabaseClient.from("flights").update({ scheduled_at: updated.toISOString() }).eq("id", flightId);
+    const { error } = await supabaseClient.from("manifest_flights").update({ scheduled_at: updated.toISOString() }).eq("id", flightId);
     if (error) throw error;
     showToast(`تم تعديل تاريخ الرحلة ${flight.flightNumber}.`);
     await loadAddViewFlightsFromDb();
@@ -412,16 +547,19 @@ function isoToHHMM(iso) {
 async function saveFlightsToDb(rows) {
   if (!rows.length) return true;
   try {
-    const { error } = await supabaseClient.from("flights").insert(rows);
+    const { error } = await supabaseClient.from("manifest_flights").insert(rows);
     if (error) throw error;
+    state.offlineMode = false;
     setConnectionStatus(true);
     if (trackState.isActive) loadTrackFlights();
     return true;
   } catch (error) {
     console.error(error);
+    state.offlineMode = true;
+    addOfflineFlights(rows);
     setConnectionStatus(false);
-    showToast("تعذر حفظ الرحلات في قاعدة البيانات.");
-    return false;
+    showToast("تعذر الاتصال بالقاعدة — تم حفظ الرحلة مؤقتًا في هذا المتصفح لأغراض الطباعة فقط.");
+    return true;
   }
 }
 
@@ -715,8 +853,15 @@ function renderFlights() {
 async function removeFlight(id) {
   state.flights = state.flights.filter(flight => flight.id !== id);
   renderFlights();
+
+  if (isOfflineId(id)) {
+    removeOfflineFlight(id);
+    updateOfflineBanner();
+    return;
+  }
+
   try {
-    const { error } = await supabaseClient.from("flights").delete().eq("id", id);
+    const { error } = await supabaseClient.from("manifest_flights").delete().eq("id", id);
     if (error) throw error;
     if (trackState.isActive) loadTrackFlights();
   } catch (error) {
@@ -1101,17 +1246,21 @@ elements.trackClockReset.addEventListener("click", () => {
 async function loadTrackFlights() {
   try {
     const { data, error } = await supabaseClient
-      .from("flights")
+      .from("manifest_flights")
       .select("*")
       .order("scheduled_at", { ascending: true });
     if (error) throw error;
     trackState.flights = data || [];
+    state.offlineMode = false;
     setConnectionStatus(true);
     renderTrackDashboard();
   } catch (error) {
     console.error(error);
+    state.offlineMode = true;
+    trackState.flights = loadOfflineFlights();
     setConnectionStatus(false);
-    showToast("تعذر تحميل الرحلات من قاعدة البيانات.");
+    renderTrackDashboard();
+    showToast("تعذر الاتصال بالقاعدة — عرض الرحلات المحفوظة محليًا فقط.");
   }
 }
 
@@ -1203,8 +1352,14 @@ elements.trackList.addEventListener("click", async event => {
   if (deliverBtn) {
     const id = deliverBtn.dataset.deliver;
     deliverBtn.disabled = true;
+    if (isOfflineId(id)) {
+      updateOfflineFlightField(id, "delivered_at", new Date().toISOString());
+      showToast("تم تسجيل وقت التسليم محليًا.");
+      loadTrackFlights();
+      return;
+    }
     try {
-      const { error } = await supabaseClient.from("flights").update({ delivered_at: new Date().toISOString() }).eq("id", id);
+      const { error } = await supabaseClient.from("manifest_flights").update({ delivered_at: new Date().toISOString() }).eq("id", id);
       if (error) throw error;
       showToast("تم تسجيل وقت التسليم.");
       loadTrackFlights();
@@ -1233,8 +1388,14 @@ elements.trackList.addEventListener("click", async event => {
     const actualIso = buildIsoFromParts(scheduledDate.getFullYear(), scheduledDate.getMonth(), scheduledDate.getDate(), hour, minute);
 
     departBtn.disabled = true;
+    if (isOfflineId(id)) {
+      updateOfflineFlightField(id, "actual_departure_at", actualIso);
+      showToast("تم تسجيل الإقلاع الفعلي محليًا.");
+      loadTrackFlights();
+      return;
+    }
     try {
-      const { error } = await supabaseClient.from("flights").update({ actual_departure_at: actualIso }).eq("id", id);
+      const { error } = await supabaseClient.from("manifest_flights").update({ actual_departure_at: actualIso }).eq("id", id);
       if (error) throw error;
       showToast("تم تسجيل الإقلاع الفعلي.");
       loadTrackFlights();
@@ -1252,18 +1413,22 @@ elements.tabAdd.addEventListener("click", () => setActiveTab("add"));
 elements.tabTrack.addEventListener("click", () => setActiveTab("track"));
 
 elements.resetDbBtn.addEventListener("click", async () => {
-  if (!confirm("سيتم حذف جميع الرحلات المخزنة نهائيًا من قاعدة البيانات. هل تريد المتابعة؟")) return;
+  if (!confirm("سيتم حذف جميع الرحلات المخزنة نهائيًا (من القاعدة والنسخة المحلية المؤقتة). هل تريد المتابعة؟")) return;
+  clearOfflineFlights();
   try {
-    const { error } = await supabaseClient.from("flights").delete().gte("created_at", "1900-01-01T00:00:00Z");
+    const { error } = await supabaseClient.from("manifest_flights").delete().gte("created_at", "1900-01-01T00:00:00Z");
     if (error) throw error;
     showToast("تم حذف جميع الرحلات المخزنة.");
     await loadAddViewFlightsFromDb();
     if (trackState.isActive) loadTrackFlights();
   } catch (error) {
     console.error(error);
+    updateOfflineBanner();
     showToast("تعذر حذف الرحلات من قاعدة البيانات.");
   }
 });
+
+elements.syncOfflineBtn.addEventListener("click", syncOfflineFlights);
 
 elements.choose.addEventListener("click", () => elements.input.click());
 elements.input.addEventListener("change", event => handleFile(event.target.files[0]));
