@@ -1663,7 +1663,10 @@ function calcHijriLess6() {
     // هذا الأسلوب يُخفيه فقط عن "عرض مصدر الصفحة"، وليس حماية حقيقية كاملة.
     const SUPABASE_URL = "https://dkrtiuelioyshbjoocqm.supabase.co";
     const SUPABASE_KEY = "sb_publishable_ts5SGrWhODsG6EH5dUt9Wg_KUvsf-CF";
-    const GEMINI_MODEL = "gemini-flash-latest";
+    // ملاحظة: لا تستخدم الاسم المتغيّر "gemini-flash-latest" - Google تنقله إلى
+    // أحدث نموذج (حاليًا gemini-3.7-flash) وحصته المجانية 20 طلب/يوم فقط.
+    // نثبّت على نموذج مستقر موصى به من Google بحصة يومية أكبر بكثير.
+    const GEMINI_MODEL = "gemini-3.6-flash";
 
     // نجلب مفتاحًا أساسيًا واحتياطيًا (gemini_api_key و gemini_api_key_2) دفعة
     // واحدة - إن كان الخادم مضغوطًا على المفتاح الأول (429/تجاوز حصة) نجرّب
@@ -1889,11 +1892,11 @@ function calcHijriLess6() {
                             responseMimeType: "application/json",
                             responseSchema: PASSPORT_SCAN_SCHEMA,
                             temperature: 0,
-                            // تعطيل وضع "التفكير الممتد" (thinking) - غير مطلوب إطلاقًا
+                            // تقليل وضع "التفكير الممتد" (thinking) لأدنى حد - غير مطلوب
                             // لمهمة استخراج مباشرة كهذه، ومفعّل افتراضيًا بنماذج Gemini
-                            // الحديثة (يُنتج عشرات رموز "تفكير" داخلية قبل الإجابة)، وهذا
-                            // كان السبب الرئيسي لبطء الاستجابة الملحوظ.
-                            thinkingConfig: { thinkingBudget: 0 }
+                            // الحديثة فيبطئ الاستجابة. ملاحظة: نماذج Gemini 3.x ترفض
+                            // thinkingBudget:0 (خطأ 400)، والصيغة الصحيحة لها thinkingLevel:"low".
+                            thinkingConfig: { thinkingLevel: "low" }
                         }
                     })
                 });
