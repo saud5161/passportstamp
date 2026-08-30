@@ -414,7 +414,15 @@ function applyTransitEntries(entries) {
   if (state.flightNumber) {
     // العدد المُدخل بالحاسبة هو عدد ركاب الترانزيت الذين تم العثور عليهم فعليًا
     // ضمن بيان الركاب (matchedCount)، وليس إجمالي قائمة الترانزيت الخام (entries.length).
-    upsertFlightCalcRow(state.flightNumber, { transitCount: matchedCount });
+    // نخزّن العدد الخام (transitGrossCount) بشكل منفصل عن العدد بعد خصم المختم
+    // (transitCount)، حتى إعادة فتح الرحلة وإعادة إرفاق الترانزيت لا تُعيد الخصم:
+    // العدد الصافي يُحسب دائمًا = الخام - المختم، وليس (الصافي المخزَّن - المختم).
+    const existingRow = currentFlightCalcRow();
+    const stamped = existingRow ? (existingRow.transitStampedCount || 0) : 0;
+    upsertFlightCalcRow(state.flightNumber, {
+      transitGrossCount: matchedCount,
+      transitCount: Math.max(0, matchedCount - stamped)
+    });
   }
   render();
   showToast(`تم استخراج ${entries.length} راكب ترانزيت، وتمت مطابقة ${matchedCount} منهم.`);
@@ -692,7 +700,7 @@ async function handleFile(file, precomputedReport = null) {
     elements.viewManifest.hidden = false;
 
     if (state.flightNumber) {
-      upsertFlightCalcRow(state.flightNumber, { passengerCount: passengers.length, transitCount: 0 });
+      upsertFlightCalcRow(state.flightNumber, { passengerCount: passengers.length, transitCount: 0, transitGrossCount: 0 });
     }
     updateOcrAvailability();
     render();
@@ -1217,11 +1225,21 @@ function renderSelected() {
 // كل راكب: اسم + جواز بسطر واحد، ثم سطر "مقعد : (*رقم*)" تحته (النجمتان لجعله عريضًا
 // في واتساب)، ثم سطر ملاحظة اختياري إن وُجد. الركاب مفصولون بسطر فارغ بينهم.
 // يُستخدم أيضًا في رسالة "تحديث" لأنهما يشتركان بنفس قائمة الركاب.
+// أرقام الجوازات المكررة بين أكثر من راكب (نفس مجموعة تنبيه "جواز سفر مكرر").
+function duplicatePassportSet() {
+  return new Set(reportWarnings().duplicates.map(group => group.passport));
+}
+
 function passengerMessageLines() {
+  const duplicatePassports = duplicatePassportSet();
   return state.selected.map((passenger, index) => {
     const note = (passenger.note || "").trim();
     const noteLine = note ? `\nملاحظة / ${note}` : "";
-    return `${index + 1}.${passenger.name.trim()} ${passenger.passport.trim()}\n${state.seatLabel} : (*${passenger.seat.trim()}*)${noteLine}`;
+    // جواز مكرر بين أكثر من راكب: نسبق رقم الجواز بالعنوان "رقم الجواز:" في النص المنسوخ لتمييزه فورًا.
+    const passportRaw = passenger.passport.trim();
+    const isDuplicate = splitPassportValues(passportRaw).some(passport => duplicatePassports.has(passport));
+    const passportText = isDuplicate ? `رقم الجواز: ${passportRaw}` : passportRaw;
+    return `${index + 1}.${passenger.name.trim()} ${passportText}\n${state.seatLabel} : (*${passenger.seat.trim()}*)${noteLine}`;
   }).join("\n\n");
 }
 
@@ -1684,11 +1702,60 @@ async function copyValuesAsTable(values) {
    كل رحلة يتم إرفاق بيانها تُضاف/تُحدَّث تلقائيًا هنا (رقم الرحلة، عدد الركاب،
    ركاب الترانزيت)، وعدد الملاحين يُدخل يدويًا. المجموع = الركاب + الملاحين - الترانزيت. */
 const FLIGHT_CALC_STORAGE_KEY = "flight_calc_rows_v1";
+// تُفرَّغ حاسبة الرحلات تلقائيًا بعد مرور 24 ساعة على إضافة أول رحلة (وقت الإضافة
+// يُخزَّن هنا، ولا يتجدّد بإضافة رحلات لاحقة). مثال: أول رحلة الساعة 9 => التفريغ
+// غدًا الساعة 9.
+const FLIGHT_CALC_STARTED_KEY = "flight_calc_started_at_v1";
+const FLIGHT_CALC_TTL_MS = 24 * 60 * 60 * 1000;
+
+function getFlightCalcStartedAt() {
+  const raw = Number(localStorage.getItem(FLIGHT_CALC_STARTED_KEY));
+  return Number.isFinite(raw) && raw > 0 ? raw : 0;
+}
+
+function markFlightCalcStartIfNeeded() {
+  if (!getFlightCalcStartedAt()) {
+    try { localStorage.setItem(FLIGHT_CALC_STARTED_KEY, String(Date.now())); } catch (error) { /* */ }
+  }
+}
+
+function clearFlightCalcStart() {
+  try { localStorage.removeItem(FLIGHT_CALC_STARTED_KEY); } catch (error) { /* */ }
+}
+
+function flightCalcExpired() {
+  const startedAt = getFlightCalcStartedAt();
+  return startedAt > 0 && Date.now() - startedAt >= FLIGHT_CALC_TTL_MS;
+}
+
+// تفريغ فوري إن انتهت المهلة - يُستدعى عند التحميل، ودوريًا كل دقيقة للصفحات المفتوحة،
+// وقبل أي إضافة رحلة جديدة.
+function enforceFlightCalcExpiry({ silent = false } = {}) {
+  if (!flightCalcExpired()) return false;
+  flightCalcRows = [];
+  clearFlightCalcStart();
+  try { localStorage.removeItem(FLIGHT_CALC_STORAGE_KEY); } catch (error) { /* */ }
+  if (typeof renderFlightCalcTable === "function") renderFlightCalcTable();
+  if (!silent) showToast("تم تفريغ حاسبة الرحلات تلقائيًا بعد مرور 24 ساعة على أول رحلة.");
+  return true;
+}
 
 function loadFlightCalcRows() {
   try {
+    if (flightCalcExpired()) {
+      clearFlightCalcStart();
+      localStorage.removeItem(FLIGHT_CALC_STORAGE_KEY);
+      return [];
+    }
     const parsed = JSON.parse(localStorage.getItem(FLIGHT_CALC_STORAGE_KEY) || "[]");
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // ترحيل الرحلات المحفوظة قبل إضافة transitGrossCount: العدد الخام = الصافي + المختم.
+    parsed.forEach(row => {
+      if (row && typeof row === "object" && row.transitGrossCount == null) {
+        row.transitGrossCount = (Number(row.transitCount) || 0) + (Number(row.transitStampedCount) || 0);
+      }
+    });
+    return parsed;
   } catch (error) {
     return [];
   }
@@ -1697,12 +1764,17 @@ function loadFlightCalcRows() {
 function saveFlightCalcRows() {
   try {
     localStorage.setItem(FLIGHT_CALC_STORAGE_KEY, JSON.stringify(flightCalcRows));
+    // بمجرد وجود رحلة واحدة نثبّت وقت البداية (إن لم يكن مثبتًا)، وعند التفريغ الكامل
+    // نمسحه حتى تبدأ مهلة الـ 24 ساعة من جديد مع أول رحلة قادمة.
+    if (flightCalcRows.length) markFlightCalcStartIfNeeded();
+    else clearFlightCalcStart();
   } catch (error) {
     console.error(error);
   }
 }
 
 let flightCalcRows = loadFlightCalcRows();
+setInterval(() => enforceFlightCalcExpiry(), 60 * 1000);
 
 // المجموع = الركاب + الملاح + الجثمان (يُضافون) - الترانزيت - المعاد (يُخصمون).
 function flightCalcTotal(row) {
@@ -1746,12 +1818,15 @@ function upsertFlightCalcRow(flightNumber, updates) {
   const key = String(flightNumber || "").trim().toUpperCase();
   if (!key) return;
 
+  // إن انتهت مهلة الـ 24 ساعة، نفرّغ أولًا ثم نبدأ نافذة جديدة مع هذه الرحلة.
+  enforceFlightCalcExpiry({ silent: true });
+
   const existing = flightCalcRows.find(row => String(row.flightNumber || "").trim().toUpperCase() === key);
   if (existing) {
     Object.assign(existing, updates);
   } else {
     flightCalcRows.push({
-      flightNumber, passengerCount: 0, transitCount: 0, transitStampedCount: 0, crewCount: 0, returneeCount: 0, bodyCount: 0, ...updates
+      flightNumber, passengerCount: 0, transitCount: 0, transitGrossCount: 0, transitStampedCount: 0, crewCount: 0, returneeCount: 0, bodyCount: 0, ...updates
     });
   }
   saveFlightCalcRows();
@@ -1852,7 +1927,8 @@ elements.flightCalcClear.addEventListener("click", () => {
 // يضيف رحلة فارغة يدويًا (بلا حاجة لإرفاق أي بيان) لتُكتب أرقامها مباشرة بالجدول -
 // لتغطية رحلات لم تُرفَق منفستاتها إطلاقًا في الأداة.
 elements.flightCalcAdd.addEventListener("click", () => {
-  flightCalcRows.push({ flightNumber: "", passengerCount: 0, transitCount: 0, transitStampedCount: 0, crewCount: 0, returneeCount: 0, bodyCount: 0 });
+  enforceFlightCalcExpiry({ silent: true });
+  flightCalcRows.push({ flightNumber: "", passengerCount: 0, transitCount: 0, transitGrossCount: 0, transitStampedCount: 0, crewCount: 0, returneeCount: 0, bodyCount: 0 });
   saveFlightCalcRows();
   elements.flightCalcPanel.classList.remove("is-collapsed");
   elements.toggleFlightCalc.setAttribute("aria-expanded", "true");
@@ -1874,23 +1950,33 @@ elements.crewCountInput.addEventListener("input", event => {
 // تعديله يدويًا أيضًا (بنفس مبدأ عدد الملاحين)، وينعكس مباشرة في حاسبة الرحلات.
 elements.transitCountInput.addEventListener("input", event => {
   const transitCount = Number(event.target.value) || 0;
-  upsertFlightCalcRow(state.flightNumber, { transitCount });
+  // تعديل يدوي للعدد الصافي => نعتبره أيضًا العدد الخام + ما سبق ختمه، حتى يبقى
+  // خصم "المختم" لاحقًا محسوبًا من هذا الرقم لا من رقم أقدم.
+  const row = currentFlightCalcRow();
+  const stamped = row ? (row.transitStampedCount || 0) : 0;
+  upsertFlightCalcRow(state.flightNumber, { transitCount, transitGrossCount: transitCount + stamped });
   const calcRow = currentFlightCalcRow();
   elements.expectedTotal.textContent = calcRow ? flightCalcTotal(calcRow) : "-";
 });
 
 // ترانزيت مختم - كل عدد يُكتب هنا يُخصم فورًا من "ركاب الترانزيت" (وليس مجرد رقم
-// منفصل يُعرض بجانبه). نحسب "delta" (الفرق عن آخر قيمة مختومة) بدل طرح القيمة
-// الكاملة المكتوبة في كل ضغطة زر، حتى لا يتضاعف الخصم أثناء كتابة رقم من خانتين
-// فأكثر (مثال: 10 ترانزيت، كتابة 2 مختم => يصبح الترانزيت 8).
+// منفصل يُعرض بجانبه). العدد الصافي يُحسب دائمًا = العدد الخام (transitGrossCount)
+// ناقص المختم، وليس طرحًا تراكميًا من القيمة الحالية - وبهذا لا يتضاعف الخصم لا عند
+// كتابة رقم من خانتين ولا عند إعادة فتح الرحلة (مثال: 10 خام، كتابة 1 مختم => 9،
+// وتبقى 9 مهما أُعيد فتح الرحلة أو أُعيد إرفاق الترانزيت).
 elements.transitStampedInput.addEventListener("input", event => {
   const newStamped = Number(event.target.value) || 0;
   const calcRow = currentFlightCalcRow();
-  const previousStamped = calcRow ? (calcRow.transitStampedCount || 0) : 0;
   const currentTransit = calcRow ? (calcRow.transitCount || 0) : 0;
-  const nextTransit = Math.max(0, currentTransit - (newStamped - previousStamped));
+  const currentStamped = calcRow ? (calcRow.transitStampedCount || 0) : 0;
+  // العدد الخام: المخزَّن إن وُجد، وإلا نستنتجه من (الصافي الحالي + المختم الحالي)
+  // لدعم الرحلات المحفوظة قبل إضافة هذا الحقل.
+  const grossTransit = calcRow && calcRow.transitGrossCount != null
+    ? calcRow.transitGrossCount
+    : currentTransit + currentStamped;
+  const nextTransit = Math.max(0, grossTransit - newStamped);
 
-  upsertFlightCalcRow(state.flightNumber, { transitStampedCount: newStamped, transitCount: nextTransit });
+  upsertFlightCalcRow(state.flightNumber, { transitStampedCount: newStamped, transitCount: nextTransit, transitGrossCount: grossTransit });
   if (document.activeElement !== elements.transitCountInput) {
     elements.transitCountInput.value = nextTransit;
   }
@@ -2018,7 +2104,7 @@ elements.clearTransit.addEventListener("click", () => {
   elements.transitStatus.textContent = "أرفق ملف PDF لقائمة ركاب الترانزيت ليتم تمييزهم داخل قائمة الركاب.";
   elements.transitSuccessBadge.hidden = true;
   if (state.flightNumber) {
-    upsertFlightCalcRow(state.flightNumber, { transitCount: 0 });
+    upsertFlightCalcRow(state.flightNumber, { transitCount: 0, transitGrossCount: 0 });
   }
   render();
   showToast("تم إزالة قائمة الترانزيت.");
