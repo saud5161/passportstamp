@@ -382,7 +382,10 @@ function normalizeOfficialFlight(f, now) {
       || normalizeCityName(otherAirport?.city?.name || otherAirport?.name)
       || toTitleCase(otherAirport?.city?.name || otherAirport?.name)
       || "—",
-    terminal: terminalNum ? `الصالة ${terminalNum}` : "—",
+    // طيران الرياض (RX) مسجّلة أحياناً في بيانات الموقع الخام ببوابات الصالة 5 (لرحلات معينة
+    // كدكا وكوتشي) رغم أنها تعمل فعلياً من الصالة 2 حصراً حسب الموقع الرسمي نفسه عند التحقق
+    // المباشر - نفرض الصالة الصحيحة يدوياً لهذه الحالة بدل الاعتماد على الحقل الخام المتضارب.
+    terminal: airlineCode === "RX" ? "الصالة 2" : (terminalNum ? `الصالة ${terminalNum}` : "—"),
     gate,
     // بدل عرض عمود منفصل "الوقت الفعلي"، نعرض الوقت المقدَّر (إن وُجد) مباشرة في عمود
     // "الوقت المجدول" نفسه - فلا يوجد عمود ثانٍ ولا استنتاج تأخير من الفارق بينهما.
@@ -736,8 +739,8 @@ function renderTimeRangeSlider() {
   // فقاعة الوقت العائمة تتبع كل مقبض بنفس موضعه أفقياً
   tooltipFrom.style.left = `${pxFrom}px`;
   tooltipTo.style.left = `${pxTo}px`;
-  tooltipFrom.textContent = minutesToHM(fromMin);
-  tooltipTo.textContent = minutesToHM(toMin);
+  tooltipFrom.textContent = `${minutesToHM(fromMin)} يبدأ`;
+  tooltipTo.textContent = `${minutesToHM(toMin)} ينتهي`;
 
   if (wrapped) {
     fill.style.left = `${pxFrom}px`;
