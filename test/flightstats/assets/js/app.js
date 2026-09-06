@@ -360,32 +360,33 @@ function normalizeOfficialFlight(f, now) {
   const otherAirport = isArrival ? f.departureAirport : f.arrivalAirport;
   const ext = (f.flightExtraData && f.flightExtraData[0]) || {};
   const gate = f.passengerGate || ext.passengerGate || "—";
-  const terminalCode = f.aircraftTerminal || ext.publicTerminal || "";
+  // flightExtraData يحمل أحياناً بيانات أحدث/أدق من الحقول العلوية للرحلة (خصوصاً لرحلات
+  // طيران الرياض RX المسجّلة برمز قديم RA في الحقل العلوي) - لذا نُقدّمه عند توفره.
+  const terminalCode = ext.publicTerminal || f.aircraftTerminal || "";
   const terminalNum = terminalCode.replace(/\D/g, "");
 
   const scheduled = f.scheduled ? new Date(f.scheduled) : null;
   const estimated = f.estimated ? new Date(f.estimated) : null;
 
   const rawAirlineCode = (f.airline?.code || "").toUpperCase();
-  // موقع المطار يسجّل رحلات طيران الرياض داخلياً تحت الرمز القديم RA بدل الرمز
-  // الصحيح RX - نصحّح رمز الرحلة نفسه (وليس اسم شركة الطيران فقط) ليظهر RX بدل RA
-  const airlineCode = FLIGHT_CODE_OVERRIDES[rawAirlineCode] || rawAirlineCode;
+  const extAirlineCode = (ext.airlineCode || "").toUpperCase();
+  // موقع المطار يسجّل رحلات طيران الرياض داخلياً تحت الرمز القديم RA في الحقل العلوي، بينما
+  // flightExtraData.airlineCode يحمل الرمز الصحيح المحدَّث RX فعلياً - نعتمده عند توفره،
+  // ونستخدم التصحيح اليدوي (FLIGHT_CODE_OVERRIDES) فقط كبديل احتياطي إن غاب.
+  const airlineCode = extAirlineCode || FLIGHT_CODE_OVERRIDES[rawAirlineCode] || rawAirlineCode;
   const otherAirportCode = (otherAirport?.code || "").toUpperCase();
 
   return {
     id: `KKIA-${f.id}`,
     type: isArrival ? "arrival" : "departure",
     flightNo: `${airlineCode} ${f.number || ""}`.trim() || "—",
-    airline: AIRLINE_NAME_OVERRIDES[airlineCode] || AIRLINE_NAME_AR.get(airlineCode) || toTitleCase(f.airline?.description) || "غير معروف",
+    airline: AIRLINE_NAME_OVERRIDES[airlineCode] || AIRLINE_NAME_AR.get(airlineCode) || toTitleCase(ext.airlineDescription || f.airline?.description) || "غير معروف",
     airlineCode,
     city: CITY_NAME_AR.get(otherAirportCode)
       || normalizeCityName(otherAirport?.city?.name || otherAirport?.name)
       || toTitleCase(otherAirport?.city?.name || otherAirport?.name)
       || "—",
-    // طيران الرياض (RX) مسجّلة أحياناً في بيانات الموقع الخام ببوابات الصالة 5 (لرحلات معينة
-    // كدكا وكوتشي) رغم أنها تعمل فعلياً من الصالة 2 حصراً حسب الموقع الرسمي نفسه عند التحقق
-    // المباشر - نفرض الصالة الصحيحة يدوياً لهذه الحالة بدل الاعتماد على الحقل الخام المتضارب.
-    terminal: airlineCode === "RX" ? "الصالة 2" : (terminalNum ? `الصالة ${terminalNum}` : "—"),
+    terminal: terminalNum ? `الصالة ${terminalNum}` : "—",
     gate,
     // بدل عرض عمود منفصل "الوقت الفعلي"، نعرض الوقت المقدَّر (إن وُجد) مباشرة في عمود
     // "الوقت المجدول" نفسه - فلا يوجد عمود ثانٍ ولا استنتاج تأخير من الفارق بينهما.
