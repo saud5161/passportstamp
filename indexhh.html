@@ -426,9 +426,12 @@
                 <span>خطأ رقم جواز</span>
             </div>
             <div class="card" onclick="openForm('passportExp')"><i class="fas fa-passport" style="opacity:0.6"></i><span>جواز منتهي</span></div>
-            <div class="card" onclick="openForm('pilgrimDeparture')">
+            <div class="card" onclick="openForm('crewVisaExpired')"><div style="position:relative; display:inline-block;"><i class="fas fa-user-tie"></i><i class="fas fa-plane" style="position:absolute; top:-8px; right:-12px; font-size:1rem; transform:rotate(-30deg);"></i></div><span>تأشيرة ملاحين ( مجموعة )</span></div>
+            <div class="card" style="opacity:0.55; cursor:not-allowed; position:relative;" onclick="alert('انتهاء موسم الحج')">
+    <i class="fas fa-lock" style="position:absolute; top:8px; left:8px; font-size:1rem; color:#dc3545;"></i>
     <i class="fas fa-kaaba"></i>
     <span>إشعار حاج مغادر</span>
+    <small style="color:#dc3545; font-weight:bold;">انتهاء موسم الحج</small>
 </div>
         </div>
 
@@ -436,7 +439,6 @@
        <div class="section-title"><i class="fas fa-id-card"></i> المسافرين المقيمين</div>
         <div class="grid-menu">
             <div class="card" onclick="openForm('updut')"><i class="fas fa-sync-alt"></i><span>نقل معلومات</span></div>
-            <div class="card" onclick="openForm('updinf')"><i class="fas fa-rotate"></i><span>تحديث معلومات</span></div>
             <div class="card" onclick="openForm('diffNat')"><i class="fas fa-globe"></i><span>اختلاف جنسية</span></div>
             <div class="card" onclick="openForm('passErrorRes')">
                 <div style="position:relative; display:inline-block;"><i class="fas fa-passport"></i><i class="fas fa-exclamation-circle" style="position:absolute; bottom:-5px; right:-5px; color:#dc3545; background:white; border-radius:50%; font-size:1rem;"></i></div>
@@ -913,6 +915,7 @@
     <div id="form-askrycontery" class="form-section"><div class="form-title">عسكري الى دولة ممنوعة</div><div class="input-group"><label>الاسم</label><input type="text" id="ac_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="ac_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="ac_pass" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="ac_dest"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="ac_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="ac_h" placeholder="ساعة" class="en-num"><input type="number" id="ac_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="ac_gh" placeholder="ساعة" class="en-num"><input type="number" id="ac_gm" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="ac_note">عند البدء في انهاء اجراءات مغادرته تبين انه من فئة العسكريين ويرغب بالسفر الى دولة ممنوعة</textarea></div></div>
     <div id="form-askryd" class="form-section"><div class="form-title">عسكري اختلاف وجهة</div><div class="input-group"><label>الاسم</label><input type="text" id="ad_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="ad_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="ad_pass" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="ad_dest"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="ad_flight" class="en-num"></div><div class="input-group"><label>الخطوط</label><input type="text" id="ad_line"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="ad_h" placeholder="ساعة" class="en-num"><input type="number" id="ad_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>موعد فتح البوابة</label><div class="row" style="direction:ltr"><input type="number" id="ad_gh" placeholder="ساعة" class="en-num"><input type="number" id="ad_gm" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>القطاع</label><input type="text" id="ad_sec"></div><div class="input-group"><label>مدة الإجازة</label><input type="text" id="ad_dur"></div><div class="input-group"><label>الملاحظة</label><textarea id="ad_note">لديه اجازة محددة الوجهة ويرغب بسفر الى وجهة مختلفه</textarea></div></div>
     <div id="form-defname" class="form-section"><div class="form-title">اختلاف اسم عند المغادرة</div><div class="input-group"><label>الاسم</label><input type="text" id="dn_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="dn_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="dn_pass" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="dn_dest"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="dn_flight" class="en-num"></div><div class="input-group"><label>الملاحظة</label><textarea id="dn_note">وعند تسديد مغادرته تبين بأن الاسم في نظام المسافرين يختلف عن الوثيقة...</textarea></div></div>
+    <div id="form-crewVisaExpired" class="form-section"><div class="form-title">تأشيرة ملاحين ( مجموعة )</div><div class="input-group"><label>الجنسية <small style="color:#888">(اختياري)</small></label><input type="text" id="cv_nat"></div><div class="input-group"><label>نوع التأشيرة</label><input type="text" id="cv_visa" value="ملاح"></div><div class="input-group"><label>خطوط الطيران</label><input type="text" id="cv_air"></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="cv_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="cv_h" placeholder="ساعة" class="en-num"><input type="number" id="cv_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>عدد الملاحين</label><input type="number" id="cv_count" class="en-num"></div><div class="input-group"><label>تاريخ المغادرة النهائية</label><div class="row"><select id="cv_fd_d"><option value="">اليوم</option></select><select id="cv_fd_m"><option value="">الشهر</option></select><select id="cv_fd_y"><option value="">السنة</option><option value="1446">1446</option><option value="1447">1447</option><option value="1448">1448</option><option value="1449">1449</option><option value="1450">1450</option></select></div></div><div class="input-group"><label>مدة انتهاء التأشيرة (يوم)</label><input type="number" id="cv_days" class="en-num" value="1"></div><div class="input-group"><label>خطاب من الشركة الناقلة</label><select id="cv_letter"><option value="يوجد">يوجد</option><option value="لا يوجد">لا يوجد</option></select></div><div class="input-group"><label>تاريخ الدخول</label><div class="row"><select id="cv_ed_d"><option value="">اليوم</option></select><select id="cv_ed_m"><option value="">الشهر</option></select><select id="cv_ed_y"><option value="">السنة</option><option value="1446">1446</option><option value="1447">1447</option><option value="1448">1448</option><option value="1449">1449</option><option value="1450">1450</option></select></div></div></div>
     <div id="form-diplomaticVisaExpired" class="form-section"><div class="form-title">جواز دبلوماسي تأشيرة منتهية</div><div class="input-group"><label>الاسم</label><input type="text" id="dpv_name"></div><div class="input-group"><label>الجنسية</label><input type="text" id="dpv_nat"></div><div class="input-group"><label>رقم الجواز</label><input type="text" id="dpv_pass" class="en-num"></div><div class="input-group"><label>جهة المغادرة</label><input type="text" id="dpv_dest"></div><div class="input-group"><label>نوع الجواز</label><select id="dpv_type" onchange="updateDiplomaticVisaNote()"><option value="دبلوماسي">دبلوماسي</option><option value="خاص">خاص</option></select></div><div class="input-group"><label>رقم الرحلة</label><input type="text" id="dpv_flight" class="en-num"></div><div class="input-group"><label>وقت الإقلاع</label><div class="row" style="direction:ltr"><input type="number" id="dpv_h" placeholder="ساعة" class="en-num"><input type="number" id="dpv_m" placeholder="دقيقة" class="en-num"></div></div><div class="input-group"><label>الملاحظة</label><textarea id="dpv_note" rows="4"></textarea></div></div>
 
     <div id="form-citizenBannedCountry" class="form-section">
@@ -1145,7 +1148,7 @@
             const s = document.getElementById(eid);
             if(s && s.options.length <= 1) for(let i=1;i<=max;i++) s.add(new Option(i,i));
         }
-        fill('ve_d',31); fill('ve_m',12); fill('ve_days',90);
+        fill('ve_d',31); fill('ve_m',12); fill('cv_fd_d',31); fill('cv_fd_m',12); fill('cv_ed_d',31); fill('cv_ed_m',12); fill('ve_days',90);
 
         // جلب البيانات من ملف fly.json
         fetch('fly.json')
@@ -2494,6 +2497,25 @@ function calcPresence() {
             txt.push(`*جهة المغادرة:* ${val('px_dest')}`);
             txt.push(`*وقت الاقلاع:* ${val('px_time')}`);
             txt.push(`*الملاحظة:* ${val('px_note')}`);
+        }
+        else if(currentForm === 'crewVisaExpired') {
+            const days = val('cv_days');
+            const dayTxt = days === '1' ? 'يوم واحد' : days === '2' ? 'يومين' : `${days} أيام`;
+            const dt = (p) => (val(p+'_d') && val(p+'_m') && val(p+'_y')) ? `${val(p+'_d')} - ${val(p+'_m')} - ${val(p+'_y')}` : '';
+            txt.push(`*تأشيرة ملاحين منتهية*`);
+            if(val('cv_nat')) txt.push(`*الجنسية:* ${val('cv_nat')}`);
+            txt.push(`*نوع التأشيرة:* ${val('cv_visa')}`);
+            txt.push(`*خطوط الطيران:* ${val('cv_air')}`);
+            txt.push(`*رقم الرحلة:* ${val('cv_flight')}`);
+            if(val('cv_h') || val('cv_m')) txt.push(`*وقت الإقلاع:* ${pad(val('cv_h'))}:${pad(val('cv_m'))}`);
+            txt.push(`
+*الملاحظة*`);
+            txt.push(`عدد ${val('cv_count')} ( ملاح ) لدى خطوط ${val('cv_air')} يحملون تأشيرة منتهية ، حيث ان المغادرة النهائية بتاريخ : ${dt('cv_fd')}`);
+            if(days) txt.push(`• التأشيرة منتهية ${dayTxt}.`);
+            txt.push(`- ${val('cv_letter')} خطاب من الشركة الناقلة.`);
+            if(dt('cv_ed')) txt.push(`- تاريخ الدخول : ${dt('cv_ed')}`);
+            txt.push(`
+*بأمل اطلاع سعادتكم والتوجيه*`);
         }
         else if(currentForm === 'diplomaticVisaExpired') {
             updateDiplomaticVisaNote();
