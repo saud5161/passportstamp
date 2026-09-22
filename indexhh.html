@@ -1646,8 +1646,24 @@ function calcHijriLess6() {
                     <button type="button" onclick="setL6Reason(${i}, 'عمل')">عمل</button>
                 </div>
             </div>
-            <div class="input-group"><label>ملاحظة</label><textarea id="l6_not_${i}" placeholder="في حال وجود ملاحظات اضافية اكتب هنا مثل وبرفقة عائلته...">وثيقة السفر اقل من المدة النظامية</textarea></div></div>`;
+            <div class="input-group"><label>ملاحظة</label><textarea id="l6_not_${i}" placeholder="في حال وجود ملاحظات اضافية اكتب هنا مثل وبرفقة عائلته...">وثيقة السفر اقل من المدة النظامية</textarea>
+                <div class="quick-reason-buttons">
+                    <button type="button" onclick="addL6Note(${i}, 'وبرفقة عائلته (  )')">برفقة عائلته</button>
+                    <button type="button" onclick="addL6Note(${i}, 'يحمل خطاب من جهة عمله')">خطاب جهة العمل</button>
+                </div>
+            </div></div>`;
         }
+    }
+
+    function addL6Note(index, extra) {
+        const ta = document.getElementById(`l6_not_${index}`);
+        if(!ta) return;
+        const base = (ta.value || '').trim();
+        if(base.includes(extra.replace(' (  )',''))) return;
+        ta.value = base ? `${base} ${extra}` : extra;
+        ta.focus();
+        const pos = ta.value.indexOf('(  )');
+        if(pos > -1) ta.setSelectionRange(pos + 2, pos + 2);
     }
 
     function setL6Reason(index, reason) {
@@ -2438,9 +2454,8 @@ function calcPresence() {
                 const lbl = l6DocType === 'passport' ? 'رقم الجواز' : 'رقم الهوية';
                 txt.push(`*${lbl}:* ${val(`l6_num_${i}`)}`);
                 txt.push(`*الجنسية:* ${val(`l6_nat_${i}`)}`);
-                const lblExp = l6DocType === 'passport' ? 'تاريخ انتهاء الجواز' : 'تاريخ انتهاء الهوية';
-                txt.push(`*${lblExp} (ميلادي):* ${val(`l6_ex_y_${i}`)}/${pad(val(`l6_ex_m_${i}`))}/${pad(val(`l6_ex_d_${i}`))}`);
-                txt.push(`*المدة المتبقية بالميلادي:* ${val(`l6_gm_${i}`)} شهر و ${val(`l6_gd_${i}`)} يوم`);
+                txt.push(`*تاريخ الانتهاء :* ${pad(val(`l6_ex_d_${i}`))}-${pad(val(`l6_ex_m_${i}`))}-${val(`l6_ex_y_${i}`)}`);
+                txt.push(`*المدة المتبقية بالجواز:* ${val(`l6_gm_${i}`)} شهر و ${val(`l6_gd_${i}`)} يوم`);
                 txt.push(`*سبب السفر:* ${val(`l6_rsn_${i}`)}`);
 
                 if (val("l6_h") || val("l6_m")) txt.push(`*وقت الإقلاع:* ${pad(val("l6_h"))}:${pad(val("l6_m"))}`);
