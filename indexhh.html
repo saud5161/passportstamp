@@ -398,12 +398,252 @@
                 box-shadow: 0 10px 30px rgba(0,0,0,0.2);
                 border-color: #2b579a;
             }
+
+        /* ======================================================
+           تحديث الواجهة (2026) - تصميم احترافي متجاوب للجوال
+           ====================================================== */
+        :root {
+            --surface: #ffffff;
+            --surface-2: #f4f6f8;
+            --line: rgba(15, 61, 40, 0.10);
+            --muted: #6b7a87;
+            --shadow-sm: 0 2px 8px rgba(16, 40, 30, 0.06);
+            --shadow-md: 0 8px 24px rgba(16, 40, 30, 0.10);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        html[data-theme="dark"] {
+            --primary: #2ea36a;
+            --primary-dark: #143a2a;
+            --gold: #d9b877;
+            --bg: #10161b;
+            --white: #18212a;
+            --surface: #18212a;
+            --surface-2: #131b22;
+            --text: #e8eef3;
+            --muted: #9fb0bd;
+            --line: rgba(255,255,255,0.10);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.35);
+            --shadow-md: 0 10px 28px rgba(0,0,0,0.45);
+        }
+        html[data-theme="dark"] body { background: var(--bg); color: var(--text); }
+        html[data-theme="dark"] .form-section,
+        html[data-theme="dark"] .passenger-group,
+        html[data-theme="dark"] .modal-content,
+        html[data-theme="dark"] .suggestion-wrapper,
+        html[data-theme="dark"] .feedback-card { background: var(--surface); color: var(--text); border-color: var(--line); }
+        html[data-theme="dark"] input,
+        html[data-theme="dark"] select,
+        html[data-theme="dark"] textarea { background: var(--surface-2); color: var(--text); border-color: var(--line); }
+        html[data-theme="dark"] input::placeholder,
+        html[data-theme="dark"] textarea::placeholder { color: var(--muted); }
+        html[data-theme="dark"] .input-group label,
+        html[data-theme="dark"] .feedback-text,
+        html[data-theme="dark"] .card span { color: var(--text); }
+        html[data-theme="dark"] .section-title { color: var(--text); }
+        html[data-theme="dark"] .hijri-box,
+        html[data-theme="dark"] .l6-duration-box,
+        html[data-theme="dark"] .l6-calc-card,
+        html[data-theme="dark"] .capture-guide-toggle,
+        html[data-theme="dark"] .l6-scan-btn,
+        html[data-theme="dark"] .custom-options,
+        html[data-theme="dark"] .doc-button,
+        html[data-theme="dark"] .quick-reason-buttons button,
+        html[data-theme="dark"] .quick-airline-buttons button,
+        html[data-theme="dark"] .l6-result-pill,
+        html[data-theme="dark"] .checkbox-btn,
+        html[data-theme="dark"] .suggestion-header-btn,
+        html[data-theme="dark"] .modal-header,
+        html[data-theme="dark"] .feedbacks-list { background: var(--surface-2); color: var(--text); border-color: var(--line); }
+        html[data-theme="dark"] [style*="background: white"],
+        html[data-theme="dark"] [style*="background:#fff"],
+        html[data-theme="dark"] [style*="background: #fff"] { background: var(--surface-2) !important; color: var(--text); }
+
+        body { padding-bottom: calc(110px + var(--safe-bottom)); }
+
+        /* ---------- شريط التطبيق العلوي ---------- */
+        header.appbar {
+            position: sticky; top: 0; z-index: 900;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: #fff; padding: 14px 14px 14px;
+            padding-top: calc(14px + env(safe-area-inset-top, 0px));
+            border-bottom: 3px solid var(--gold);
+            border-radius: 0 0 22px 22px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            margin-bottom: 18px;
+        }
+        .appbar-row { display: flex; align-items: center; gap: 10px; }
+        .appbar-titles { flex: 1; min-width: 0; text-align: center; }
+        .appbar h1 { margin: 0; font-size: 1.12rem; font-weight: 800; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .appbar-sub { display: block; font-size: 0.7rem; opacity: .8; margin-top: 2px; }
+        .appbar-btn {
+            width: 40px; height: 40px; flex: 0 0 40px; border-radius: 14px; border: none;
+            background: rgba(255,255,255,0.16); color: #fff; font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: transform .15s, background .2s;
+        }
+        .appbar-btn:active { transform: scale(0.92); background: rgba(255,255,255,0.28); }
+        .appbar-btn[hidden] { display: none; }
+
+        .searchbar {
+            margin-top: 12px; display: flex; align-items: center; gap: 9px;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 14px; padding: 0 12px; transition: background .2s;
+        }
+        .searchbar i { color: rgba(255,255,255,0.85); font-size: .9rem; }
+        .searchbar input {
+            flex: 1; background: transparent; border: none; box-shadow: none !important;
+            color: #fff; font-size: 0.95rem; padding: 11px 0; font-family: inherit;
+        }
+        .searchbar input::placeholder { color: rgba(255,255,255,0.75); }
+        .searchbar input:focus { outline: none; }
+        .search-clear { background: none; border: none; color: #fff; opacity: .85; cursor: pointer; font-size: .9rem; padding: 4px; }
+        .search-clear[hidden] { display: none; }
+
+        /* ---------- عناوين الأقسام ---------- */
+        .section-title { font-size: 1.02rem; margin: 22px 0 12px; padding-bottom: 8px; letter-spacing: .2px; }
+        .section-title i { font-size: 1.1rem; }
+        .section-title .sec-count {
+            margin-right: auto; font-size: .68rem; font-weight: 800; color: var(--muted);
+            background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px;
+        }
+
+        /* ---------- البطاقات ---------- */
+        .grid-menu { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 11px; }
+        .card {
+            background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+            height: auto; min-height: 118px; padding: 14px 8px 12px; gap: 2px;
+            box-shadow: var(--shadow-sm); overflow: hidden;
+            transition: transform .18s cubic-bezier(.2,.8,.3,1), box-shadow .18s, border-color .18s;
+        }
+        .card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(120% 90% at 50% -20%, rgba(197,160,89,0.16), transparent 60%);
+            opacity: 0; transition: opacity .25s; pointer-events: none;
+        }
+        .card:hover::before, .card.is-pressed::before { opacity: 1; }
+        .card:active, .card.is-pressed { transform: scale(0.955); box-shadow: var(--shadow-sm); }
+        .card i { font-size: 1.45rem; margin-bottom: 0; }
+        .card > i,
+        .card > div[style*="position:relative"] {
+            display: flex; align-items: center; justify-content: center;
+            width: 46px; height: 46px; margin-bottom: 9px; border-radius: 15px;
+            background: linear-gradient(145deg, rgba(197,160,89,0.16), rgba(25,135,84,0.10));
+            color: var(--gold);
+        }
+        html[data-theme="dark"] .card > i,
+        html[data-theme="dark"] .card > div[style*="position:relative"] { background: rgba(255,255,255,0.06); }
+        .card span { font-size: 0.74rem; line-height: 1.35; color: var(--text); padding: 0 2px; }
+        .card small { font-size: .6rem; margin-top: 4px; }
+        .card .fav-btn {
+            position: absolute; top: 6px; inset-inline-start: 6px; width: 26px; height: 26px;
+            border: none; background: transparent; color: #c9d2d9; font-size: .78rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%;
+            transition: transform .15s, color .2s; z-index: 3;
+        }
+        .card .fav-btn i { font-size: .8rem; color: inherit; margin: 0; width: auto; height: auto; background: none; }
+        .card .fav-btn:active { transform: scale(1.35); }
+        .card.is-fav .fav-btn { color: var(--gold); }
+        .card .use-badge {
+            position: absolute; top: 7px; inset-inline-end: 8px; font-size: .58rem; font-weight: 900;
+            color: var(--primary); background: rgba(25,135,84,.12); border-radius: 999px; padding: 2px 6px;
+        }
+        .card .ripple {
+            position: absolute; border-radius: 50%; transform: scale(0); pointer-events: none;
+            background: rgba(25,135,84,0.18); animation: ripple .5s ease-out forwards;
+        }
+        @keyframes ripple { to { transform: scale(2.6); opacity: 0; } }
+
+        .empty-state {
+            display: none; text-align: center; color: var(--muted);
+            padding: 38px 20px; background: var(--surface); border: 1px dashed var(--line);
+            border-radius: 18px; margin-top: 10px;
+        }
+        .empty-state i { font-size: 2rem; color: var(--gold); margin-bottom: 10px; display: block; }
+        .empty-state b { display: block; color: var(--text); margin-bottom: 4px; }
+
+        /* ---------- النماذج ---------- */
+        .form-section { border-radius: 20px; padding: 18px 16px; border-top-width: 4px; }
+        .form-title { font-size: 1.12rem; margin-bottom: 18px; padding-bottom: 12px; }
+        .input-group label { color: var(--muted); font-size: 0.82rem; }
+        input, select, textarea { padding: 13px; border-radius: 13px; font-size: 16px; }
+
+        /* ---------- الشريط السفلي ---------- */
+        .fab-container {
+            bottom: 0; left: 0; transform: none; width: 100%; max-width: none;
+            padding: 10px 14px calc(10px + var(--safe-bottom));
+            background: var(--surface);
+            border-top: 1px solid var(--line); box-shadow: 0 -6px 22px rgba(0,0,0,0.07);
+            gap: 8px; box-sizing: border-box;
+        }
+        .btn { padding: 14px 10px; border-radius: 16px; font-size: .95rem; box-shadow: none; }
+        .btn-back { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); flex: 0 0 58px; }
+        .btn-copy { background: var(--gold); color: #fff; flex: 0 0 58px; }
+        .btn-send { flex: 1; box-shadow: 0 6px 18px rgba(25,135,84,0.30); }
+
+        /* زر العودة لأعلى */
+        .to-top {
+            position: fixed; inset-inline-start: 14px; bottom: calc(18px + var(--safe-bottom));
+            width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+            background: var(--surface); color: var(--primary); box-shadow: var(--shadow-md);
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            opacity: 0; visibility: hidden; transform: translateY(10px); transition: .25s; z-index: 880;
+        }
+        .to-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
+
+
+        /* ---------- إطار ملون لكل قسم ---------- */
+        .section-block {
+            position: relative; margin: 0 0 18px; padding: 14px 12px 16px;
+            border: 1px solid var(--line); border-radius: 22px;
+            background: var(--sec-tint, var(--surface-2));
+            box-shadow: var(--shadow-sm);
+        }
+        .section-block > .section-title { margin: 0 0 12px; padding-bottom: 10px; color: var(--sec-ink, var(--primary-dark)); border-bottom: 1px solid var(--line); }
+        .section-block > .section-title i { color: var(--sec-ink, var(--gold)); }
+        .section-block > .section-title::after { background: var(--sec-ink, var(--gold)); }
+        .section-block .sec-count { background: var(--surface); }
+        .section-block[data-accent="teal"]   { --sec-tint: rgba(25,135,84,0.07);  --sec-ink: #146c43; }
+        .section-block[data-accent="gold"]   { --sec-tint: rgba(197,160,89,0.12); --sec-ink: #8a6a22; }
+        .section-block[data-accent="blue"]   { --sec-tint: rgba(43,87,154,0.08);  --sec-ink: #2b579a; }
+        .section-block[data-accent="violet"] { --sec-tint: rgba(111,66,193,0.08); --sec-ink: #5b3a9e; }
+        .section-block[data-accent="rose"]   { --sec-tint: rgba(211,47,47,0.07);  --sec-ink: #b03030; }
+        .section-block[data-accent="slate"]  { --sec-tint: rgba(69,90,100,0.08);  --sec-ink: #455a64; }
+        .section-block[data-accent="quick"]  { --sec-tint: linear-gradient(135deg, rgba(197,160,89,0.16), rgba(25,135,84,0.10)); --sec-ink: #8a6a22; }
+        html[data-theme="dark"] .section-block { background: rgba(255,255,255,0.035); }
+        html[data-theme="dark"] .section-block[data-accent="quick"] { background: linear-gradient(135deg, rgba(217,184,119,0.14), rgba(46,163,106,0.10)); }
+        html[data-theme="dark"] .section-block > .section-title,
+        html[data-theme="dark"] .section-block > .section-title i { color: var(--text); }
+        .quick-hint {
+            display: flex; align-items: center; gap: 7px; margin: -4px 0 12px;
+            font-size: .72rem; font-weight: 700; color: var(--muted); line-height: 1.6;
+        }
+        .quick-hint i { color: var(--gold); }
+
+        @media (min-width: 720px) {
+            .grid-menu { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+            .card { min-height: 132px; }
+            .card span { font-size: .82rem; }
+            .fab-container { left: 50%; transform: translateX(-50%); max-width: 640px; border-radius: 22px 22px 0 0; border: 1px solid var(--line); }
+        }
+        @media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
     </style>
 </head>
 <body>
 
-<header>
-    <h1>نظام رسائل التوجيه</h1>
+<header class="appbar">
+    <div class="appbar-row">
+        <button type="button" class="appbar-btn" id="appbarBack" onclick="closeForm()" aria-label="رجوع" hidden><i class="fas fa-arrow-right"></i></button>
+        <div class="appbar-titles">
+            <h1 id="appTitle">نظام رسائل التوجيه</h1>
+            <span class="appbar-sub" id="appSubtitle">اختر النموذج المطلوب</span>
+        </div>
+        <button type="button" class="appbar-btn" id="themeBtn" aria-label="الوضع الليلي"><i class="fas fa-moon"></i></button>
+    </div>
+    <div class="searchbar" id="searchBar">
+        <i class="fas fa-search"></i>
+        <input type="search" id="menuSearch" placeholder="ابحث عن نموذج..." autocomplete="off">
+        <button type="button" class="search-clear" id="searchClear" hidden><i class="fas fa-times"></i></button>
+    </div>
 </header>
 
 <div class="container">
@@ -476,6 +716,12 @@
 </div>
         </div>
 
+        <div class="empty-state" id="searchEmpty">
+            <i class="fas fa-magnifying-glass"></i>
+            <b>لا توجد نتائج مطابقة</b>
+            جرّب كلمة أخرى أو امسح البحث
+        </div>
+
     </div>
 
     <div id="form-cancelledFlights" class="form-section">
@@ -540,10 +786,11 @@
             <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('fn_transit_count_field', this)"> عدد الترانزيت</label>
             <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('fn_passenger_count_field', this)"> عدد الركاب</label>
             <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('fn_manifest_time_field', this)"> وقت استلام المنفست</label>
+            <label class="checkbox-btn"><input type="checkbox" onchange="toggleCustomField('fn_computer_count_field', this)"> عدد الحاسب الالي</label>
         </div>
 
         <div class="row">
-            <div class="input-group"><label>الخطوط</label><input type="text" id="fn_airline" placeholder="اسم الخطوط"></div>
+            <div class="input-group"><label>الخطوط</label><input type="text" id="fn_airline" placeholder="اسم الخطوط" oninput="updateFlightNoteIntro()"></div>
             <div class="input-group"><label>رقم الرحلة</label><input type="text" id="fn_flight" list="flights_list_db" class="en-num" oninput="autoFillFlightNoteDest()"></div>
         </div>
 
@@ -562,9 +809,15 @@
             <div id="fn_passenger_count_field" style="display:none;" class="input-group"><label>عدد الركاب</label><input type="number" id="fn_passenger_count" class="en-num" min="0"></div>
         </div>
 
-        <div id="fn_manifest_time_field" style="display:none;" class="input-group">
-            <label>وقت استلام المنفست</label>
-            <input type="text" id="fn_manifest_time" placeholder="مثال: 8:30">
+        <div class="row">
+            <div id="fn_manifest_time_field" style="display:none;" class="input-group">
+                <label>وقت استلام المنفست</label>
+                <input type="text" id="fn_manifest_time" placeholder="مثال: 8:30">
+            </div>
+            <div id="fn_computer_count_field" style="display:none;" class="input-group">
+                <label>عدد الحاسب الالي</label>
+                <input type="number" id="fn_computer_count" class="en-num" min="0">
+            </div>
         </div>
 
         <div class="input-group">
@@ -1084,9 +1337,11 @@
         </div>
     </div>
 <div id="fab-actions" class="fab-container">
-    <button class="btn btn-back" onclick="closeForm()"><i class="fas fa-arrow-right"></i> عودة</button>
-    <button class="btn btn-send" onclick="sendWhatsApp()"><i class="fab fa-whatsapp"></i> إرسال</button>
+    <button class="btn btn-back" onclick="closeForm()" aria-label="عودة"><i class="fas fa-arrow-right"></i></button>
+    <button class="btn btn-copy" onclick="copyMessage()" aria-label="نسخ النص"><i class="fas fa-copy"></i></button>
+    <button class="btn btn-send" onclick="sendWhatsApp()"><i class="fab fa-whatsapp"></i> إرسال عبر واتساب</button>
 </div>
+<button type="button" class="to-top" id="toTop" aria-label="أعلى الصفحة"><i class="fas fa-arrow-up"></i></button>
 
 <script>
     let currentForm = null;
@@ -1114,6 +1369,7 @@
         if(input) {
             input.value = airline;
             input.focus();
+            if(inputId === 'fn_airline' && typeof updateFlightNoteIntro === 'function') updateFlightNoteIntro();
         }
     }
 
@@ -1217,6 +1473,7 @@ document.addEventListener('input', function(e) {
         if(id === 'want' && !document.getElementById('wt_passengers').innerHTML) renderWT();
         if(id === 'fingercon') fillFCNote();
         if(id === 'diplomaticVisaExpired') updateDiplomaticVisaNote();
+        if(id === 'flightNote') updateFlightNoteIntro();
         if(id === 'citizenBannedCountry' && !document.getElementById('cbc_note').value) buildCbcNote();
         if(id === 'noacspt' && !document.getElementById('nf_passengers').innerHTML) renderNF();
         if(id === 'stragglers') {
@@ -1291,7 +1548,7 @@ document.addEventListener('input', function(e) {
             c.checked = false; 
             c.parentElement.classList.remove('active'); 
         });
-        ['c_border', 'c_res', 'c_visa', 'c_entry', 'wt_custom', 'pr_abs_names_box', 'pr_err', 'fn_departure_time_field', 'fn_clearance_time_field', 'fn_crew_count_field', 'fn_transit_count_field', 'fn_passenger_count_field', 'fn_manifest_time_field'].forEach(id => {
+        ['c_border', 'c_res', 'c_visa', 'c_entry', 'wt_custom', 'pr_abs_names_box', 'pr_err', 'fn_departure_time_field', 'fn_clearance_time_field', 'fn_crew_count_field', 'fn_transit_count_field', 'fn_passenger_count_field', 'fn_manifest_time_field', 'fn_computer_count_field'].forEach(id => {
             const el = document.getElementById(id);
             if(el) el.style.display = 'none';
         });
@@ -2172,6 +2429,23 @@ function calcPresence() {
         }
     }
 
+    // نص افتراضي لملاحظة الرحلة يتحدث تلقائيًا باسم الخطوط المختارة،
+    // ويبقى قابلًا للتعديل يدويًا (لا نكتب فوق ما يكتبه المستخدم).
+    function flightNoteIntro(airline) {
+        return `تم أشعارنا من قبل مناوب خطوط ( ${airline || '........'} ) بخروج الطائرة عن الخدمة وسوف يتم ........`;
+    }
+
+    function updateFlightNoteIntro() {
+        const note = document.getElementById('fn_note');
+        if(!note) return;
+        const airline = (document.getElementById('fn_airline') || {}).value || '';
+        const current = (note.value || '').trim();
+        const isAuto = !current || /^تم أشعارنا من قبل مناوب خطوط \(.*?\) بخروج الطائرة عن الخدمة وسوف يتم/.test(current);
+        if(!isAuto) return;
+        const rest = current.replace(/^تم أشعارنا من قبل مناوب خطوط \(.*?\) بخروج الطائرة عن الخدمة وسوف يتم ?\.*/, '').trim();
+        note.value = rest ? `${flightNoteIntro(airline)} ${rest}` : flightNoteIntro(airline);
+    }
+
     function updateDiplomaticVisaNote() {
         const type = document.getElementById('dpv_type').value;
         document.getElementById('dpv_note').value = `مواطن يحمل جواز ( ${type} ) وعند الشروع في مغادرته ظهرت عبارة ( التأشيرة منتهية )`;
@@ -2251,6 +2525,7 @@ function calcPresence() {
             if(isShown('fn_transit_count_field')) txt.push(`*عدد الترانزيت:* ${val('fn_transit_count')}`);
             if(isShown('fn_passenger_count_field')) txt.push(`*عدد الركاب:* ${val('fn_passenger_count')}`);
             if(isShown('fn_manifest_time_field')) txt.push(`*وقت استلام المنفست:* ${val('fn_manifest_time')}`);
+            if(isShown('fn_computer_count_field')) txt.push(`*عدد الحاسب الالي:* ${val('fn_computer_count')}`);
             txt.push(``);
             txt.push(`———`);
             txt.push(`*الملاحظة :*`);
@@ -2696,7 +2971,9 @@ function calcPresence() {
             txt.push(`\n*الملاحظة:* ${val('dfn_note')}`);
             txt.push("\n*بأمل اطلاع سعادتكم والتوجيه*");
         }
-window.location.href = `https://wa.me/?text=${encodeURIComponent(txt.join('\n'))}`;
+const messageText = txt.join('\n');
+        if (window.__captureMessage) { window.__captureMessage.text = messageText; return; }
+        window.location.href = `https://wa.me/?text=${encodeURIComponent(messageText)}`;
     } // 👈👈 أضف قوس الإغلاق هذا هنا لإنهاء دالة الواتساب
 
     // === دوال جدول انتهاء التأشيرة للـ Word ===
@@ -2901,5 +3178,344 @@ window.location.href = `https://wa.me/?text=${encodeURIComponent(txt.join('\n'))
     <canvas id="cameraCaptureCanvas" style="display:none"></canvas>
 </div>
 <div class="app-toast" id="appToast"></div>
+<script>
+/* ======================================================
+   طبقة الواجهة التفاعلية (2026)
+   بحث فوري + مفضلة + الأكثر استخدامًا + وضع ليلي + نسخ الرسالة
+   لا تمس هذه الطبقة منطق النماذج أو صياغة الرسائل.
+   ====================================================== */
+(function () {
+    'use strict';
+
+    var LS_THEME = 'ui_theme';
+    var LS_FAVS  = 'ui_favs';
+    var LS_USES  = 'ui_uses';
+
+    function lsGet(key) {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+    function lsSet(key, value) {
+        try { localStorage.setItem(key, value); } catch (e) {}
+    }
+    function read(key, fallback) {
+        try { return JSON.parse(lsGet(key)) || fallback; } catch (e) { return fallback; }
+    }
+    function write(key, value) {
+        lsSet(key, JSON.stringify(value));
+    }
+    function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+
+    /* ---------- الوضع الليلي ---------- */
+    function applyTheme(mode) {
+        document.documentElement.setAttribute('data-theme', mode);
+        var icon = document.querySelector('#themeBtn i');
+        if (icon) icon.className = mode === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    var savedTheme = lsGet(LS_THEME);
+    applyTheme(savedTheme === '"dark"' || savedTheme === 'dark' ? 'dark' : 'light');
+
+    /* ---------- تجهيز البطاقات ---------- */
+    var favs = read(LS_FAVS, []);
+    var uses = read(LS_USES, {});
+
+    function cardKey(card) {
+        return (card.getAttribute('data-key') || (card.querySelector('span') ? card.querySelector('span').textContent.trim() : '')).trim();
+    }
+
+    function decorateCards() {
+        var menu = document.getElementById('mainMenu');
+        if (!menu) return;
+        menu.querySelectorAll('.grid-menu .card').forEach(function (card) {
+            if (card.dataset.ready) return;
+            card.dataset.ready = '1';
+            var key = cardKey(card);
+            card.setAttribute('data-key', key);
+
+            var fav = document.createElement('button');
+            fav.type = 'button';
+            fav.className = 'fav-btn';
+            fav.setAttribute('aria-label', 'إضافة للمفضلة');
+            fav.innerHTML = '<i class="' + (favs.indexOf(key) > -1 ? 'fas' : 'far') + ' fa-star"></i>';
+            fav.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                toggleFav(key);
+            });
+            card.appendChild(fav);
+            if (favs.indexOf(key) > -1) card.classList.add('is-fav');
+
+            if (uses[key]) {
+                var badge = document.createElement('span');
+                badge.className = 'use-badge';
+                badge.textContent = uses[key];
+                card.appendChild(badge);
+            }
+
+            card.addEventListener('pointerdown', function (ev) {
+                card.classList.add('is-pressed');
+                var r = document.createElement('span');
+                var rect = card.getBoundingClientRect();
+                var size = Math.max(rect.width, rect.height);
+                r.className = 'ripple';
+                r.style.width = r.style.height = size + 'px';
+                r.style.left = (ev.clientX - rect.left - size / 2) + 'px';
+                r.style.top = (ev.clientY - rect.top - size / 2) + 'px';
+                card.appendChild(r);
+                setTimeout(function () { r.remove(); }, 520);
+            });
+            ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (evt) {
+                card.addEventListener(evt, function () { card.classList.remove('is-pressed'); });
+            });
+            card.addEventListener('click', function () { buzz(12); });
+        });
+    }
+
+    function toggleFav(key) {
+        var i = favs.indexOf(key);
+        if (i > -1) favs.splice(i, 1); else favs.push(key);
+        write(LS_FAVS, favs);
+        buzz(18);
+        document.querySelectorAll('#mainMenu .grid-menu .card').forEach(function (card) {
+            if (cardKey(card) !== key) return;
+            var on = favs.indexOf(key) > -1;
+            card.classList.toggle('is-fav', on);
+            var ic = card.querySelector('.fav-btn i');
+            if (ic) ic.className = (on ? 'fas' : 'far') + ' fa-star';
+        });
+        renderQuickSection();
+    }
+
+    /* ---------- تجميع كل قسم داخل إطار ملون ---------- */
+    var ACCENTS = ['teal', 'gold', 'blue', 'violet', 'rose', 'slate'];
+
+    function groupSections() {
+        var menu = document.getElementById('mainMenu');
+        if (!menu) return;
+        var kids = Array.prototype.slice.call(menu.children);
+        var index = 0;
+        kids.forEach(function (el) {
+            if (!el.classList.contains('section-title')) return;
+            var grid = el.nextElementSibling;
+            if (!grid || !grid.classList.contains('grid-menu')) return;
+            var block = document.createElement('section');
+            block.className = 'section-block';
+            block.setAttribute('data-accent', ACCENTS[index % ACCENTS.length]);
+            index++;
+            menu.insertBefore(block, el);
+            block.appendChild(el);
+            block.appendChild(grid);
+        });
+    }
+
+    /* ---------- قسم الوصول السريع (المفضلة + الأكثر استخدامًا) ---------- */
+    function renderQuickSection() {
+        var menu = document.getElementById('mainMenu');
+        if (!menu) return;
+        var old = document.getElementById('quickSection');
+        if (old) old.remove();
+
+        var sourceCards = Array.prototype.slice.call(menu.querySelectorAll('.section-block .grid-menu .card'));
+        var picked = [];
+        favs.forEach(function (k) {
+            var c = sourceCards.filter(function (x) { return cardKey(x) === k; })[0];
+            if (c) picked.push(c);
+        });
+        if (picked.length < 4) {
+            Object.keys(uses).sort(function (a, b) { return uses[b] - uses[a]; }).forEach(function (k) {
+                if (picked.length >= 6) return;
+                if (favs.indexOf(k) > -1) return;
+                var c = sourceCards.filter(function (x) { return cardKey(x) === k; })[0];
+                if (c) picked.push(c);
+            });
+        }
+        var wrap = document.createElement('section');
+        wrap.id = 'quickSection';
+        wrap.className = 'section-block';
+        wrap.setAttribute('data-accent', 'quick');
+        wrap.innerHTML = '<div class="section-title"><i class="fas fa-bolt"></i> الوصول السريع'
+            + (picked.length ? '<span class="sec-count">' + picked.length + '</span>' : '') + '</div>'
+            + '<div class="quick-hint"><i class="fas fa-star"></i> اضغط نجمة أي نموذج لجعله مفضلة ويظهر هنا</div>'
+            + '<div class="grid-menu" id="quickGrid"></div>';
+        var grid = wrap.querySelector('#quickGrid');
+        picked.slice(0, 6).forEach(function (card) {
+            var clone = card.cloneNode(true);
+            clone.removeAttribute('data-ready');
+            var star = clone.querySelector('.fav-btn');
+            if (star) star.remove();
+            var onclick = card.getAttribute('onclick');
+            clone.removeAttribute('onclick');
+            clone.addEventListener('click', function () {
+                buzz(12);
+                try { new Function(onclick).call(card); } catch (e) {}
+            });
+            grid.appendChild(clone);
+        });
+        menu.insertBefore(wrap, menu.firstChild);
+    }
+
+    /* ---------- البحث الفوري ---------- */
+    function normalize(t) {
+        return (t || '').replace(/[أإآ]/g, 'ا').replace(/[ى]/g, 'ي').replace(/[ة]/g, 'ه')
+            .replace(/[ًٌٍَُِّْ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    }
+    function runSearch(q) {
+        var menu = document.getElementById('mainMenu');
+        if (!menu) return;
+        var term = normalize(q);
+        var quick = document.getElementById('quickSection');
+        if (quick) quick.style.display = term ? 'none' : '';
+        var visibleTotal = 0;
+        var blocks = [];
+        menu.querySelectorAll('.section-block').forEach(function (block) {
+            if (block.id === 'quickSection') return;
+            blocks.push({
+                block: block,
+                title: block.querySelector('.section-title'),
+                grid: block.querySelector('.grid-menu')
+            });
+        });
+        blocks.forEach(function (b) {
+            if (!b.grid || !b.title) return;
+            var shown = 0;
+            b.grid.querySelectorAll('.card').forEach(function (card) {
+                var match = !term || normalize(card.textContent).indexOf(term) > -1;
+                card.style.display = match ? '' : 'none';
+                if (match) shown++;
+            });
+            visibleTotal += shown;
+            b.block.style.display = shown ? '' : 'none';
+            var counter = b.title.querySelector('.sec-count');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'sec-count';
+                b.title.appendChild(counter);
+            }
+            counter.textContent = shown;
+        });
+        var empty = document.getElementById('searchEmpty');
+        if (empty) empty.style.display = (term && !visibleTotal) ? 'block' : 'none';
+    }
+
+    /* ---------- نسخ نص الرسالة ---------- */
+    window.copyMessage = function () {
+        window.__captureMessage = {};
+        try { sendWhatsApp(); } catch (e) {}
+        var text = window.__captureMessage.text || '';
+        window.__captureMessage = null;
+        if (!text) return;
+        var done = function () {
+            buzz(20);
+            if (typeof showAppToast === 'function') showAppToast('تم نسخ نص الرسالة', 'success');
+            else alert('تم نسخ نص الرسالة');
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+        } else { fallbackCopy(text, done); }
+    };
+    function fallbackCopy(text, done) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        ta.remove();
+    }
+
+    /* ---------- ربط فتح/إغلاق النماذج ---------- */
+    function hookNavigation() {
+        var openOrig = window.openForm;
+        var closeOrig = window.closeForm;
+
+        window.openForm = function (id) {
+            var result = openOrig.apply(this, arguments);
+            try {
+                var section = document.getElementById('form-' + id);
+                var title = section && section.querySelector('.form-title');
+                var label = title ? title.textContent.trim() : '';
+                if (label) {
+                    uses[label] = (uses[label] || 0) + 1;
+                    write(LS_USES, uses);
+                    document.getElementById('appTitle').textContent = label;
+                    document.getElementById('appSubtitle').textContent = 'اضغط رجوع للعودة للقائمة';
+                }
+                document.getElementById('searchBar').style.display = 'none';
+                document.getElementById('appbarBack').hidden = false;
+                var st = document.getElementById('searchEmpty');
+                if (st) st.style.display = 'none';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (e) {}
+            return result;
+        };
+
+        window.closeForm = function () {
+            var result = closeOrig.apply(this, arguments);
+            try {
+                document.getElementById('mainMenu').style.display = 'block';
+                document.getElementById('appTitle').textContent = 'نظام رسائل التوجيه';
+                document.getElementById('appSubtitle').textContent = 'اختر النموذج المطلوب';
+                document.getElementById('searchBar').style.display = '';
+                document.getElementById('appbarBack').hidden = true;
+                var input = document.getElementById('menuSearch');
+                if (input) input.value = '';
+                decorateCards();
+                renderQuickSection();
+                runSearch('');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (e) {}
+            return result;
+        };
+    }
+
+    /* ---------- التشغيل ---------- */
+    function boot() {
+        var themeBtn = document.getElementById('themeBtn');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', function () {
+                var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                applyTheme(next);
+                lsSet(LS_THEME, next);
+                buzz(15);
+            });
+        }
+
+        var input = document.getElementById('menuSearch');
+        var clear = document.getElementById('searchClear');
+        if (input) {
+            input.addEventListener('input', function () {
+                clear.hidden = !input.value;
+                runSearch(input.value);
+            });
+        }
+        if (clear) {
+            clear.addEventListener('click', function () {
+                input.value = '';
+                clear.hidden = true;
+                runSearch('');
+                input.focus();
+            });
+        }
+
+        var toTop = document.getElementById('toTop');
+        if (toTop) {
+            toTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+            window.addEventListener('scroll', function () {
+                var onMenu = document.getElementById('mainMenu').style.display !== 'none';
+                toTop.classList.toggle('show', window.scrollY > 320 && onMenu);
+            }, { passive: true });
+        }
+
+        groupSections();
+        decorateCards();
+        renderQuickSection();
+        runSearch('');
+        hookNavigation();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
+})();
+</script>
+
 </body>
 </html>
