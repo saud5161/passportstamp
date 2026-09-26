@@ -151,6 +151,52 @@
     @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
     .shift-times-note { text-align: center; font-size: 0.7rem; color: #aaa; margin-top: 6px; font-weight: 700; }
 
+    /* بطاقة المستلم الآن - نسخة واضحة مع المستلم التالي */
+    .live-now {
+        margin-top: 14px; border: 1px solid #ececec; border-right: 7px solid var(--gold);
+        border-radius: 16px; background: #fff; overflow: hidden;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.06); transition: border-color .4s;
+    }
+    .live-now-head {
+        display: flex; align-items: center; gap: 8px; padding: 9px 14px;
+        background: #f7f9f8; border-bottom: 1px solid #eee;
+        font-size: 0.78rem; font-weight: 900; color: #6b7a87; letter-spacing: .3px;
+    }
+    .live-now-head .dot-blink { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; animation: blink 1.2s infinite; flex-shrink: 0; }
+    .live-now-body { display: flex; align-items: center; gap: 12px; padding: 14px; }
+    .live-now-letter {
+        width: 58px; height: 58px; flex-shrink: 0; border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.9rem; font-weight: 900; color: var(--primary-dark);
+        background: linear-gradient(145deg, rgba(197,160,89,0.22), rgba(25,135,84,0.14));
+        border: 1px solid rgba(197,160,89,0.45);
+    }
+    .live-now-details { flex: 1; min-width: 0; }
+    .live-now-title { display: flex; align-items: center; gap: 8px; font-size: 1.25rem; font-weight: 900; color: var(--primary-dark); }
+    .live-now-title .status-swatch { width: 13px; height: 13px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0; }
+    .live-now-sub { font-size: 0.78rem; font-weight: 800; color: #8a97a1; margin-top: 3px; }
+    .live-now-remain { text-align: center; flex-shrink: 0; }
+    .live-now-remain .lbl { display: block; font-size: 0.63rem; font-weight: 800; color: #9aa7b1; margin-bottom: 2px; }
+    .live-now-remain b { font-size: 0.95rem; font-weight: 900; color: var(--primary); }
+    .live-next {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        padding: 10px 14px; background: #fbfaf6; border-top: 1px dashed #e6e0cf;
+    }
+    .live-next-label { font-size: 0.74rem; font-weight: 900; color: #9a8452; display: flex; align-items: center; gap: 6px; }
+    .live-next-value { display: flex; align-items: center; gap: 7px; font-size: 0.95rem; font-weight: 900; color: var(--primary-dark); }
+    .live-next-value .status-swatch { width: 11px; height: 11px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); }
+    .live-next-time { font-size: 0.72rem; font-weight: 800; color: #8a97a1; }
+
+    /* أزرار تنقل الشهر */
+    .cal-nav { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 0.75rem; white-space: nowrap; padding: 8px 10px; }
+    .cal-nav .short { display: none; }
+    @media (max-width: 460px) {
+        .cal-head .cal-title { font-size: 0.85rem; }
+        .cal-nav { font-size: 0.68rem; padding: 7px 8px; gap: 4px; }
+        .cal-nav .full { display: none; }
+        .cal-nav .short { display: inline; }
+    }
+
     /* عرض المستلمين (قائمة) */
     .passengers-toggle-btn {
         width: 100%; margin-top: 14px; background: #f8f9fa; border: 1px solid #e6e6e6;
@@ -297,9 +343,20 @@
             <div class="shift-btn" data-shift="د" onclick="selectShift('د')"><span class="letter">د</span>مناوبة د</div>
         </div>
 
-        <div class="live-info" id="liveInfo">
-            <div class="live-info-label"><span class="dot-blink"></span> المستلم الآن</div>
-            <div class="live-info-value"><span class="status-swatch" id="liveInfoSwatch"></span><span id="liveInfoValue">—</span></div>
+        <div class="live-now" id="liveInfo">
+            <div class="live-now-head"><span class="dot-blink"></span> المستلم الآن</div>
+            <div class="live-now-body">
+                <div class="live-now-letter" id="liveInfoLetter">—</div>
+                <div class="live-now-details">
+                    <div class="live-now-title"><span class="status-swatch" id="liveInfoSwatch"></span><span id="liveInfoValue">—</span></div>
+                    <div class="live-now-sub" id="liveInfoPeriod">—</div>
+                </div>
+                <div class="live-now-remain"><span class="lbl">ينتهي بعد</span><b id="liveInfoRemain">—</b></div>
+            </div>
+            <div class="live-next" id="liveNext">
+                <div class="live-next-label"><i class="fas fa-arrow-left-long"></i> المستلم التالي</div>
+                <div class="live-next-value"><span class="status-swatch" id="liveNextSwatch"></span><b id="liveNextValue">—</b><span class="live-next-time" id="liveNextTime">—</span></div>
+            </div>
         </div>
         <div class="shift-times-note">صباح 6ص–2م &nbsp;|&nbsp; ظهر 2م–10م &nbsp;|&nbsp; ليل 10م–6ص</div>
 
@@ -355,9 +412,9 @@
 
     <div class="card-panel">
         <div class="cal-head">
-            <button onclick="changeMonth(-1)"><i class="fas fa-chevron-right"></i></button>
+            <button class="cal-nav" onclick="changeMonth(-1)"><i class="fas fa-chevron-right"></i> <span class="full">الشهر السابق</span><span class="short">السابق</span></button>
             <div class="cal-title" id="calTitle"></div>
-            <button onclick="changeMonth(1)"><i class="fas fa-chevron-left"></i></button>
+            <button class="cal-nav" onclick="changeMonth(1)"><span class="full">الشهر التالي</span><span class="short">التالي</span> <i class="fas fa-chevron-left"></i></button>
         </div>
         <div class="cal-grid" id="calGrid"></div>
     </div>
@@ -508,14 +565,56 @@ function getCurrentActiveShift() {
     return { shift: matchedShift, dateStr, period, now };
 }
 
-function updateLiveInfo() {
-    const { shift, dateStr } = getCurrentActiveShift();
-    const { status } = getStatusFor(dateStr, shift);
-    const meta = STATUS_META[status];
+// الفترة التالية بعد الفترة الحالية (صباح ← ظهر ← ليل ← صباح اليوم التالي)
+function getNextActiveShift(current) {
+    const order = { 'صباح': 'ظهر', 'ظهر': 'ليل', 'ليل': 'صباح' };
+    const nextPeriod = order[current.period];
+    // فترة الليل تنتهي فجر اليوم التالي، فيكون الصباح التالي في اليوم التالي لتاريخ الليل
+    const nextDate = (current.period === 'ليل')
+        ? moment(current.dateStr, 'YYYY-MM-DD').add(1, 'day')
+        : moment(current.dateStr, 'YYYY-MM-DD');
+    const nextDateStr = nextDate.format('YYYY-MM-DD');
+    const shiftLetters = ['أ', 'ب', 'ج', 'د'];
+    const matches = shiftLetters.filter(sh => getStatusFor(nextDateStr, sh).status === nextPeriod);
+    return { shift: matches[0], others: matches.slice(1), period: nextPeriod, dateStr: nextDateStr };
+}
 
-    document.getElementById('liveInfoValue').textContent = `مناوبة ${shift}`;
+function periodRangeText(period) {
+    const t = SHIFT_TIMES[period];
+    const fmt = h => (h === 0 ? '12ص' : h < 12 ? h + 'ص' : h === 12 ? '12م' : (h - 12) + 'م');
+    return `${fmt(t[0])} – ${fmt(t[1])}`;
+}
+
+// الوقت المتبقي على انتهاء الفترة الحالية
+function remainingText(period, now) {
+    const endHour = SHIFT_TIMES[period][1];
+    let end = now.clone().startOf('day').add(endHour, 'hours');
+    if (end.isSameOrBefore(now)) end.add(1, 'day');
+    const mins = Math.max(0, end.diff(now, 'minutes'));
+    const h = Math.floor(mins / 60), m = mins % 60;
+    if (h && m) return `${h} س ${m} د`;
+    if (h) return `${h} ساعة`;
+    return `${m} دقيقة`;
+}
+
+function updateLiveInfo() {
+    const current = getCurrentActiveShift();
+    const { shift, dateStr, period, now } = current;
+    const meta = STATUS_META[getStatusFor(dateStr, shift).status];
+
+    document.getElementById('liveInfoLetter').textContent = shift || '—';
+    document.getElementById('liveInfoValue').textContent = `مناوبة ${shift || '—'}`;
     document.getElementById('liveInfoSwatch').style.background = meta.color;
+    document.getElementById('liveInfoPeriod').textContent = `فترة ${period} · ${periodRangeText(period)}`;
+    document.getElementById('liveInfoRemain').textContent = remainingText(period, now);
     document.getElementById('liveInfo').style.borderRightColor = meta.border;
+
+    const next = getNextActiveShift(current);
+    const nextMeta = STATUS_META[next.period];
+    const extra = next.others.length ? ` (مع ${next.others.map(x => 'مناوبة ' + x).join(' و ')})` : '';
+    document.getElementById('liveNextValue').textContent = `مناوبة ${next.shift || '—'}${extra}`;
+    document.getElementById('liveNextSwatch').style.background = nextMeta.color;
+    document.getElementById('liveNextTime').textContent = `فترة ${next.period} · تبدأ ${periodRangeText(next.period).split(' – ')[0]}`;
 
     // تحديث شارة "قيد الاستلام الآن" إن كانت النتيجة المعروضة مطابقة
     if (selectedShift) renderResult();
