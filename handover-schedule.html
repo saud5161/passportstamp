@@ -442,10 +442,11 @@
 <script>
 // ================== إعدادات الجدول ==================
 // تاريخ بداية الدورة: 6-2-1448 هـ
-// عند بداية الدورة: مناوبة د = أول يوم ظهر | أ = أول يوم ليل | ب = أول يوم أوف | ج = صباح ثابتة
+// عند بداية الدورة: مناوبة د = أول يوم ظهر | أ = أول يوم ليل | ج = أول يوم أوف | ب = صباح ثابتة
 const ANCHOR = moment('1448/02/06', 'iYYYY/iMM/iDD').startOf('day');
 const CYCLE_PATTERN = ['ظهر','ظهر','ظهر','ليل','ليل','ليل','أوف','أوف','أوف']; // دورة 9 أيام
-const SHIFT_OFFSET = { 'د': 0, 'أ': 3, 'ب': 6 };
+const FIXED_MORNING_SHIFT = 'ب';
+const SHIFT_OFFSET = { 'د': 0, 'أ': 3, 'ج': 6 };
 
 const STATUS_META = {
     'صباح': { color: '#fdf8e9', dark: '#f2e3b8', icon: 'fa-sun', label: 'صباحي', text: '#8a6d1f', chip: 'صباح', border: '#e8cf82' },
@@ -465,7 +466,7 @@ function getStatusFor(dateStr, shift) {
     const offsetDays = d.diff(ANCHOR, 'days');
     const cycleIndex = ((offsetDays % 9) + 9) % 9;
 
-    if (shift === 'ج') {
+    if (shift === FIXED_MORNING_SHIFT) {
         return { status: 'صباح', dayNum: null };
     }
     const idx = (cycleIndex + SHIFT_OFFSET[shift]) % 9;
